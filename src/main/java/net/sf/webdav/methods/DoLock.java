@@ -15,15 +15,9 @@
  */
 package net.sf.webdav.methods;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Hashtable;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.xml.parsers.DocumentBuilder;
-
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import net.sf.webdav.ITransaction;
 import net.sf.webdav.IWebdavStore;
 import net.sf.webdav.StoredObject;
@@ -33,7 +27,6 @@ import net.sf.webdav.exceptions.WebdavException;
 import net.sf.webdav.fromcatalina.XMLWriter;
 import net.sf.webdav.locking.IResourceLocks;
 import net.sf.webdav.locking.LockedObject;
-
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -41,6 +34,11 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Hashtable;
+import javax.xml.parsers.DocumentBuilder;
 
 public class DoLock extends AbstractMethod {
 

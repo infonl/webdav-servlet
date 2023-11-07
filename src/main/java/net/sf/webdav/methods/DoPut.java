@@ -15,12 +15,8 @@
  */
 package net.sf.webdav.methods;
 
-import java.io.IOException;
-import java.util.Hashtable;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import net.sf.webdav.ITransaction;
 import net.sf.webdav.IWebdavStore;
 import net.sf.webdav.StoredObject;
@@ -30,6 +26,9 @@ import net.sf.webdav.exceptions.LockFailedException;
 import net.sf.webdav.exceptions.WebdavException;
 import net.sf.webdav.locking.IResourceLocks;
 import net.sf.webdav.locking.LockedObject;
+
+import java.io.IOException;
+import java.util.Hashtable;
 
 public class DoPut extends AbstractMethod {
 

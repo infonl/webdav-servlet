@@ -1,13 +1,12 @@
 package net.sf.webdav.methods;
 
-import java.io.IOException;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import net.sf.webdav.IMethodExecutor;
 import net.sf.webdav.ITransaction;
 import net.sf.webdav.WebdavStatus;
+
+import java.io.IOException;
 
 public class DoNotImplemented implements IMethodExecutor {
 

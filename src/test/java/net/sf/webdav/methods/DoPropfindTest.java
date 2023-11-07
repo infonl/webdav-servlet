@@ -1,5 +1,7 @@
 package net.sf.webdav.methods;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import net.sf.webdav.IMimeTyper;
 import net.sf.webdav.ITransaction;
 import net.sf.webdav.IWebdavStore;
@@ -12,8 +14,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.PrintWriter;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 public class DoPropfindTest extends MockTest {
     static IWebdavStore mockStore;

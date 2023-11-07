@@ -1,19 +1,17 @@
 package net.sf.webdav.testutil;
 
-import java.io.ByteArrayInputStream;
-import java.util.Date;
-
 import junit.framework.Assert;
 import net.sf.webdav.StoredObject;
 import net.sf.webdav.locking.LockedObject;
 import net.sf.webdav.locking.ResourceLocks;
 import net.sf.webdav.methods.TestingOutputStream;
-
 import org.jmock.Mockery;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.springframework.mock.web.DelegatingServletInputStream;
+
+import java.io.ByteArrayInputStream;
+import java.util.Date;
 
 public abstract class MockTest extends Assert {
 
