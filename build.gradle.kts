@@ -51,6 +51,7 @@ publishing {
 		maven {
 			name = "GitHubPackages"
 			url = uri("https://maven.pkg.github.com/infonl/webdav-servlet")
+			version = "2.1-dev"
 			credentials {
 				username = System.getenv("GITHUB_ACTOR")
 				password = System.getenv("GITHUB_TOKEN")
