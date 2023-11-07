@@ -1,17 +1,9 @@
 package net.sf.webdav;
 
-import java.io.IOException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.security.Principal;
-import java.util.Enumeration;
-import java.util.HashMap;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import net.sf.webdav.exceptions.UnauthenticatedException;
 import net.sf.webdav.exceptions.WebdavException;
 import net.sf.webdav.fromcatalina.MD5Encoder;
@@ -29,6 +21,13 @@ import net.sf.webdav.methods.DoPropfind;
 import net.sf.webdav.methods.DoProppatch;
 import net.sf.webdav.methods.DoPut;
 import net.sf.webdav.methods.DoUnlock;
+
+import java.io.IOException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.Principal;
+import java.util.Enumeration;
+import java.util.HashMap;
 
 public class WebDavServletBean extends HttpServlet {
 

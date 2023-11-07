@@ -1,17 +1,7 @@
 package net.sf.webdav.methods;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Hashtable;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Vector;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.xml.parsers.DocumentBuilder;
-
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import net.sf.webdav.ITransaction;
 import net.sf.webdav.IWebdavStore;
 import net.sf.webdav.StoredObject;
@@ -23,11 +13,18 @@ import net.sf.webdav.fromcatalina.XMLHelper;
 import net.sf.webdav.fromcatalina.XMLWriter;
 import net.sf.webdav.locking.LockedObject;
 import net.sf.webdav.locking.ResourceLocks;
-
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Vector;
+import javax.xml.parsers.DocumentBuilder;
 
 public class DoProppatch extends AbstractMethod {
 
@@ -122,8 +119,8 @@ public class DoProppatch extends AbstractMethod {
                 Node toremoveNode = null;
 
                 if (req.getContentLength() != 0) {
-                    DocumentBuilder documentBuilder = getDocumentBuilder();
                     try {
+                        DocumentBuilder documentBuilder = getDocumentBuilder();
                         Document document = documentBuilder
                                 .parse(new InputSource(req.getInputStream()));
                         // Get the root element of the document
@@ -214,9 +211,6 @@ public class DoProppatch extends AbstractMethod {
                 resp.sendError(WebdavStatus.SC_FORBIDDEN);
             } catch (WebdavException e) {
                 resp.sendError(WebdavStatus.SC_INTERNAL_SERVER_ERROR);
-            } catch (ServletException e) {
-                e.printStackTrace(); // To change body of catch statement use
-                // File | Settings | File Templates.
             } finally {
                 _resourceLocks.unlockTemporaryLockedObjects(transaction, path,
                         tempLockOwner);

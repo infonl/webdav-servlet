@@ -15,17 +15,9 @@
  */
 package net.sf.webdav.methods;
 
-import java.io.IOException;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Hashtable;
-import java.util.Vector;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.xml.parsers.DocumentBuilder;
-
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import net.sf.webdav.IMimeTyper;
 import net.sf.webdav.ITransaction;
 import net.sf.webdav.IWebdavStore;
@@ -39,11 +31,17 @@ import net.sf.webdav.fromcatalina.XMLHelper;
 import net.sf.webdav.fromcatalina.XMLWriter;
 import net.sf.webdav.locking.LockedObject;
 import net.sf.webdav.locking.ResourceLocks;
-
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
+
+import java.io.IOException;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Hashtable;
+import java.util.Vector;
+import javax.xml.parsers.DocumentBuilder;
 
 public class DoPropfind extends AbstractMethod {
 
@@ -172,12 +170,9 @@ public class DoPropfind extends AbstractMethod {
                 generatedXML.sendData();
             } catch (AccessDeniedException e) {
                 resp.sendError(WebdavStatus.SC_FORBIDDEN);
-            } catch (WebdavException e) {
+            } catch (WebdavException | ServletException e) {
                 LOG.warn("Sending internal error!");
                 resp.sendError(WebdavStatus.SC_INTERNAL_SERVER_ERROR);
-            } catch (ServletException e) {
-                e.printStackTrace(); // To change body of catch statement use
-                // File | Settings | File Templates.
             } finally {
                 _resourceLocks.unlockTemporaryLockedObjects(transaction, path,
                         tempLockOwner);

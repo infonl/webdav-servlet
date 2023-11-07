@@ -1,5 +1,7 @@
 package net.sf.webdav.methods;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import net.sf.webdav.IMimeTyper;
 import net.sf.webdav.ITransaction;
 import net.sf.webdav.IWebdavStore;
@@ -10,9 +12,6 @@ import net.sf.webdav.testutil.MockTest;
 import org.jmock.Expectations;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 public class DoHeadTest extends MockTest {
 

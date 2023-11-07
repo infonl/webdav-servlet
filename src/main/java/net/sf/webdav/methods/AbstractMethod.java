@@ -16,6 +16,19 @@
 
 package net.sf.webdav.methods;
 
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import net.sf.webdav.IMethodExecutor;
+import net.sf.webdav.ITransaction;
+import net.sf.webdav.StoredObject;
+import net.sf.webdav.WebdavStatus;
+import net.sf.webdav.exceptions.LockFailedException;
+import net.sf.webdav.fromcatalina.URLEncoder;
+import net.sf.webdav.fromcatalina.XMLWriter;
+import net.sf.webdav.locking.IResourceLocks;
+import net.sf.webdav.locking.LockedObject;
+
 import java.io.IOException;
 import java.io.Writer;
 import java.text.DateFormat;
@@ -26,23 +39,9 @@ import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Locale;
 import java.util.TimeZone;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-
-import net.sf.webdav.IMethodExecutor;
-import net.sf.webdav.ITransaction;
-import net.sf.webdav.StoredObject;
-import net.sf.webdav.WebdavStatus;
-import net.sf.webdav.exceptions.LockFailedException;
-import net.sf.webdav.fromcatalina.URLEncoder;
-import net.sf.webdav.fromcatalina.XMLWriter;
-import net.sf.webdav.locking.IResourceLocks;
-import net.sf.webdav.locking.LockedObject;
 
 public abstract class AbstractMethod implements IMethodExecutor {
 

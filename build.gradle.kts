@@ -24,7 +24,7 @@ repositories {
 }
 
 group = "net.sf.webdav-servlet"
-//version = "2.1-dev"
+version = "2.1-dev"
 
 java {
 	java.sourceCompatibility = JavaVersion.VERSION_17
@@ -32,15 +32,11 @@ java {
 }
 
 dependencies {
-	compileOnly("javax.servlet:servlet-api:2.4")
+	compileOnly("jakarta.servlet:jakarta.servlet-api:6.0.0")
 
-	implementation("org.slf4j:slf4j-api:1.4.3")
-	implementation("org.slf4j:slf4j-log4j12:1.4.3")
-	implementation("log4j:log4j:1.2.12")
+	implementation("org.slf4j:slf4j-api:2.0.9")
 
-	testImplementation("javax.servlet:servlet-api:2.4")
-	testImplementation("junit:junit:4.4")
-	testImplementation("org.jmock:jmock:2.4.0")
-	testImplementation("org.springframework:spring-webmvc:2.5.2")
-	testImplementation("org.springframework:spring-mock:2.0.7")
+	testImplementation("jakarta.servlet:jakarta.servlet-api:6.0.0")
+	testImplementation("junit:junit:4.13.2")
+	testImplementation("org.jmock:jmock:2.12.0")
 }
