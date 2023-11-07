@@ -16,7 +16,7 @@
 
 plugins {
 	java
-	id 'maven-publish'
+	`maven-publish`
 }
 
 repositories {
@@ -50,7 +50,7 @@ publishing {
 	repositories {
 		maven {
 			name = "GitHubPackages"
-			url = "https://maven.pkg.github.com/infonl/webdav-servlet
+			url = uri("https://maven.pkg.github.com/infonl/webdav-servlet")
 			credentials {
 				username = System.getenv("GITHUB_ACTOR")
 				password = System.getenv("GITHUB_TOKEN")
