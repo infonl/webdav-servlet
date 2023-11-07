@@ -38,5 +38,5 @@ dependencies {
 
 	testImplementation("jakarta.servlet:jakarta.servlet-api:6.0.0")
 	testImplementation("junit:junit:4.13.2")
-	testImplementation("org.jmock:jmock:2.11.0")
+	testImplementation("org.jmock:jmock:2.12.0")
 }
