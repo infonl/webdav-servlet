@@ -16,6 +16,7 @@
 
 plugins {
 	java
+	id 'maven-publish'
 }
 
 repositories {
@@ -43,4 +44,17 @@ dependencies {
 	testImplementation("org.jmock:jmock:2.4.0")
 	testImplementation("org.springframework:spring-webmvc:2.5.2")
 	testImplementation("org.springframework:spring-mock:2.0.7")
+}
+
+publishing {
+	repositories {
+		maven {
+			name = "GitHubPackages"
+			url = "https://maven.pkg.github.com/infonl/webdav-servlet
+			credentials {
+				username = System.getenv("GITHUB_ACTOR")
+				password = System.getenv("GITHUB_TOKEN")
+			}
+		}
+	}
 }
