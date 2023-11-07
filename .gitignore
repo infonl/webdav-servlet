@@ -1,2 +1,13 @@
-.gradle
+### BUILD ###
 build
+.gradle
+
+### INTELLIJ ###
+*.iml
+.idea
+
+### JENV ###
+.java-version
+
+### just linux things
+*.swp
