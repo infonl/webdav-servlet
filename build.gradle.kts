@@ -44,21 +44,3 @@ dependencies {
 	testImplementation("org.springframework:spring-webmvc:2.5.2")
 	testImplementation("org.springframework:spring-mock:2.0.7")
 }
-
-//test {
-//  include '**/*Test.class'
-//  exclude '**/net/sf/webdav/testutil/**/*Test.class'
-//}
-//
-
-//libs {
-//	archive_jar.enabled=true
-//
-//	jar(classifier: 'sources') {
-//		fileSet(dir: 'src/main/java')
-//	}
-//
-//	jar(classifier: 'javadoc') {
-//		fileSet(dir: new File(buildDir, "docs/javadoc"))
-//	}
-//}
