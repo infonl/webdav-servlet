@@ -37,6 +37,8 @@ dependencies {
 	implementation("org.slf4j:slf4j-api:1.4.3")
 	implementation("org.slf4j:slf4j-log4j12:1.4.3")
 	implementation("log4j:log4j:1.2.12")
+
+	testImplementation("javax.servlet:servlet-api:2.4")
 	testImplementation("junit:junit:4.4")
 	testImplementation("org.jmock:jmock:2.4.0")
 	testImplementation("org.springframework:spring-webmvc:2.5.2")
