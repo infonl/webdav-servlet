@@ -17,6 +17,7 @@
 plugins {
 	java
 	`maven-publish`
+	`java-library`
 }
 
 repositories {
@@ -43,6 +44,12 @@ dependencies {
 }
 
 publishing {
+	publications {
+		create<MavenPublication>("webdav-servlet") {
+			from(components["java"])
+			// Include any other artifacts here, like javadocs
+		}
+	}
 	repositories {
 		maven {
 			name = "GitHubPackages"
