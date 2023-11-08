@@ -45,7 +45,7 @@ dependencies {
 
 publishing {
 	publications {
-		create<MavenPublication>("default") {
+		create<MavenPublication>("webdav-servlet") {
 			from(components["java"])
 			// Include any other artifacts here, like javadocs
 		}
