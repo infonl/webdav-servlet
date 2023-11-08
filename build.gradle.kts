@@ -26,7 +26,7 @@ repositories {
 }
 
 group = "net.sf.webdav-servlet"
-version = "2.1-dev"
+version = "2.1.2"
 
 java {
 	java.sourceCompatibility = JavaVersion.VERSION_17
@@ -54,7 +54,7 @@ publishing {
 		maven {
 			name = "GitHubPackages"
 			url = uri("https://maven.pkg.github.com/infonl/webdav-servlet")
-			version = "2.1.1"
+			version = "$version"
 			credentials {
 				username = System.getenv("GITHUB_ACTOR")
 				password = System.getenv("GITHUB_TOKEN")
