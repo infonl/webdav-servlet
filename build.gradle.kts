@@ -26,7 +26,7 @@ repositories {
 }
 
 group = "net.sf.webdav-servlet"
-version = "2.1.2"
+version = "3.0.0-INFO"
 
 java {
 	java.sourceCompatibility = JavaVersion.VERSION_17
