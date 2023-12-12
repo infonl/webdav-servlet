@@ -18,6 +18,8 @@ plugins {
 	java
 	`maven-publish`
 	`java-library`
+
+	id("pl.allegro.tech.build.axion-release") version "1.15.5"
 }
 
 repositories {
@@ -25,8 +27,14 @@ repositories {
 	mavenCentral()
 }
 
+scmVersion {
+	tag {
+		prefix.set("webdav-servlet")
+	}
+}
+
 group = "net.sf.webdav-servlet"
-version = "3.0.0-INFONL"
+version = scmVersion.version
 
 java {
 	java.sourceCompatibility = JavaVersion.VERSION_17
