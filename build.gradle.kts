@@ -15,6 +15,7 @@ repositories {
 }
 
 group = "net.sf.webdav-servlet"
+// TODO
 version = "3.0.0-INFONL"
 
 java {

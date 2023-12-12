@@ -43,14 +43,33 @@ jobs:
       - name: Gradle build
         run: ./gradlew build -x test --info
 
+  next-version:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    outputs:
+      next_version: ${{ steps.next-version.outputs.new_tag }}
+    steps:
+      # Checkout the repository including tags
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      # Determine the next semantic version based on the commit message tags
+      - name: Get next version
+        id: next-version
+        uses: anothrNick/github-tag-action@1.36.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PRERELEASE: false
+          DEFAULT_BUMP: patch
+          TAG_PREFIX: v
+          RELEASE_BRANCHES: main
+
   publish:
-    needs: build
+    needs: [build, next-version]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     if: github.ref == 'refs/heads/main'
-    permissions:
-      contents: read
-      packages: write
     steps:
       - uses: actions/checkout@v4
 
