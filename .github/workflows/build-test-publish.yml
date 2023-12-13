@@ -46,8 +46,6 @@ jobs:
   next-version:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    outputs:
-      next_version: ${{ steps.next-version.outputs.new_tag }}
     steps:
       # Checkout the repository including tags
       - name: Checkout
