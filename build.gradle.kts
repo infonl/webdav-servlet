@@ -8,7 +8,7 @@ plugins {
 	`maven-publish`
 	`java-library`
 
-	id("me.qoomon.git-versioning") version "6.4.2"
+	id("pl.allegro.tech.build.axion-release") version "1.15.1"
 }
 
 repositories {
@@ -17,25 +17,7 @@ repositories {
 }
 
 group = "nl.lifely.webdav-servlet"
-
-gitVersioning.apply {
-	refs {
-		considerTagsOnBranches = true
-
-		tag("v(?<version>.*)") {
-			version = "\${ref.version}"
-		}
-		
-		branch(".+") {
-			version = "\${ref}-SNAPSHOT"
-		}
-	}
-
-	// optional fallback configuration in case of no matching ref configuration
-	rev {
-		version = "\${commit}"
-	}
-}
+project.version = scmVersion.version
 
 java {
 	java.sourceCompatibility = JavaVersion.VERSION_17
