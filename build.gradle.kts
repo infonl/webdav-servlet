@@ -17,9 +17,6 @@ repositories {
 }
 
 group = "nl.lifely.webdav-servlet"
-// dummy version needs to be set here; will be overwritten by git-versioning plugin
-// also used for local development purposes
-version = "1.0.0-SNAPSHOT"
 
 gitVersioning.apply {
 	refs {
