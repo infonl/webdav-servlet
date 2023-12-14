@@ -7,6 +7,8 @@ plugins {
 	java
 	`maven-publish`
 	`java-library`
+
+	id("me.qoomon.git-versioning") version "6.4.2"
 }
 
 repositories {
@@ -14,8 +16,29 @@ repositories {
 	mavenCentral()
 }
 
-group = "net.sf.webdav-servlet"
-version = "3.0.0-INFONL"
+group = "nl.lifely.webdav-servlet"
+// dummy version needs to be set here; will be overwritten by git-versioning plugin
+// also used for local development purposes
+version = "1.0.0-SNAPSHOT"
+
+gitVersioning.apply {
+	refs {
+		considerTagsOnBranches = true
+
+		tag("v(?<version>.*)") {
+			version = "\${ref.version}"
+		}
+		
+		branch(".+") {
+			version = "\${ref}-SNAPSHOT"
+		}
+	}
+
+	// optional fallback configuration in case of no matching ref configuration
+	rev {
+		version = "\${commit}"
+	}
+}
 
 java {
 	java.sourceCompatibility = JavaVersion.VERSION_17
