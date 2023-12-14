@@ -46,6 +46,9 @@ jobs:
   next-version:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.get-version.outputs.replaced }}
+      tag: ${{ steps.get-tag.outputs.new_tag }}
     steps:
       # Checkout the repository including tags
       - name: Checkout
@@ -69,6 +72,10 @@ jobs:
           pattern: 'v(.*)'
           string: ${{ steps.get-tag.outputs.new_tag }}
           replace-with: '$1'
+      - name: Print new tag and version
+        run: |
+          echo "Next version: ${{ steps.get-version.outputs.replaced }}"
+          echo "Next version tag: ${{ steps.get-tag.outputs.new_tag }}"
 
   publish:
     needs: [build, next-version]
@@ -98,3 +105,27 @@ jobs:
           arguments: publish
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  create-release:
+     needs: [next-version, publish]
+     if: github.ref == 'refs/heads/main'
+     runs-on: ubuntu-latest
+     env:
+       NEXT_VERSION: ${{ needs.next-version.outputs.version }}
+       NEXT_VERSION_TAG: ${{ needs.next-version.outputs.tag }}
+     steps:
+       - name: Checkout
+         uses: actions/checkout@v4
+         with:
+           fetch-depth: 0
+       - name: Create or update GitHub release
+         uses: ncipollo/release-action@v1
+         with:
+           token: ${{ secrets.GITHUB_TOKEN }}
+           tag: ${{ env.NEXT_VERSION_TAG }}
+           name: ${{ env.APPLICATION_NAME }} ${{ env.NEXT_VERSION }}
+           draft: false
+           prerelease: false
+           allowUpdates: true
+           makeLatest: true
+           generateReleaseNotes: true
