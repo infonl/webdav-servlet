@@ -53,15 +53,22 @@ jobs:
         with:
           fetch-depth: 0
       # Determine the next semantic version based on the commit message tags
-      - name: Get next version
-        id: next-version
-        uses: anothrNick/github-tag-action@1.36.0
+      - name: Get next tag
+        id: get-tag
+        uses: anothrNick/github-tag-action@1.67.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PRERELEASE: false
           DEFAULT_BUMP: patch
-          TAG_PREFIX: v
+          WITH_V: true
           RELEASE_BRANCHES: main
+      - name: Get next version
+        id: get-version
+        uses: frabert/replace-string-action@v2.4
+        with:
+          pattern: 'v(.*)'
+          string: ${{ steps.get-tag.outputs.new_tag }}
+          replace-with: '$1'
 
   publish:
     needs: [build, next-version]
