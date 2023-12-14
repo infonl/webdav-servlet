@@ -56,7 +56,8 @@ Versioning or user management are not supported
 	</servlet-mapping>
 ```
              
-Further configuration options:
+### Further configuration options
+
 - If you want to use the reference implementation (`LocalFileSystemStore`), set the parameter `rootpath` to where you want to store your files.
 - if you have implemented your own store, specify your store's Java class in the parameter `ResourceHandlerImplementation`.
 - With the default `/*` servlet mapping, every request to the webapp is handled by the servlet. Change this if you wish.
