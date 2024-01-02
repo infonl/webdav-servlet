@@ -32,7 +32,7 @@ dependencies {
 	testImplementation("jakarta.servlet:jakarta.servlet-api:6.0.0")
 	testImplementation("junit:junit:4.13.2")
 	testImplementation("org.jmock:jmock:2.12.0")
-	testImplementation("org.slf4j:slf4j-simple:2.0.9")
+	testImplementation("org.slf4j:slf4j-simple:2.0.10")
 }
 
 publishing {
