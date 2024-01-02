@@ -27,7 +27,7 @@ java {
 dependencies {
 	compileOnly("jakarta.servlet:jakarta.servlet-api:6.0.0")
 
-	implementation("org.slf4j:slf4j-api:2.0.9")
+	implementation("org.slf4j:slf4j-api:2.0.10")
 
 	testImplementation("jakarta.servlet:jakarta.servlet-api:6.0.0")
 	testImplementation("junit:junit:4.13.2")
