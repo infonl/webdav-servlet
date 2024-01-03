@@ -8,7 +8,7 @@ plugins {
 	`maven-publish`
 	`java-library`
 
-	id("pl.allegro.tech.build.axion-release") version "1.15.1"
+	id("pl.allegro.tech.build.axion-release") version "1.16.1"
 }
 
 repositories {
