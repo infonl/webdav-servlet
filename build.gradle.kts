@@ -10,7 +10,6 @@ plugins {
 	jacoco
 	`maven-publish`
 	`java-library`
-	signing
 
 	id("pl.allegro.tech.build.axion-release") version "1.16.1"
 }
@@ -115,10 +114,6 @@ publishing {
 			}
 		}
 	}
-}
-
-signing {
-	sign(publishing.publications["mavenJava"])
 }
 
 tasks {
