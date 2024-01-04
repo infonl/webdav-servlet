@@ -8,9 +8,9 @@ import net.sf.webdav.locking.ResourceLocks;
 import net.sf.webdav.testutil.DelegatingServletInputStream;
 import net.sf.webdav.testutil.MockTest;
 import org.jmock.Expectations;
-import org.junit.BeforeClass;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
 import jakarta.servlet.http.HttpServletRequest;
@@ -37,7 +37,7 @@ public class DoMoveTest extends MockTest {
 
     static final String overwritePath = destCollectionPath + "/sourceFolder";
 
-    @BeforeClass
+    @BeforeAll
     public static void setUp() throws Exception {
         mockStore = _mockery.mock(IWebdavStore.class);
         mockReq = _mockery.mock(HttpServletRequest.class);
@@ -589,7 +589,7 @@ public class DoMoveTest extends MockTest {
     }
 
     @Test
-    @Ignore("Fails currently")
+    @Disabled("Fails currently")
     public void testMovingOfaCollectionIfDestinationIsPresentAndOverwriteTrue()
             throws Exception {
 

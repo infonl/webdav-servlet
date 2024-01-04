@@ -1,14 +1,15 @@
 package net.sf.webdav.methods;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import net.sf.webdav.ITransaction;
 import net.sf.webdav.IWebdavStore;
 import net.sf.webdav.WebdavStatus;
 import net.sf.webdav.testutil.MockTest;
 import org.jmock.Expectations;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 public class DoNotImplementedTest extends MockTest {
 
@@ -17,7 +18,7 @@ public class DoNotImplementedTest extends MockTest {
     static HttpServletResponse mockRes;
     static ITransaction mockTransaction;
 
-    @BeforeClass
+    @BeforeAll
     public static void setUp() throws Exception {
         mockStore = _mockery.mock(IWebdavStore.class);
         mockReq = _mockery.mock(HttpServletRequest.class);

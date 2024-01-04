@@ -1,12 +1,13 @@
 package net.sf.webdav;
 
-import jakarta.servlet.ServletConfig;
-import jakarta.servlet.ServletContext;
 import net.sf.webdav.testutil.MockPrincipal;
 import net.sf.webdav.testutil.MockTest;
 import org.jmock.Expectations;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+
+import jakarta.servlet.ServletConfig;
+import jakarta.servlet.ServletContext;
 // TODO: create our own versions?
 //import org.springframework.mock.web.MockHttpServletRequest;
 //import org.springframework.mock.web.MockHttpServletResponse;
@@ -35,7 +36,7 @@ public class WebdavServletTest extends MockTest {
     static String dftIndexFile = "/index.html";
     static String insteadOf404 = "/insteadOf404";
 
-    @BeforeClass
+    @BeforeAll
     public static void setUp() throws Exception {
         servletConfig = _mockery.mock(ServletConfig.class);
         servletContext = _mockery.mock(ServletContext.class);
