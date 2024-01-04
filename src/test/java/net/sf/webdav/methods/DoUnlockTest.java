@@ -10,8 +10,8 @@ import net.sf.webdav.locking.ResourceLocks;
 import net.sf.webdav.testutil.DelegatingServletInputStream;
 import net.sf.webdav.testutil.MockTest;
 import org.jmock.Expectations;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.PrintWriter;
@@ -28,7 +28,7 @@ public class DoUnlockTest extends MockTest {
 
     static boolean exclusive = true;
 
-    @BeforeClass
+    @BeforeAll
     public static void setUp() throws Exception {
         mockStore = _mockery.mock(IWebdavStore.class);
         mockReq = _mockery.mock(HttpServletRequest.class);

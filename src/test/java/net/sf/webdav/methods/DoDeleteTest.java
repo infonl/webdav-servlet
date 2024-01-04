@@ -8,8 +8,8 @@ import net.sf.webdav.locking.LockedObject;
 import net.sf.webdav.locking.ResourceLocks;
 import net.sf.webdav.testutil.MockTest;
 import org.jmock.Expectations;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.io.PrintWriter;
 import jakarta.servlet.http.HttpServletRequest;
@@ -24,7 +24,7 @@ public class DoDeleteTest extends MockTest {
     static byte[] resourceContent = new byte[] { '<', 'h', 'e', 'l', 'l', 'o',
             '/', '>' };
 
-    @BeforeClass
+    @BeforeAll
     public static void setUp() throws Exception {
         mockStore = _mockery.mock(IWebdavStore.class);
         mockReq = _mockery.mock(HttpServletRequest.class);

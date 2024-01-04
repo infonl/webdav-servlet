@@ -1,12 +1,9 @@
 package net.sf.webdav.methods;
 
-import org.junit.Ignore;
-
 import java.io.ByteArrayOutputStream;
 import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.WriteListener;
 
-@Ignore
 public class TestingOutputStream extends ServletOutputStream {
 
     private final ByteArrayOutputStream baos = new ByteArrayOutputStream();

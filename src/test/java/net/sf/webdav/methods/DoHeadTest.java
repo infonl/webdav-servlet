@@ -1,7 +1,5 @@
 package net.sf.webdav.methods;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import net.sf.webdav.IMimeTyper;
 import net.sf.webdav.ITransaction;
 import net.sf.webdav.IWebdavStore;
@@ -10,8 +8,11 @@ import net.sf.webdav.WebdavStatus;
 import net.sf.webdav.locking.ResourceLocks;
 import net.sf.webdav.testutil.MockTest;
 import org.jmock.Expectations;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 public class DoHeadTest extends MockTest {
 
@@ -24,7 +25,7 @@ public class DoHeadTest extends MockTest {
     static byte[] resourceContent = new byte[] { '<', 'h', 'e', 'l', 'l', 'o',
             '/', '>' };
 
-    @BeforeClass
+    @BeforeAll
     public static void setUp() throws Exception {
         mockStore = _mockery.mock(IWebdavStore.class);
         mockMimeTyper = _mockery.mock(IMimeTyper.class);

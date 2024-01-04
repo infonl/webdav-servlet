@@ -1,3 +1,5 @@
+import org.gradle.internal.impldep.org.junit.platform.launcher.EngineFilter.includeEngines
+
 /*
  * SPDX-FileCopyrightText: 2023 Lifely
  * SPDX-License-Identifier: EUPL-1.2+
@@ -5,6 +7,7 @@
 
 plugins {
 	java
+	jacoco
 	`maven-publish`
 	`java-library`
 
@@ -24,15 +27,21 @@ java {
 	java.targetCompatibility = JavaVersion.VERSION_17
 }
 
+val junitVersion = "5.10.1"
+val jakartaServletVersion = "6.0.0"
+
 dependencies {
-	compileOnly("jakarta.servlet:jakarta.servlet-api:6.0.0")
+	compileOnly("jakarta.servlet:jakarta.servlet-api:$jakartaServletVersion")
 
 	implementation("org.slf4j:slf4j-api:2.0.10")
 
-	testImplementation("jakarta.servlet:jakarta.servlet-api:6.0.0")
-	testImplementation("junit:junit:4.13.2")
+	testImplementation("jakarta.servlet:jakarta.servlet-api:$jakartaServletVersion")
+	testImplementation("org.junit.jupiter:junit-jupiter-params:$junitVersion")
+	testImplementation("org.junit.jupiter:junit-jupiter-api:$junitVersion")
 	testImplementation("org.jmock:jmock:2.12.0")
 	testImplementation("org.slf4j:slf4j-simple:2.0.10")
+	
+	testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
 }
 
 publishing {
@@ -52,5 +61,17 @@ publishing {
 				password = System.getenv("GITHUB_TOKEN")
 			}
 		}
+	}
+}
+
+tasks {
+	test {
+		useJUnitPlatform()
+		
+		finalizedBy("jacocoTestReport") // report is always generated after tests run
+	}
+
+	jacocoTestReport {
+		dependsOn("test") // tests are required to run before generating the report
 	}
 }

@@ -1,18 +1,17 @@
 package net.sf.webdav.testutil;
 
-import junit.framework.Assert;
 import net.sf.webdav.StoredObject;
 import net.sf.webdav.locking.LockedObject;
 import net.sf.webdav.locking.ResourceLocks;
 import net.sf.webdav.methods.TestingOutputStream;
 import org.jmock.Mockery;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 
 import java.io.ByteArrayInputStream;
 import java.util.Date;
 
-public abstract class MockTest extends Assert {
+public abstract class MockTest {
 
     protected static Mockery _mockery;
 
@@ -70,12 +69,12 @@ public abstract class MockTest extends Assert {
     protected static String[] sourceChildren = new String[] { "sourceFile" };
     protected static String[] destChildren = new String[] { "destFile" };
 
-    @BeforeClass
+    @BeforeAll
     public static void setUpBeforeClass() {
         _mockery = new Mockery();
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownAfterClass() {
         _mockery = null;
     }

@@ -1,5 +1,8 @@
 package net.sf.webdav.methods;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+
 import net.sf.webdav.IMimeTyper;
 import net.sf.webdav.ITransaction;
 import net.sf.webdav.IWebdavStore;
@@ -9,8 +12,8 @@ import net.sf.webdav.locking.ResourceLocks;
 import net.sf.webdav.testutil.DelegatingServletInputStream;
 import net.sf.webdav.testutil.MockTest;
 import org.jmock.Expectations;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
 import java.util.Locale;
@@ -32,7 +35,7 @@ public class DoGetTest extends MockTest {
     static DelegatingServletInputStream dsis = new DelegatingServletInputStream(
             bais);
 
-    @BeforeClass
+    @BeforeAll
     public static void setUp() throws Exception {
         mockStore = _mockery.mock(IWebdavStore.class);
         mockMimeTyper = _mockery.mock(IMimeTyper.class);
