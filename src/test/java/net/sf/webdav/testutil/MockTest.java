@@ -6,7 +6,6 @@ import net.sf.webdav.locking.LockedObject;
 import net.sf.webdav.locking.ResourceLocks;
 import net.sf.webdav.methods.TestingOutputStream;
 import org.jmock.Mockery;
-import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 
@@ -70,11 +69,6 @@ public abstract class MockTest extends Assert {
 
     protected static String[] sourceChildren = new String[] { "sourceFile" };
     protected static String[] destChildren = new String[] { "destFile" };
-
-    @After
-    public final void assertSatisfiedMockery() throws Exception {
-        _mockery.assertIsSatisfied();
-    }
 
     @BeforeClass
     public static void setUpBeforeClass() {

@@ -39,9 +39,8 @@ jobs:
       - name: Validate Gradle wrapper
         uses: gradle/wrapper-validation-action@v1
 
-      # Unit tests fail at the moment so skip them for now
-      - name: Gradle build
-        run: ./gradlew build -x test --info
+      - name: Gradle build with unit tests
+        run: ./gradlew build --info
 
   next-version:
     if: github.ref == 'refs/heads/main'

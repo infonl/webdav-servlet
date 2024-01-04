@@ -1,8 +1,7 @@
 package net.sf.webdav;
 
-import jakarta.servlet.http.HttpServletResponse;
-
 import java.util.Hashtable;
+import jakarta.servlet.http.HttpServletResponse;
 
 
 /**
@@ -241,18 +240,16 @@ public class WebdavStatus {
      * Returns the HTTP status text for the HTTP or WebDav status code specified
      * by looking it up in the static mapping. This is a static function.
      * 
-     * @param nHttpStatusCode
+     * @param httpStatusCode
      *      [IN] HTTP or WebDAV status code
      * @return A string with a short descriptive phrase for the HTTP status code
      *  (e.g., "OK").
      */
-    public static String getStatusText(int nHttpStatusCode) {
-        Integer intKey = new Integer(nHttpStatusCode);
-
-        if (!_mapStatusCodes.containsKey(intKey)) {
+    public static String getStatusText(int httpStatusCode) {
+        if (!_mapStatusCodes.containsKey(httpStatusCode)) {
             return "";
         } else {
-            return (String) _mapStatusCodes.get(intKey);
+            return (String) _mapStatusCodes.get(httpStatusCode);
         }
     }
 
