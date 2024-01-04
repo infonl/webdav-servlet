@@ -90,8 +90,7 @@ public class StoredObject {
     /**
      * Sets the date of the creation
      * 
-     * @param d
-     *      date of the creation
+     * @param c date of the creation
      */
     public void setCreationDate(Date c) {
         this.creationDate = c;

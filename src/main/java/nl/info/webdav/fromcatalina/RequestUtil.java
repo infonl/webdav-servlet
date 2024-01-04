@@ -16,11 +16,10 @@
 
 package nl.info.webdav.fromcatalina;
 
-import jakarta.servlet.http.Cookie;
-
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Map;
+import jakarta.servlet.http.Cookie;
 
 /**
  * General purpose request parsing and encoding utility methods.
@@ -41,51 +40,36 @@ public final class RequestUtil {
      * @return A string following RFC 2109.
      */
     public static String encodeCookie(Cookie cookie) {
-
-        StringBuffer buf = new StringBuffer(cookie.getName());
-        buf.append("=");
-        buf.append(cookie.getValue());
-
-        String comment = cookie.getComment();
-        if (comment != null) {
-            buf.append("; Comment=\"");
-            buf.append(comment);
-            buf.append("\"");
-        }
+        StringBuilder stringBuilder = new StringBuilder(cookie.getName());
+        stringBuilder.append("=");
+        stringBuilder.append(cookie.getValue());
 
         String domain = cookie.getDomain();
         if (domain != null) {
-            buf.append("; Domain=\"");
-            buf.append(domain);
-            buf.append("\"");
+            stringBuilder.append("; Domain=\"");
+            stringBuilder.append(domain);
+            stringBuilder.append("\"");
         }
 
         int age = cookie.getMaxAge();
         if (age >= 0) {
-            buf.append("; Max-Age=\"");
-            buf.append(age);
-            buf.append("\"");
+            stringBuilder.append("; Max-Age=\"");
+            stringBuilder.append(age);
+            stringBuilder.append("\"");
         }
 
         String path = cookie.getPath();
         if (path != null) {
-            buf.append("; Path=\"");
-            buf.append(path);
-            buf.append("\"");
+            stringBuilder.append("; Path=\"");
+            stringBuilder.append(path);
+            stringBuilder.append("\"");
         }
 
         if (cookie.getSecure()) {
-            buf.append("; Secure");
+            stringBuilder.append("; Secure");
         }
 
-        int version = cookie.getVersion();
-        if (version > 0) {
-            buf.append("; Version=\"");
-            buf.append(version);
-            buf.append("\"");
-        }
-
-        return (buf.toString());
+        return (stringBuilder.toString());
     }
 
     /**
@@ -259,7 +243,7 @@ public final class RequestUtil {
      * <strong>IMPLEMENTATION NOTE</strong>: URL decoding is performed
      * individually on the parsed name and value elements, rather than on the
      * entire query string ahead of time, to properly deal with the case where
-     * the name or value includes an encoded "=" or "&" character that would
+     * the name or value includes an encoded "=" or "{@literal &}" character that would
      * otherwise be interpreted as a delimiter.
      * 
      * @param map
@@ -446,7 +430,7 @@ public final class RequestUtil {
      * <strong>IMPLEMENTATION NOTE</strong>: URL decoding is performed
      * individually on the parsed name and value elements, rather than on the
      * entire query string ahead of time, to properly deal with the case where
-     * the name or value includes an encoded "=" or "&" character that would
+     * the name or value includes an encoded "=" or "{@literal &}" character that would
      * otherwise be interpreted as a delimiter. NOTE: byte array data is
      * modified by this method. Caller beware.
      * 

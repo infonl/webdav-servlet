@@ -15,8 +15,6 @@
  */
 package nl.info.webdav.methods;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import nl.info.webdav.ITransaction;
 import nl.info.webdav.IWebdavStore;
 import nl.info.webdav.StoredObject;
@@ -29,6 +27,8 @@ import nl.info.webdav.locking.LockedObject;
 
 import java.io.IOException;
 import java.util.Hashtable;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 public class DoMkcol extends AbstractMethod {
 
@@ -56,7 +56,7 @@ public class DoMkcol extends AbstractMethod {
 
             Hashtable<String, Integer> errorList = new Hashtable<String, Integer>();
 
-            if (!checkLocks(transaction, req, resp, _resourceLocks, parentPath)) {
+            if (!checkLocks(transaction, req, _resourceLocks, parentPath)) {
                 // TODO remove
                 LOG
                         .trace("MkCol on locked resource (parentPath) not executable!"

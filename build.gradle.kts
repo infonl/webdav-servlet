@@ -47,8 +47,7 @@ dependencies {
 publishing {
 	publications {
 		create<MavenPublication>("webdav-servlet") {
-			from(components["java"])
-			// Include any other artifacts here, like javadocs
+			artifacts
 		}
 	}
 	repositories {
@@ -64,7 +63,25 @@ publishing {
 	}
 }
 
+
 tasks {
+	val sourcesJar by creating(Jar::class) {
+		archiveClassifier.set("sources")
+		from(sourceSets.main.get().allSource)
+	}
+
+	val javadocJar by creating(Jar::class) {
+		dependsOn.add(javadoc)
+		archiveClassifier.set("javadoc")
+		from(javadoc)
+	}
+
+	artifacts {
+		archives(sourcesJar)
+		archives(javadocJar)
+		archives(jar)
+	}
+
 	test {
 		useJUnitPlatform()
 		

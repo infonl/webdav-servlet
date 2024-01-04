@@ -1,7 +1,5 @@
 package nl.info.webdav.methods;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import nl.info.webdav.ITransaction;
 import nl.info.webdav.IWebdavStore;
 import nl.info.webdav.StoredObject;
@@ -25,6 +23,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
 import javax.xml.parsers.DocumentBuilder;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 public class DoProppatch extends AbstractMethod {
 
@@ -56,12 +56,12 @@ public class DoProppatch extends AbstractMethod {
 
         Hashtable<String, Integer> errorList = new Hashtable<String, Integer>();
 
-        if (!checkLocks(transaction, req, resp, _resourceLocks, parentPath)) {
+        if (!checkLocks(transaction, req, _resourceLocks, parentPath)) {
             resp.setStatus(WebdavStatus.SC_LOCKED);
             return; // parent is locked
         }
 
-        if (!checkLocks(transaction, req, resp, _resourceLocks, path)) {
+        if (!checkLocks(transaction, req, _resourceLocks, path)) {
             resp.setStatus(WebdavStatus.SC_LOCKED);
             return; // resource is locked
         }
@@ -102,7 +102,7 @@ public class DoProppatch extends AbstractMethod {
                 if (lo != null && lo.isExclusive() && !lockTokenMatchesIfHeader) {
                     // Object on specified path is LOCKED
                     errorList = new Hashtable<String, Integer>();
-                    errorList.put(path, new Integer(WebdavStatus.SC_LOCKED));
+                    errorList.put(path, WebdavStatus.SC_LOCKED);
                     sendReport(req, resp, errorList);
                     return;
                 }

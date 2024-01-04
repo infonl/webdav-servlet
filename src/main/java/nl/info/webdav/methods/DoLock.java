@@ -15,9 +15,6 @@
  */
 package nl.info.webdav.methods;
 
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import nl.info.webdav.ITransaction;
 import nl.info.webdav.IWebdavStore;
 import nl.info.webdav.StoredObject;
@@ -39,6 +36,9 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Hashtable;
 import javax.xml.parsers.DocumentBuilder;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 public class DoLock extends AbstractMethod {
 
@@ -80,12 +80,12 @@ public class DoLock extends AbstractMethod {
 
             Hashtable<String, Integer> errorList = new Hashtable<String, Integer>();
 
-            if (!checkLocks(transaction, req, resp, _resourceLocks, _path)) {
+            if (!checkLocks(transaction, req, _resourceLocks, _path)) {
                 resp.setStatus(WebdavStatus.SC_LOCKED);
                 return; // resource is locked
             }
 
-            if (!checkLocks(transaction, req, resp, _resourceLocks, _parentPath)) {
+            if (!checkLocks(transaction, req, _resourceLocks, _parentPath)) {
                 resp.setStatus(WebdavStatus.SC_LOCKED);
                 return; // parent is locked
             }
@@ -97,8 +97,7 @@ public class DoLock extends AbstractMethod {
             if (_userAgent != null && _userAgent.indexOf("Darwin") != -1) {
                 _macLockRequest = true;
 
-                String timeString = new Long(System.currentTimeMillis())
-                        .toString();
+                String timeString = String.valueOf(System.currentTimeMillis());
                 _lockOwner = _userAgent.concat(timeString);
             }
 
@@ -456,14 +455,13 @@ public class DoLock extends AbstractMethod {
                 lockDurationStr = lockDurationStr.substring(0, commaPos);
             }
             if (lockDurationStr.startsWith("Second-")) {
-                lockDuration = new Integer(lockDurationStr.substring(7))
-                        .intValue();
+                lockDuration = Integer.parseInt(lockDurationStr.substring(7));
             } else {
                 if (lockDurationStr.equalsIgnoreCase("infinity")) {
                     lockDuration = MAX_TIMEOUT;
                 } else {
                     try {
-                        lockDuration = new Integer(lockDurationStr).intValue();
+                        lockDuration = Integer.parseInt(lockDurationStr);
                     } catch (NumberFormatException e) {
                         lockDuration = MAX_TIMEOUT;
                     }

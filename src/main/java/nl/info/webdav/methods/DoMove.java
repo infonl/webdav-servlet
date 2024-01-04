@@ -15,8 +15,6 @@
  */
 package nl.info.webdav.methods;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import nl.info.webdav.ITransaction;
 import nl.info.webdav.WebdavStatus;
 import nl.info.webdav.exceptions.AccessDeniedException;
@@ -27,6 +25,8 @@ import nl.info.webdav.locking.ResourceLocks;
 
 import java.io.IOException;
 import java.util.Hashtable;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 public class DoMove extends AbstractMethod {
 
@@ -55,7 +55,7 @@ public class DoMove extends AbstractMethod {
             String sourcePath = getRelativePath(req);
             Hashtable<String, Integer> errorList = new Hashtable<String, Integer>();
 
-            if (!checkLocks(transaction, req, resp, _resourceLocks, sourcePath)) {
+            if (!checkLocks(transaction, req, _resourceLocks, sourcePath)) {
                 resp.setStatus(WebdavStatus.SC_LOCKED);
                 return;
             }
@@ -66,7 +66,7 @@ public class DoMove extends AbstractMethod {
                 return;
             }
 
-            if (!checkLocks(transaction, req, resp, _resourceLocks,
+            if (!checkLocks(transaction, req, _resourceLocks,
                     destinationPath)) {
                 resp.setStatus(WebdavStatus.SC_LOCKED);
                 return;

@@ -53,19 +53,19 @@ public class LockedObject {
     protected String _type = null;
 
     /**
-     * @param _resourceLocks
+     * @param resourceLocks
      *      the resourceLocks where locks are stored
      * @param path
      *      the path to the locked object
-     * @param temporary
+     * @param isTemporary
      *      indicates if the LockedObject should be temporary or not
      */
-    public LockedObject(ResourceLocks resLocks, String path, boolean temporary) {
+    public LockedObject(ResourceLocks resourceLocks, String path, boolean isTemporary) {
         _path = path;
         _id = UUID.randomUUID().toString();
-        _resourceLocks = resLocks;
+        _resourceLocks = resourceLocks;
 
-        if (!temporary) {
+        if (!isTemporary) {
             _resourceLocks._locks.put(path, this);
             _resourceLocks._locksByID.put(_id, this);
         } else {

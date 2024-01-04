@@ -15,8 +15,6 @@
  */
 package nl.info.webdav.methods;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import nl.info.webdav.ITransaction;
 import nl.info.webdav.IWebdavStore;
 import nl.info.webdav.StoredObject;
@@ -31,6 +29,8 @@ import nl.info.webdav.locking.ResourceLocks;
 
 import java.io.IOException;
 import java.util.Hashtable;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 public class DoCopy extends AbstractMethod {
 
@@ -125,13 +125,13 @@ public class DoCopy extends AbstractMethod {
         Hashtable<String, Integer> errorList = new Hashtable<String, Integer>();
         String parentDestinationPath = getParentPath(getCleanPath(destinationPath));
 
-        if (!checkLocks(transaction, req, resp, _resourceLocks,
+        if (!checkLocks(transaction, req, _resourceLocks,
                 parentDestinationPath)) {
             resp.setStatus(WebdavStatus.SC_LOCKED);
             return false; // parentDestination is locked
         }
 
-        if (!checkLocks(transaction, req, resp, _resourceLocks, destinationPath)) {
+        if (!checkLocks(transaction, req, _resourceLocks, destinationPath)) {
             resp.setStatus(WebdavStatus.SC_LOCKED);
             return false; // destination is locked
         }
@@ -327,17 +327,13 @@ public class DoCopy extends AbstractMethod {
                                 resp);
                     }
                 } catch (AccessDeniedException e) {
-                    errorList.put(destinationPath + children[i], new Integer(
-                            WebdavStatus.SC_FORBIDDEN));
+                    errorList.put(destinationPath + children[i], WebdavStatus.SC_FORBIDDEN);
                 } catch (ObjectNotFoundException e) {
-                    errorList.put(destinationPath + children[i], new Integer(
-                            WebdavStatus.SC_NOT_FOUND));
+                    errorList.put(destinationPath + children[i], WebdavStatus.SC_NOT_FOUND);
                 } catch (ObjectAlreadyExistsException e) {
-                    errorList.put(destinationPath + children[i], new Integer(
-                            WebdavStatus.SC_CONFLICT));
+                    errorList.put(destinationPath + children[i], WebdavStatus.SC_CONFLICT);
                 } catch (WebdavException e) {
-                    errorList.put(destinationPath + children[i], new Integer(
-                            WebdavStatus.SC_INTERNAL_SERVER_ERROR));
+                    errorList.put(destinationPath + children[i], WebdavStatus.SC_INTERNAL_SERVER_ERROR);
                 }
             }
         }

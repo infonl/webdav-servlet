@@ -23,17 +23,16 @@
 
 package nl.info.webdav;
 
+import nl.info.webdav.exceptions.WebdavException;
+
 import java.io.InputStream;
 import java.security.Principal;
 
-import nl.info.webdav.exceptions.WebdavException;
-
 /**
- * Interface for simple implementation of any store for the WebdavServlet
+ * Interface for simple webdav store implementations.
  * <p>
- * based on the BasicWebdavStore from Oliver Zeigermann, that was part of the
- * Webdav Construcktion Kit from slide
- * 
+ * Based on the BasicWebdavStore from Oliver Zeigermann, that was part of the
+ * <a href="https://jakarta.apache.org/slide/wck.html">Webdav Construction Kit</a>.
  */
 public interface IWebdavStore {
 
@@ -44,19 +43,19 @@ public interface IWebdavStore {
 
     /**
      * Indicates that a new request or transaction with this store involved has
-     * been started. The request will be terminated by either {@link #commit()}
-     * or {@link #rollback()}. If only non-read methods have been called, the
-     * request will be terminated by a {@link #commit()}. This method will be
+     * been started. The request will be terminated by either {@link #commit(ITransaction)} mmi}
+     * or {@link #rollback(ITransaction)}. If only non-read methods have been called, the
+     * request will be terminated by a {@link #commit(ITransaction)}. This method will be
      * called by (@link WebdavStoreAdapter} at the beginning of each request.
-     * 
-     * 
+     *
      * @param principal
      *      the principal that started this request or <code>null</code> if
-     *      there is non available
+     *      there is none available
      * 
      * @throws WebdavException
+     *    if something goes wrong on the store level
      */
-    ITransaction begin(Principal principal);
+    ITransaction begin(Principal principal) throws WebdavException;
 
     /**
      * Checks if authentication information passed in is valid. If not throws an
@@ -80,7 +79,7 @@ public interface IWebdavStore {
      * @throws WebdavException
      *      if something goes wrong on the store level
      */
-    void commit(ITransaction transaction);
+    void commit(ITransaction transaction) throws WebdavException;
 
     /**
      * Indicates that all changes done inside this request shall be undone and
@@ -94,7 +93,7 @@ public interface IWebdavStore {
      * @throws WebdavException
      *      if something goes wrong on the store level
      */
-    void rollback(ITransaction transaction);
+    void rollback(ITransaction transaction) throws WebdavException;
 
     /**
      * Creates a folder at the position specified by <code>folderUri</code>.
@@ -107,7 +106,7 @@ public interface IWebdavStore {
      * @throws WebdavException
      *      if something goes wrong on the store level
      */
-    void createFolder(ITransaction transaction, String folderUri);
+    void createFolder(ITransaction transaction, String folderUri) throws WebdavException;
 
     /**
      * Creates a content resource at the position specified by
@@ -121,7 +120,7 @@ public interface IWebdavStore {
      * @throws WebdavException
      *      if something goes wrong on the store level
      */
-    void createResource(ITransaction transaction, String resourceUri);
+    void createResource(ITransaction transaction, String resourceUri) throws WebdavException;
 
     /**
      * Gets the content of the resource specified by <code>resourceUri</code>.
@@ -135,7 +134,7 @@ public interface IWebdavStore {
      * @throws WebdavException
      *      if something goes wrong on the store level
      */
-    InputStream getResourceContent(ITransaction transaction, String resourceUri);
+    InputStream getResourceContent(ITransaction transaction, String resourceUri) throws WebdavException;
 
     /**
      * Sets / stores the content of the resource specified by
@@ -153,12 +152,17 @@ public interface IWebdavStore {
      * @param characterEncoding
      *      character encoding of the resource or <code>null</code> if unknown
      *      or not applicable
-     * @return lenght of resource
+     * @return length of the resource
      * @throws WebdavException
      *      if something goes wrong on the store level
      */
-    long setResourceContent(ITransaction transaction, String resourceUri,
-            InputStream content, String contentType, String characterEncoding);
+    long setResourceContent(
+        ITransaction transaction,
+        String resourceUri,
+        InputStream content,
+        String contentType,
+        String characterEncoding
+    ) throws WebdavException;
 
     /**
      * Gets the names of the children of the folder specified by
@@ -174,7 +178,7 @@ public interface IWebdavStore {
      * @throws WebdavException
      *      if something goes wrong on the store level
      */
-    String[] getChildrenNames(ITransaction transaction, String folderUri);
+    String[] getChildrenNames(ITransaction transaction, String folderUri) throws WebdavException;
 
     /**
      * Gets the length of the content resource specified by
@@ -183,7 +187,7 @@ public interface IWebdavStore {
      * @param transaction
      *      indicates that the method is within the scope of a WebDAV
      *      transaction
-     * @param resourceUri
+     * @param path
      *      URI of the content resource
      * @return length of the resource in bytes, <code>-1</code> declares this
      *  value as invalid and asks the adapter to try to set it from the
@@ -191,7 +195,7 @@ public interface IWebdavStore {
      * @throws WebdavException
      *      if something goes wrong on the store level
      */
-    long getResourceLength(ITransaction transaction, String path);
+    long getResourceLength(ITransaction transaction, String path) throws WebdavException;
 
     /**
      * Removes the object specified by <code>uri</code>.
@@ -204,7 +208,7 @@ public interface IWebdavStore {
      * @throws WebdavException
      *      if something goes wrong on the store level
      */
-    void removeObject(ITransaction transaction, String uri);
+    void removeObject(ITransaction transaction, String uri) throws WebdavException;
 
     /**
      * Gets the storedObject specified by <code>uri</code>
