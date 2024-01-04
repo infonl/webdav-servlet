@@ -1,7 +1,5 @@
 package net.sf.webdav.methods;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import net.sf.webdav.ITransaction;
 import net.sf.webdav.IWebdavStore;
 import net.sf.webdav.StoredObject;
@@ -14,6 +12,8 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.PrintWriter;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 public class DoDeleteTest extends MockTest {
 
@@ -37,7 +37,7 @@ public class DoDeleteTest extends MockTest {
 
         _mockery.checking(new Expectations() {
             {
-                one(mockRes).sendError(WebdavStatus.SC_FORBIDDEN);
+                oneOf(mockRes).sendError(WebdavStatus.SC_FORBIDDEN);
             }
         });
 
@@ -53,20 +53,20 @@ public class DoDeleteTest extends MockTest {
 
         _mockery.checking(new Expectations() {
             {
-                one(mockReq).getAttribute("javax.servlet.include.request_uri");
+                oneOf(mockReq).getAttribute("javax.servlet.include.request_uri");
                 will(returnValue(null));
 
-                one(mockReq).getPathInfo();
+                oneOf(mockReq).getPathInfo();
                 will(returnValue(sourceFilePath));
 
-                one(mockRes).setStatus(WebdavStatus.SC_NO_CONTENT);
+                oneOf(mockRes).setStatus(WebdavStatus.SC_NO_CONTENT);
 
                 StoredObject fileSo = initFileStoredObject(resourceContent);
 
-                one(mockStore).getStoredObject(mockTransaction, sourceFilePath);
+                oneOf(mockStore).getStoredObject(mockTransaction, sourceFilePath);
                 will(returnValue(fileSo));
 
-                one(mockStore).removeObject(mockTransaction, sourceFilePath);
+                oneOf(mockStore).removeObject(mockTransaction, sourceFilePath);
             }
         });
 
@@ -83,20 +83,20 @@ public class DoDeleteTest extends MockTest {
 
         _mockery.checking(new Expectations() {
             {
-                one(mockReq).getAttribute("javax.servlet.include.request_uri");
+                oneOf(mockReq).getAttribute("javax.servlet.include.request_uri");
                 will(returnValue(null));
 
-                one(mockReq).getPathInfo();
+                oneOf(mockReq).getPathInfo();
                 will(returnValue(sourceFilePath));
 
-                one(mockRes).setStatus(WebdavStatus.SC_NO_CONTENT);
+                oneOf(mockRes).setStatus(WebdavStatus.SC_NO_CONTENT);
 
                 StoredObject fileSo = null;
 
-                one(mockStore).getStoredObject(mockTransaction, sourceFilePath);
+                oneOf(mockStore).getStoredObject(mockTransaction, sourceFilePath);
                 will(returnValue(fileSo));
 
-                one(mockRes).sendError(WebdavStatus.SC_NOT_FOUND);
+                oneOf(mockRes).sendError(WebdavStatus.SC_NOT_FOUND);
             }
         });
 
@@ -113,54 +113,54 @@ public class DoDeleteTest extends MockTest {
 
         _mockery.checking(new Expectations() {
             {
-                one(mockReq).getAttribute("javax.servlet.include.request_uri");
+                oneOf(mockReq).getAttribute("javax.servlet.include.request_uri");
                 will(returnValue(null));
 
-                one(mockReq).getPathInfo();
+                oneOf(mockReq).getPathInfo();
                 will(returnValue(sourceCollectionPath));
 
-                one(mockRes).setStatus(WebdavStatus.SC_NO_CONTENT);
+                oneOf(mockRes).setStatus(WebdavStatus.SC_NO_CONTENT);
 
                 StoredObject folderSo = initFolderStoredObject();
 
-                one(mockStore).getStoredObject(mockTransaction,
+                oneOf(mockStore).getStoredObject(mockTransaction,
                         sourceCollectionPath);
                 will(returnValue(folderSo));
 
-                one(mockStore).getChildrenNames(mockTransaction,
+                oneOf(mockStore).getChildrenNames(mockTransaction,
                         sourceCollectionPath);
                 will(returnValue(new String[] { "subFolder", "sourceFile" }));
 
                 StoredObject fileSo = initFileStoredObject(resourceContent);
 
-                one(mockStore).getStoredObject(mockTransaction, sourceFilePath);
+                oneOf(mockStore).getStoredObject(mockTransaction, sourceFilePath);
                 will(returnValue(fileSo));
 
-                one(mockStore).removeObject(mockTransaction, sourceFilePath);
+                oneOf(mockStore).removeObject(mockTransaction, sourceFilePath);
 
                 StoredObject subFolderSo = initFolderStoredObject();
 
-                one(mockStore).getStoredObject(mockTransaction,
+                oneOf(mockStore).getStoredObject(mockTransaction,
                         sourceCollectionPath + "/subFolder");
                 will(returnValue(subFolderSo));
 
-                one(mockStore).getChildrenNames(mockTransaction,
+                oneOf(mockStore).getChildrenNames(mockTransaction,
                         sourceCollectionPath + "/subFolder");
                 will(returnValue(new String[] { "fileInSubFolder" }));
 
                 StoredObject fileInSubFolderSo = initFileStoredObject(resourceContent);
 
-                one(mockStore).getStoredObject(mockTransaction,
+                oneOf(mockStore).getStoredObject(mockTransaction,
                         sourceCollectionPath + "/subFolder/fileInSubFolder");
                 will(returnValue(fileInSubFolderSo));
 
-                one(mockStore).removeObject(mockTransaction,
+                oneOf(mockStore).removeObject(mockTransaction,
                         sourceCollectionPath + "/subFolder/fileInSubFolder");
 
-                one(mockStore).removeObject(mockTransaction,
+                oneOf(mockStore).removeObject(mockTransaction,
                         sourceCollectionPath + "/subFolder");
 
-                one(mockStore).removeObject(mockTransaction,
+                oneOf(mockStore).removeObject(mockTransaction,
                         sourceCollectionPath);
             }
         });
@@ -178,21 +178,21 @@ public class DoDeleteTest extends MockTest {
 
         _mockery.checking(new Expectations() {
             {
-                one(mockReq).getAttribute("javax.servlet.include.request_uri");
+                oneOf(mockReq).getAttribute("javax.servlet.include.request_uri");
                 will(returnValue(null));
 
-                one(mockReq).getPathInfo();
+                oneOf(mockReq).getPathInfo();
                 will(returnValue(sourceCollectionPath));
 
-                one(mockRes).setStatus(WebdavStatus.SC_NO_CONTENT);
+                oneOf(mockRes).setStatus(WebdavStatus.SC_NO_CONTENT);
 
                 StoredObject folderSo = null;
 
-                one(mockStore).getStoredObject(mockTransaction,
+                oneOf(mockStore).getStoredObject(mockTransaction,
                         sourceCollectionPath);
                 will(returnValue(folderSo));
 
-                one(mockRes).sendError(WebdavStatus.SC_NOT_FOUND);
+                oneOf(mockRes).sendError(WebdavStatus.SC_NOT_FOUND);
             }
         });
 
@@ -209,20 +209,20 @@ public class DoDeleteTest extends MockTest {
 
         _mockery.checking(new Expectations() {
             {
-                one(mockReq).getAttribute("javax.servlet.include.request_uri");
+                oneOf(mockReq).getAttribute("javax.servlet.include.request_uri");
                 will(returnValue(null));
 
-                one(mockReq).getPathInfo();
+                oneOf(mockReq).getPathInfo();
                 will(returnValue(sourceFilePath));
 
-                one(mockRes).setStatus(WebdavStatus.SC_NO_CONTENT);
+                oneOf(mockRes).setStatus(WebdavStatus.SC_NO_CONTENT);
 
                 StoredObject fileSo = initFileStoredObject(resourceContent);
 
-                one(mockStore).getStoredObject(mockTransaction, sourceFilePath);
+                oneOf(mockStore).getStoredObject(mockTransaction, sourceFilePath);
                 will(returnValue(fileSo));
 
-                one(mockStore).removeObject(mockTransaction, sourceFilePath);
+                oneOf(mockStore).removeObject(mockTransaction, sourceFilePath);
             }
         });
 
@@ -256,23 +256,16 @@ public class DoDeleteTest extends MockTest {
 
         _mockery.checking(new Expectations() {
             {
-                one(mockReq).getAttribute("javax.servlet.include.request_uri");
+                oneOf(mockReq).getAttribute("javax.servlet.include.request_uri");
                 will(returnValue(null));
 
-                one(mockReq).getPathInfo();
+                oneOf(mockReq).getPathInfo();
                 will(returnValue(fileInLockedFolderPath));
 
-                one(mockReq).getHeader("If");
+                oneOf(mockReq).getHeader("If");
                 will(returnValue(wrongLockToken));
 
-                one(mockRes).setStatus(WebdavStatus.SC_MULTI_STATUS);
-
-                one(mockReq).getRequestURI();
-                will(returnValue("http://foo.bar".concat(lockedFolderPath)));
-
-                one(mockRes).getWriter();
-                will(returnValue(pw));
-
+                oneOf(mockRes).setStatus(WebdavStatus.SC_LOCKED);
             }
         });
 
@@ -300,23 +293,23 @@ public class DoDeleteTest extends MockTest {
 
         _mockery.checking(new Expectations() {
             {
-                one(mockReq).getAttribute("javax.servlet.include.request_uri");
+                oneOf(mockReq).getAttribute("javax.servlet.include.request_uri");
                 will(returnValue(null));
 
-                one(mockReq).getPathInfo();
+                oneOf(mockReq).getPathInfo();
                 will(returnValue(path));
 
-                one(mockReq).getHeader("If");
+                oneOf(mockReq).getHeader("If");
                 will(returnValue(rightLockToken));
 
-                one(mockRes).setStatus(WebdavStatus.SC_NO_CONTENT);
+                oneOf(mockRes).setStatus(WebdavStatus.SC_NO_CONTENT);
 
                 StoredObject so = initFileStoredObject(resourceContent);
 
-                one(mockStore).getStoredObject(mockTransaction, path);
+                oneOf(mockStore).getStoredObject(mockTransaction, path);
                 will(returnValue(so));
 
-                one(mockStore).removeObject(mockTransaction, path);
+                oneOf(mockStore).removeObject(mockTransaction, path);
 
             }
         });
@@ -335,20 +328,20 @@ public class DoDeleteTest extends MockTest {
 
         _mockery.checking(new Expectations() {
             {
-                one(mockReq).getAttribute("javax.servlet.include.request_uri");
+                oneOf(mockReq).getAttribute("javax.servlet.include.request_uri");
                 will(returnValue(null));
 
-                one(mockReq).getPathInfo();
+                oneOf(mockReq).getPathInfo();
                 will(returnValue("/folder/file"));
 
-                one(mockRes).setStatus(WebdavStatus.SC_NO_CONTENT);
+                oneOf(mockRes).setStatus(WebdavStatus.SC_NO_CONTENT);
 
                 StoredObject nonExistingSo = null;
 
-                one(mockStore).getStoredObject(mockTransaction, "/folder/file");
+                oneOf(mockStore).getStoredObject(mockTransaction, "/folder/file");
                 will(returnValue(nonExistingSo));
 
-                one(mockRes).sendError(WebdavStatus.SC_NOT_FOUND);
+                oneOf(mockRes).sendError(WebdavStatus.SC_NOT_FOUND);
             }
         });
 
