@@ -1,7 +1,7 @@
 import org.gradle.internal.impldep.org.junit.platform.launcher.EngineFilter.includeEngines
 
 /*
- * SPDX-FileCopyrightText: 2023 Lifely
+ * SPDX-FileCopyrightText: 2024 INFO.nl
  * SPDX-License-Identifier: EUPL-1.2+
  */
 
@@ -19,7 +19,7 @@ repositories {
 	mavenCentral()
 }
 
-group = "nl.lifely.webdav-servlet"
+group = "nl.info.webdav"
 project.version = scmVersion.version
 
 java {
