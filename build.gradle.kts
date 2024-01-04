@@ -10,6 +10,7 @@ plugins {
 	jacoco
 	`maven-publish`
 	`java-library`
+	signing
 
 	id("pl.allegro.tech.build.axion-release") version "1.16.1"
 }
@@ -114,6 +115,17 @@ publishing {
 			}
 		}
 	}
+}
+
+signing {
+	// Signing requires an OpenPGP keypair and the ORG_GRADLE_PROJECT_signingKey
+	// and ORG_GRADLE_PROJECT_signingPassword environment variables to be provided (by GitHub in our case).
+	// See: https://docs.gradle.org/current/userguide/signing_plugin.html
+	val signingKey: String? by project
+	val signingPassword: String? by project
+	useInMemoryPgpKeys(signingKey, signingPassword)
+
+	sign(publishing.publications["mavenJava"])
 }
 
 tasks {
