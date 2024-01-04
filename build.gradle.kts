@@ -10,6 +10,7 @@ plugins {
 	jacoco
 	`maven-publish`
 	`java-library`
+	signing
 
 	id("pl.allegro.tech.build.axion-release") version "1.16.1"
 }
@@ -44,10 +45,63 @@ dependencies {
 	testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
 }
 
+java {
+	withJavadocJar()
+	withSourcesJar()
+}
+
 publishing {
 	publications {
-		create<MavenPublication>("webdav-servlet") {
-			artifacts
+		create<MavenPublication>("mavenJava") {
+			artifactId = "webdav-servlet"
+			from(components["java"])
+			versionMapping {
+				usage("java-api") {
+					fromResolutionOf("runtimeClasspath")
+				}
+				usage("java-runtime") {
+					fromResolutionResult()
+				}
+			}
+			pom {
+				name = "WebDAV Servlet"
+				description = "A simple WebDAV servlet"
+				url = "https://github.com/infonl/webdav-servlet"
+				licenses {
+					license {
+						name = "The Apache License, Version 2.0"
+						url = "https://www.apache.org/licenses/LICENSE-2.0"
+					}
+				}
+				developers {
+					developer {
+						id = "edgarvonk"
+						name = "Edgar Vonk"
+						email = "edgar@info.nl"
+					}
+					developer {
+						id = "bas-info-nl"
+						name = "Bas de Wit"
+						email = "bas@info.nl"
+					}
+					developer {
+						id = "jorann"
+						name = "Jorann de Waaij"
+						email = "joran@lifely.nl"
+					}
+					developer {
+						id = "RickWoltheus"
+						name = "Rick Woltheus"
+						email = "rick@lifely.nl"
+						scm {
+							connection = "scm:git:https://github.com/infonl/webdav-servlet.git"
+							developerConnection =
+								"scm:git:https://github.com/infonl/webdav-servlet.git"
+							url = "https://github.com/infonl/webdav-servlet"
+						}
+					}
+				}
+			}
 		}
 	}
 	repositories {
@@ -63,25 +117,11 @@ publishing {
 	}
 }
 
+signing {
+	sign(publishing.publications["mavenJava"])
+}
 
 tasks {
-	val sourcesJar by creating(Jar::class) {
-		archiveClassifier.set("sources")
-		from(sourceSets.main.get().allSource)
-	}
-
-	val javadocJar by creating(Jar::class) {
-		dependsOn.add(javadoc)
-		archiveClassifier.set("javadoc")
-		from(javadoc)
-	}
-
-	artifacts {
-		archives(sourcesJar)
-		archives(javadocJar)
-		archives(jar)
-	}
-
 	test {
 		useJUnitPlatform()
 		
