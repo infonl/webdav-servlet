@@ -1,7 +1,7 @@
 # Contribution guidelines
 
 If you want to contribute, we ask you to follow these guidelines.
-These instructions are currently mainly intended for our own Lifely developers, but
+These instructions are currently mainly intended for our own Lifely/INFO developers, but
 we do also welcome contributions from the open source community.
 Please reach out to us if you have questions or wish to contribute.
 
@@ -17,7 +17,7 @@ For most source code files (e.g. `.ts`, `.js` and `.java` files) please add the 
 
 ```
 /*
- * SPDX-FileCopyrightText: 2023 Lifely
+ * SPDX-FileCopyrightText: 2024 INFO.nl
  * SPDX-License-Identifier: EUPL-1.2+
  */
 ```
@@ -26,7 +26,7 @@ For other file types (e.g. `.html` and `.xml` files) please add the following SP
 
 ```
  <!--
-  ~ SPDX-FileCopyrightText: 2023 Lifely
+  ~ SPDX-FileCopyrightText: 2024 INFO.nl
   ~ SPDX-License-Identifier: EUPL-1.2+
   -->
 ```
@@ -35,7 +35,7 @@ Finally for e.g. `.sh` files please add:
 
 ```
 #
-# SPDX-FileCopyrightText: 2023 Lifely
+# SPDX-FileCopyrightText: 2024 INFO.nl
 # SPDX-License-Identifier: EUPL-1.2+
 #
 ```
@@ -45,12 +45,12 @@ For example, in IntelliJ IDEA please follow the instructions on https://www.jetb
 
 ### Modifying an existing source code file
 
-Please update the SPDX license identifier to the top of the file by adding a `, <YEAR> Lifely` to
+Please update the SPDX license identifier to the top of the file by adding a `, <YEAR> INFO.nl` to
 the `SPDX-FileCopyrightText` identifier. E.g.:
 
 ```
 /*
- * SPDX-FileCopyrightText: 2021 Atos, 2023 Lifely
+ * SPDX-FileCopyrightText: xxx xxx, 2024 INFO.nl
  * SPDX-License-Identifier: EUPL-1.2+
  */
 ```
