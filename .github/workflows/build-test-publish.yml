@@ -98,6 +98,8 @@ jobs:
       - name: Create a new release
         run: ./gradlew release
 
+      # TODO: provide OpenPGP signing keys
+      # using ORG_GRADLE_PROJECT_signingKey and ORG_GRADLE_PROJECT_signingPassword env vars
       - name: Publish release
         uses: gradle/gradle-build-action@v2
         with:
