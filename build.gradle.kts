@@ -10,8 +10,10 @@ plugins {
 	jacoco
 	`maven-publish`
 	`java-library`
+	signing
 
 	id("pl.allegro.tech.build.axion-release") version "1.16.1"
+	id("io.github.gradle-nexus.publish-plugin") version "1.3.0"
 }
 
 repositories {
@@ -47,6 +49,16 @@ dependencies {
 java {
 	withJavadocJar()
 	withSourcesJar()
+}
+
+nexusPublishing {
+	repositories {
+		sonatype {
+			// only for users registered in Sonatype after 24 Feb 2021
+			nexusUrl.set(uri("https://s01.oss.sonatype.org/service/local/"))
+			snapshotRepositoryUrl.set(uri("https://s01.oss.sonatype.org/content/repositories/snapshots/"))
+		}
+	}
 }
 
 publishing {
@@ -114,6 +126,17 @@ publishing {
 			}
 		}
 	}
+}
+
+signing {
+	// Signing requires an OpenPGP keypair and the ORG_GRADLE_PROJECT_signingKey
+	// and ORG_GRADLE_PROJECT_signingPassword environment variables to be provided (by GitHub in our case).
+	// See: https://docs.gradle.org/current/userguide/signing_plugin.html
+	val signingKey: String? by project
+	val signingPassword: String? by project
+	useInMemoryPgpKeys(signingKey, signingPassword)
+
+	sign(publishing.publications["mavenJava"])
 }
 
 tasks {
