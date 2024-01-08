@@ -16,14 +16,10 @@
 
 package nl.info.webdav.methods;
 
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import nl.info.webdav.IMethodExecutor;
 import nl.info.webdav.ITransaction;
 import nl.info.webdav.StoredObject;
 import nl.info.webdav.WebdavStatus;
-import nl.info.webdav.exceptions.LockFailedException;
 import nl.info.webdav.fromcatalina.URLEncoder;
 import nl.info.webdav.fromcatalina.XMLWriter;
 import nl.info.webdav.locking.IResourceLocks;
@@ -42,6 +38,9 @@ import java.util.TimeZone;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 public abstract class AbstractMethod implements IMethodExecutor {
 
@@ -143,8 +142,8 @@ public abstract class AbstractMethod implements IMethodExecutor {
     /**
      * Return the relative path associated with this servlet.
      * 
-     * @param request
-     *      The servlet request we are processing
+     * @param request the servlet request we are processing
+     * @return the relative servlet path
      */
     protected String getRelativePath(HttpServletRequest request) {
 
@@ -204,29 +203,29 @@ public abstract class AbstractMethod implements IMethodExecutor {
 
     /**
      * Return JAXP document builder instance.
+     *
+     * @return the document builder
+     * @throws ServletException when the builder could not be constructed
      */
     protected DocumentBuilder getDocumentBuilder() throws ServletException {
-        DocumentBuilder documentBuilder = null;
-        DocumentBuilderFactory documentBuilderFactory = null;
         try {
-            documentBuilderFactory = DocumentBuilderFactory.newInstance();
+            DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
             documentBuilderFactory.setNamespaceAware(true);
-            documentBuilder = documentBuilderFactory.newDocumentBuilder();
+            return documentBuilderFactory.newDocumentBuilder();
         } catch (ParserConfigurationException e) {
-            throw new ServletException("jaxp failed");
+            throw new ServletException("Failed to construct a JAXP document builder", e);
         }
-        return documentBuilder;
     }
 
     /**
      * reads the depth header from the request and returns it as a int
      * 
-     * @param req
+     * @param httpServletRequest the servlet request
      * @return the depth from the depth header
      */
-    protected int getDepth(HttpServletRequest req) {
+    protected int getDepth(HttpServletRequest httpServletRequest) {
         int depth = INFINITY;
-        String depthStr = req.getHeader("Depth");
+        String depthStr = httpServletRequest.getHeader("Depth");
         if (depthStr != null) {
             if (depthStr.equals("0")) {
                 depth = 0;
@@ -249,21 +248,18 @@ public abstract class AbstractMethod implements IMethodExecutor {
     }
 
     /**
-     * Get the ETag associated with a file.
+     * Get the ETag for with a stored object.
      * 
-     * @param StoredObject
-     *      StoredObject to get resourceLength, lastModified and a hashCode of
-     *      StoredObject
-     * @return the ETag
+     * @param storedObject the stored object
+     * @return the ETag as a string
      */
-    protected String getETag(StoredObject so) {
-
+    protected String getETag(StoredObject storedObject) {
         String resourceLength = "";
         String lastModified = "";
 
-        if (so != null && so.isResource()) {
-            resourceLength = new Long(so.getResourceLength()).toString();
-            lastModified = new Long(so.getLastModified().getTime()).toString();
+        if (storedObject != null && storedObject.isResource()) {
+            resourceLength = Long.valueOf(storedObject.getResourceLength()).toString();
+            lastModified = Long.valueOf(storedObject.getLastModified().getTime()).toString();
         }
 
         return "W/\"" + resourceLength + "-" + lastModified + "\"";
@@ -321,25 +317,19 @@ public abstract class AbstractMethod implements IMethodExecutor {
      * resource. Returning true if no lock exists or the If-Header is
      * corresponding to the locked resource
      * 
-     * @param req
+     * @param httpServletRequest
      *      Servlet request
-     * @param resp
-     *      Servlet response
-     * @param resourceLocks
      * @param path
      *      path to the resource
-     * @param errorList
-     *      List of error to be displayed
      * @return true if no lock on a resource with the given path exists or if
      *  the If-Header corresponds to the locked resource
-     * @throws IOException
-     * @throws LockFailedException
      */
-    protected boolean checkLocks(ITransaction transaction,
-            HttpServletRequest req, HttpServletResponse resp,
-            IResourceLocks resourceLocks, String path) throws IOException,
-            LockFailedException {
-
+    protected boolean checkLocks(
+        ITransaction transaction,
+        HttpServletRequest httpServletRequest,
+        IResourceLocks resourceLocks,
+        String path
+    ) {
         LockedObject loByPath = resourceLocks.getLockedObjectByPath(
                 transaction, path);
         if (loByPath != null) {
@@ -348,7 +338,7 @@ public abstract class AbstractMethod implements IMethodExecutor {
                 return true;
 
             // the resource is locked
-            String[] lockTokens = getLockIdFromIfHeader(req);
+            String[] lockTokens = getLockIdFromIfHeader(httpServletRequest);
             String lockToken = null;
             if (lockTokens != null)
                 lockToken = lockTokens[0];

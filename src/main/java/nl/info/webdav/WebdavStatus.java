@@ -265,7 +265,7 @@ public class WebdavStatus {
      *      [IN] HTTP status text
      */
     private static void addStatusCodeMap(int nKey, String strVal) {
-        _mapStatusCodes.put(new Integer(nKey), strVal);
+        _mapStatusCodes.put(nKey, strVal);
     }
 
 };

@@ -15,9 +15,6 @@
  */
 package nl.info.webdav.methods;
 
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import nl.info.webdav.IMimeTyper;
 import nl.info.webdav.ITransaction;
 import nl.info.webdav.IWebdavStore;
@@ -42,6 +39,9 @@ import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Vector;
 import javax.xml.parsers.DocumentBuilder;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 public class DoPropfind extends AbstractMethod {
 
@@ -595,7 +595,7 @@ public class DoPropfind extends AbstractMethod {
             }
 
             int timeout = (int) (lo.getTimeoutMillis() / 1000);
-            String timeoutStr = new Integer(timeout).toString();
+            String timeoutStr = String.valueOf(timeout);
             generatedXML.writeElement("DAV::timeout", XMLWriter.OPENING);
             generatedXML.writeText("Second-" + timeoutStr);
             generatedXML.writeElement("DAV::timeout", XMLWriter.CLOSING);
