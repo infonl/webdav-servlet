@@ -95,17 +95,19 @@ jobs:
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v2
 
+      - name: Validate Gradle wrapper
+        uses: gradle/wrapper-validation-action@v1
+
       - name: Create a new release
         run: ./gradlew release
 
-      # TODO: provide OpenPGP signing keys
-      # using ORG_GRADLE_PROJECT_signingKey and ORG_GRADLE_PROJECT_signingPassword env vars
-      - name: Publish release
-        uses: gradle/gradle-build-action@v2
-        with:
-          arguments: publish
+      - name: Publish with Gradle
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ORG_GRADLE_PROJECT_sonatypeUsername: ${{ secrets.SONATYPE_USERNAME }}
+          ORG_GRADLE_PROJECT_sonatypePassword: ${{ secrets.SONATYPE_PASSWORD }}
+          ORG_GRADLE_PROJECT_signingKey: $${{ secrets.PGP_SECRET }}
+          ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.PGP_PASSPHRASE }}
+        run: ./gradlew publishToSonatype --no-daemon
 
   create-release:
      needs: [next-version, publish]

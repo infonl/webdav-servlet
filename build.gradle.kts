@@ -13,6 +13,7 @@ plugins {
 	signing
 
 	id("pl.allegro.tech.build.axion-release") version "1.16.1"
+	id("io.github.gradle-nexus.publish-plugin") version "1.3.0"
 }
 
 repositories {
@@ -48,6 +49,16 @@ dependencies {
 java {
 	withJavadocJar()
 	withSourcesJar()
+}
+
+nexusPublishing {
+	repositories {
+		sonatype {
+			// only for users registered in Sonatype after 24 Feb 2021
+			nexusUrl.set(uri("https://s01.oss.sonatype.org/service/local/"))
+			snapshotRepositoryUrl.set(uri("https://s01.oss.sonatype.org/content/repositories/snapshots/"))
+		}
+	}
 }
 
 publishing {
