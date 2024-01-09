@@ -14,8 +14,9 @@ To build the software do:
 
 ## Releasing and publishing a new version
 
-We use the [Axion Release Plugin](https://github.com/allegro/axion-release-plugin) to release new versions and the [Gradle Nexus Publish Plugin](https://github.com/gradle-nexus/publish-plugin).
-to publish new versions to the Open Source Sonatype Nexus repository (and therefore to Maven Central).
+We use the [Axion Release Plugin](https://github.com/allegro/axion-release-plugin) to release new versions.
+And we use the [Gradle Nexus Publish Plugin](https://github.com/gradle-nexus/publish-plugin) to publish 
+new versions to the Open Source Sonatype Nexus repository (and therefore to Maven Central).
 This is part of the GitHub pipeline and should normally only be done there.
 
 ## Installation & configuration
