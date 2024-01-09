@@ -12,14 +12,15 @@ To build the software do:
 ./gradlew build
 ```
 
-## Releasing a new version
+## Releasing and publishing a new version
 
-We use the [Axion Release Plugin](https://github.com/allegro/axion-release-plugin) to release new versions.
+We use the [Axion Release Plugin](https://github.com/allegro/axion-release-plugin) to release new versions and the [Gradle Nexus Publish Plugin](https://github.com/gradle-nexus/publish-plugin).
+to publish new versions to the Open Source Sonatype Nexus repository (and therefore to Maven Central).
 This is part of the GitHub pipeline and should normally only be done there.
 
 ## Installation & configuration
 
-1. Add a dependency in your Java web project so that the `webdav-servlet.jar` will be added to the `/WEB-INF/lib/` of your webapp
+1. Add a dependency in your Java web project so that the `webdav-servlet.jar` will be added to the `/WEB-INF/lib/` of your webapp.
 2. Add the following to the `web.xml` file in your Java webapp:
 ```xml  
   	<servlet>
