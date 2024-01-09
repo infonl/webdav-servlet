@@ -129,13 +129,8 @@ publishing {
 }
 
 signing {
-	// Signing requires an OpenPGP keypair and the ORG_GRADLE_PROJECT_signingKey
-	// and ORG_GRADLE_PROJECT_signingPassword environment variables to be provided (by GitHub in our case).
-	// See: https://docs.gradle.org/current/userguide/signing_plugin.html
-	val signingKey: String? by project
-	val signingPassword: String? by project
-	useInMemoryPgpKeys(signingKey, signingPassword)
-
+	// signing is done as part of the publishing to Nexus using the Gradle Nexus Publish Plugin
+	// see: https://github.com/gradle-nexus/publish-plugin
 	sign(publishing.publications["mavenJava"])
 }
 
