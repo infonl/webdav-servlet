@@ -42,6 +42,11 @@ jobs:
       - name: Gradle build with unit tests
         run: ./gradlew build --info
 
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v3
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
   next-version:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
