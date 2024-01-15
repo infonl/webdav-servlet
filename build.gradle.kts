@@ -41,7 +41,7 @@ dependencies {
 	testImplementation("org.junit.jupiter:junit-jupiter-params:$junitVersion")
 	testImplementation("org.junit.jupiter:junit-jupiter-api:$junitVersion")
 	testImplementation("org.jmock:jmock:2.12.0")
-	testImplementation("org.slf4j:slf4j-simple:2.0.10")
+	testImplementation("org.slf4j:slf4j-simple:2.0.11")
 	
 	testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
 }
