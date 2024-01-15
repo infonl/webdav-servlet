@@ -35,7 +35,7 @@ val jakartaServletVersion = "6.0.0"
 dependencies {
 	compileOnly("jakarta.servlet:jakarta.servlet-api:$jakartaServletVersion")
 
-	implementation("org.slf4j:slf4j-api:2.0.10")
+	implementation("org.slf4j:slf4j-api:2.0.11")
 
 	testImplementation("jakarta.servlet:jakarta.servlet-api:$jakartaServletVersion")
 	testImplementation("org.junit.jupiter:junit-jupiter-params:$junitVersion")
