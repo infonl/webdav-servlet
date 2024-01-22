@@ -12,8 +12,8 @@ plugins {
 	`java-library`
 	signing
 
-	id("pl.allegro.tech.build.axion-release") version "1.16.1"
-	id("io.github.gradle-nexus.publish-plugin") version "1.3.0"
+	alias(libs.plugins.axion.release)
+	alias(libs.plugins.nexus.publish.plugin)
 }
 
 repositories {
@@ -29,21 +29,18 @@ java {
 	java.targetCompatibility = JavaVersion.VERSION_17
 }
 
-val junitVersion = "5.10.1"
-val jakartaServletVersion = "6.0.0"
-
 dependencies {
-	compileOnly("jakarta.servlet:jakarta.servlet-api:$jakartaServletVersion")
+	compileOnly(libs.jakarta.servlet.api)
 
-	implementation("org.slf4j:slf4j-api:2.0.11")
+	implementation(libs.slf4j.api)
 
-	testImplementation("jakarta.servlet:jakarta.servlet-api:$jakartaServletVersion")
-	testImplementation("org.junit.jupiter:junit-jupiter-params:$junitVersion")
-	testImplementation("org.junit.jupiter:junit-jupiter-api:$junitVersion")
-	testImplementation("org.jmock:jmock:2.12.0")
-	testImplementation("org.slf4j:slf4j-simple:2.0.11")
+	testImplementation(libs.jakarta.servlet.api)
+	testImplementation(libs.junit.jupiter.params)
+	testImplementation(libs.junit.jupiter.api)
+	testImplementation(libs.jmock)
+	testImplementation(libs.slf4j.simple)
 	
-	testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
+	testRuntimeOnly(libs.junit.jupiter.engine)
 }
 
 java {
