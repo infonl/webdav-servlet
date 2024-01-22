@@ -166,167 +166,164 @@ public class DoUnlockTest extends MockTest {
 
     @Test
     public void testDoUnlockaLockNullResource() throws Exception {
-
         final String parentPath = "/parentCollection";
         final String nullLoPath = parentPath.concat("/aNullResource");
 
-        final PrintWriter pw = new PrintWriter("/tmp/XMLTestFile");
+        try (final PrintWriter pw = new PrintWriter("/tmp/XMLTestFile");
+             final ByteArrayInputStream baisExclusive = new ByteArrayInputStream(
+                 exclusiveLockRequestByteArray);
+             final DelegatingServletInputStream dsisExclusive = new DelegatingServletInputStream(
+                 baisExclusive)
+        ) {
+            _mockery.checking(new Expectations() {
+                {
+                    oneOf(mockReq).getAttribute("javax.servlet.include.request_uri");
+                    will(returnValue(null));
 
-        final ByteArrayInputStream baisExclusive = new ByteArrayInputStream(
-                exclusiveLockRequestByteArray);
-        final DelegatingServletInputStream dsisExclusive = new DelegatingServletInputStream(
-                baisExclusive);
+                    oneOf(mockReq).getPathInfo();
+                    will(returnValue(nullLoPath));
 
-        _mockery.checking(new Expectations() {
-            {
-                oneOf(mockReq).getAttribute("javax.servlet.include.request_uri");
-                will(returnValue(null));
+                    LockedObject lockNullResourceLo = null;
 
-                oneOf(mockReq).getPathInfo();
-                will(returnValue(nullLoPath));
-
-                LockedObject lockNullResourceLo = null;
-
-                oneOf(mockResourceLocks).getLockedObjectByPath(mockTransaction,
+                    oneOf(mockResourceLocks).getLockedObjectByPath(mockTransaction,
                         nullLoPath);
-                will(returnValue(lockNullResourceLo));
+                    will(returnValue(lockNullResourceLo));
 
-                LockedObject parentLo = null;
+                    LockedObject parentLo = null;
 
-                oneOf(mockResourceLocks).getLockedObjectByPath(mockTransaction,
+                    oneOf(mockResourceLocks).getLockedObjectByPath(mockTransaction,
                         parentPath);
-                will(returnValue(parentLo));
+                    will(returnValue(parentLo));
 
-                oneOf(mockReq).getHeader("User-Agent");
-                will(returnValue("Goliath"));
+                    oneOf(mockReq).getHeader("User-Agent");
+                    will(returnValue("Goliath"));
 
-                oneOf(mockResourceLocks).lock(with(any(ITransaction.class)),
+                    oneOf(mockResourceLocks).lock(with(any(ITransaction.class)),
                         with(any(String.class)), with(any(String.class)),
                         with(any(boolean.class)), with(any(int.class)),
                         with(any(int.class)), with(any(boolean.class)));
-                will(returnValue(true));
+                    will(returnValue(true));
 
-                oneOf(mockReq).getHeader("If");
-                will(returnValue(null));
+                    oneOf(mockReq).getHeader("If");
+                    will(returnValue(null));
 
-                StoredObject lockNullResourceSo = null;
+                    StoredObject lockNullResourceSo = null;
 
-                oneOf(mockStore).getStoredObject(mockTransaction, nullLoPath);
-                will(returnValue(lockNullResourceSo));
+                    oneOf(mockStore).getStoredObject(mockTransaction, nullLoPath);
+                    will(returnValue(lockNullResourceSo));
 
-                StoredObject parentSo = null;
+                    StoredObject parentSo = null;
 
-                oneOf(mockStore).getStoredObject(mockTransaction, parentPath);
-                will(returnValue(parentSo));
+                    oneOf(mockStore).getStoredObject(mockTransaction, parentPath);
+                    will(returnValue(parentSo));
 
-                oneOf(mockStore).createFolder(mockTransaction, parentPath);
+                    oneOf(mockStore).createFolder(mockTransaction, parentPath);
 
-                oneOf(mockStore).getStoredObject(mockTransaction, nullLoPath);
-                will(returnValue(lockNullResourceSo));
+                    oneOf(mockStore).getStoredObject(mockTransaction, nullLoPath);
+                    will(returnValue(lockNullResourceSo));
 
-                oneOf(mockStore).createResource(mockTransaction, nullLoPath);
+                    oneOf(mockStore).createResource(mockTransaction, nullLoPath);
 
-                oneOf(mockRes).setStatus(WebdavStatus.SC_CREATED);
+                    oneOf(mockRes).setStatus(WebdavStatus.SC_CREATED);
 
-                lockNullResourceSo = initLockNullStoredObject();
+                    lockNullResourceSo = initLockNullStoredObject();
 
-                oneOf(mockStore).getStoredObject(mockTransaction, nullLoPath);
-                will(returnValue(lockNullResourceSo));
+                    oneOf(mockStore).getStoredObject(mockTransaction, nullLoPath);
+                    will(returnValue(lockNullResourceSo));
 
-                oneOf(mockReq).getInputStream();
-                will(returnValue(dsisExclusive));
+                    oneOf(mockReq).getInputStream();
+                    will(returnValue(dsisExclusive));
 
-                oneOf(mockReq).getHeader("Depth");
-                will(returnValue(("0")));
+                    oneOf(mockReq).getHeader("Depth");
+                    will(returnValue(("0")));
 
-                oneOf(mockReq).getHeader("Timeout");
-                will(returnValue("Infinite"));
+                    oneOf(mockReq).getHeader("Timeout");
+                    will(returnValue("Infinite"));
 
-                ResourceLocks resLocks = ResourceLocks.class.newInstance();
+                    ResourceLocks resLocks = ResourceLocks.class.newInstance();
 
-                oneOf(mockResourceLocks).exclusiveLock(mockTransaction,
+                    oneOf(mockResourceLocks).exclusiveLock(mockTransaction,
                         nullLoPath, "I'am the Lock Owner", 0, 604800);
-                will(returnValue(true));
+                    will(returnValue(true));
 
-                lockNullResourceLo = initLockNullLockedObject(resLocks,
+                    lockNullResourceLo = initLockNullLockedObject(resLocks,
                         nullLoPath);
 
-                oneOf(mockResourceLocks).getLockedObjectByPath(mockTransaction,
+                    oneOf(mockResourceLocks).getLockedObjectByPath(mockTransaction,
                         nullLoPath);
-                will(returnValue(lockNullResourceLo));
+                    will(returnValue(lockNullResourceLo));
 
-                oneOf(mockRes).setStatus(WebdavStatus.SC_OK);
+                    oneOf(mockRes).setStatus(WebdavStatus.SC_OK);
 
-                oneOf(mockRes).setContentType("text/xml; charset=UTF-8");
+                    oneOf(mockRes).setContentType("text/xml; charset=UTF-8");
 
-                oneOf(mockRes).getWriter();
-                will(returnValue(pw));
+                    oneOf(mockRes).getWriter();
+                    will(returnValue(pw));
 
-                String loId = null;
-                if (lockNullResourceLo != null) {
-                    loId = lockNullResourceLo.getID();
-                }
-                final String lockToken = "<opaquelocktoken:" + loId + ">";
+                    String loId = null;
+                    if (lockNullResourceLo != null) {
+                        loId = lockNullResourceLo.getID();
+                    }
+                    final String lockToken = "<opaquelocktoken:" + loId + ">";
 
-                oneOf(mockRes).addHeader("Lock-Token", lockToken);
+                    oneOf(mockRes).addHeader("Lock-Token", lockToken);
 
-                oneOf(mockResourceLocks).unlockTemporaryLockedObjects(
+                    oneOf(mockResourceLocks).unlockTemporaryLockedObjects(
                         with(any(ITransaction.class)), with(any(String.class)),
                         with(any(String.class)));
 
-                // -----LOCK on a non-existing resource successful------
-                // ----------------now try to unlock it-----------------
+                    // -----LOCK on a non-existing resource successful------
+                    // ----------------now try to unlock it-----------------
 
-                oneOf(mockReq).getAttribute("javax.servlet.include.request_uri");
-                will(returnValue(null));
+                    oneOf(mockReq).getAttribute("javax.servlet.include.request_uri");
+                    will(returnValue(null));
 
-                oneOf(mockReq).getPathInfo();
-                will(returnValue(nullLoPath));
+                    oneOf(mockReq).getPathInfo();
+                    will(returnValue(nullLoPath));
 
-                oneOf(mockResourceLocks).lock(with(any(ITransaction.class)),
+                    oneOf(mockResourceLocks).lock(with(any(ITransaction.class)),
                         with(any(String.class)), with(any(String.class)),
                         with(any(boolean.class)), with(any(int.class)),
                         with(any(int.class)), with(any(boolean.class)));
-                will(returnValue(true));
+                    will(returnValue(true));
 
-                oneOf(mockReq).getHeader("Lock-Token");
-                will(returnValue(lockToken));
+                    oneOf(mockReq).getHeader("Lock-Token");
+                    will(returnValue(lockToken));
 
-                oneOf(mockResourceLocks).getLockedObjectByID(mockTransaction,
+                    oneOf(mockResourceLocks).getLockedObjectByID(mockTransaction,
                         loId);
-                will(returnValue(lockNullResourceLo));
+                    will(returnValue(lockNullResourceLo));
 
-                String[] owners = lockNullResourceLo.getOwner();
-                String owner = null;
-                if (owners != null)
-                    owner = owners[0];
+                    String[] owners = lockNullResourceLo.getOwner();
+                    String owner = null;
+                    if (owners != null)
+                        owner = owners[0];
 
-                oneOf(mockResourceLocks).unlock(mockTransaction, loId, owner);
-                will(returnValue(true));
+                    oneOf(mockResourceLocks).unlock(mockTransaction, loId, owner);
+                    will(returnValue(true));
 
-                oneOf(mockStore).getStoredObject(mockTransaction, nullLoPath);
-                will(returnValue(lockNullResourceSo));
+                    oneOf(mockStore).getStoredObject(mockTransaction, nullLoPath);
+                    will(returnValue(lockNullResourceSo));
 
-                oneOf(mockStore).removeObject(mockTransaction, nullLoPath);
+                    oneOf(mockStore).removeObject(mockTransaction, nullLoPath);
 
-                oneOf(mockRes).setStatus(WebdavStatus.SC_NO_CONTENT);
+                    oneOf(mockRes).setStatus(WebdavStatus.SC_NO_CONTENT);
 
-                oneOf(mockResourceLocks).unlockTemporaryLockedObjects(
+                    oneOf(mockResourceLocks).unlockTemporaryLockedObjects(
                         with(any(ITransaction.class)), with(any(String.class)),
                         with(any(String.class)));
 
-            }
-        });
+                }
+            });
 
-        DoLock doLock = new DoLock(mockStore, mockResourceLocks, !readOnly);
-        doLock.execute(mockTransaction, mockReq, mockRes);
+            DoLock doLock = new DoLock(mockStore, mockResourceLocks, !readOnly);
+            doLock.execute(mockTransaction, mockReq, mockRes);
 
-        DoUnlock doUnlock = new DoUnlock(mockStore, mockResourceLocks,
+            DoUnlock doUnlock = new DoUnlock(mockStore, mockResourceLocks,
                 !readOnly);
-        doUnlock.execute(mockTransaction, mockReq, mockRes);
+            doUnlock.execute(mockTransaction, mockReq, mockRes);
 
-        _mockery.assertIsSatisfied();
-
+            _mockery.assertIsSatisfied();
+        }
     }
-
 }

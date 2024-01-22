@@ -57,7 +57,6 @@ public class DoPutTest extends MockTest {
 
     @Test
     public void testDoPutIfReadOnlyFalse() throws Exception {
-
         _mockery.checking(new Expectations() {
             {
                 oneOf(mockReq).getAttribute("javax.servlet.include.request_uri");
@@ -95,7 +94,7 @@ public class DoPutTest extends MockTest {
                 oneOf(mockStore).getStoredObject(mockTransaction, path);
                 will(returnValue(fileSo));
 
-                // User-Agent: Goliath --> dont add ContentLength
+                // User-Agent: Goliath --> don't add ContentLength
                 // oneOf(mockRes).setContentLength(8);
             }
         });
@@ -110,46 +109,41 @@ public class DoPutTest extends MockTest {
     @Test
     @Disabled("Fails currently")
     public void testDoPutIfLazyFolderCreationOnPutIsFalse() throws Exception {
+        try (final PrintWriter pw = new PrintWriter("/tmp/XMLTestFile")) {
+            _mockery.checking(new Expectations() {
+                {
+                    oneOf(mockReq).getAttribute("javax.servlet.include.request_uri");
+                    will(returnValue(null));
 
-        final PrintWriter pw = new PrintWriter("/tmp/XMLTestFile");
+                    oneOf(mockReq).getPathInfo();
+                    will(returnValue(path));
 
-        _mockery.checking(new Expectations() {
-            {
-                oneOf(mockReq).getAttribute("javax.servlet.include.request_uri");
-                will(returnValue(null));
+                    oneOf(mockReq).getHeader("User-Agent");
+                    will(returnValue("Transmit agent"));
 
-                oneOf(mockReq).getPathInfo();
-                will(returnValue(path));
+                    oneOf(mockStore).getStoredObject(mockTransaction, parentPath);
+                    will(returnValue(null));
 
-                oneOf(mockReq).getHeader("User-Agent");
-                will(returnValue("Transmit agent"));
+                    oneOf(mockRes).setStatus(WebdavStatus.SC_MULTI_STATUS);
 
-                StoredObject parentSo = null;
+                    oneOf(mockReq).getRequestURI();
+                    will(returnValue("http://foo.bar".concat(path)));
 
-                oneOf(mockStore).getStoredObject(mockTransaction, parentPath);
-                will(returnValue(parentSo));
+                    oneOf(mockRes).getWriter();
+                    will(returnValue(pw));
+                }
+            });
 
-                oneOf(mockRes).setStatus(WebdavStatus.SC_MULTI_STATUS);
-
-                oneOf(mockReq).getRequestURI();
-                will(returnValue("http://foo.bar".concat(path)));
-
-                oneOf(mockRes).getWriter();
-                will(returnValue(pw));
-
-            }
-        });
-
-        DoPut doPut = new DoPut(mockStore, new ResourceLocks(), !readOnly,
+            DoPut doPut = new DoPut(mockStore, new ResourceLocks(), !readOnly,
                 !lazyFolderCreationOnPut);
-        doPut.execute(mockTransaction, mockReq, mockRes);
+            doPut.execute(mockTransaction, mockReq, mockRes);
 
-        _mockery.assertIsSatisfied();
+            _mockery.assertIsSatisfied();
+        } 
     }
 
     @Test
     public void testDoPutIfLazyFolderCreationOnPutIsTrue() throws Exception {
-
         _mockery.checking(new Expectations() {
             {
                 oneOf(mockReq).getAttribute("javax.servlet.include.request_uri");
