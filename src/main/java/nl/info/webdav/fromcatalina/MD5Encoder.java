@@ -28,19 +28,13 @@ package nl.info.webdav.fromcatalina;
  */
 
 public final class MD5Encoder {
-
-    // ----------------------------------------------------- Instance Variables
-
     private static final char[] HEXADECIMAL = { '0', '1', '2', '3', '4', '5',
             '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
-
-    // --------------------------------------------------------- Public Methods
 
     /**
      * Encodes the 128 bit (16 bytes) MD5 into a 32 character String.
      * 
-     * @param binaryData
-     *      Array containing the digest
+     * @param binaryData array containing the digest
      * @return Encoded MD5, or null if encoding failed
      */
     public String encode(byte[] binaryData) {
@@ -58,7 +52,5 @@ public final class MD5Encoder {
         }
 
         return new String(buffer);
-
     }
-
 }

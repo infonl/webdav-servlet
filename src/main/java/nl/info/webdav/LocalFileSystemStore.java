@@ -37,13 +37,11 @@ import java.util.List;
  * @author re
  */
 public class LocalFileSystemStore implements IWebdavStore {
-
-    private static org.slf4j.Logger LOG = org.slf4j.LoggerFactory
+    private final static org.slf4j.Logger LOG = org.slf4j.LoggerFactory
             .getLogger(LocalFileSystemStore.class);
+    private final static int BUF_SIZE = 65536;
 
-    private static int BUF_SIZE = 65536;
-
-    private File _root = null;
+    private final File _root;
 
     public LocalFileSystemStore(File root) {
         _root = root;
@@ -201,7 +199,6 @@ public class LocalFileSystemStore implements IWebdavStore {
     }
 
     public StoredObject getStoredObject(ITransaction transaction, String uri) {
-
         StoredObject so = null;
 
         File file = new File(_root, uri);
@@ -215,5 +212,4 @@ public class LocalFileSystemStore implements IWebdavStore {
 
         return so;
     }
-
 }

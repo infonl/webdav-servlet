@@ -16,6 +16,8 @@
 
 package nl.info.webdav.fromcatalina;
 
+import static java.text.MessageFormat.format;
+
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Map;
@@ -28,15 +30,14 @@ import jakarta.servlet.http.Cookie;
  * @author Tim Tye
  * @version $Revision: 1.2 $ $Date: 2008-08-05 07:38:45 $
  */
-
 public final class RequestUtil {
+    private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(RequestUtil.class);
 
     /**
      * Encode a cookie as per RFC 2109. The resulting string can be used as the
      * value for a <code>Set-Cookie</code> header.
      * 
-     * @param cookie
-     *      The cookie to encode.
+     * @param cookie the cookie to encode.
      * @return A string following RFC 2109.
      */
     public static String encodeCookie(Cookie cookie) {
@@ -77,17 +78,15 @@ public final class RequestUtil {
      * HTML. This avoids potential attacks caused by including JavaScript codes
      * in the request URL that is often reported in error messages.
      * 
-     * @param message
-     *      The message string to be filtered
+     * @param message the message string to be filtered
      */
     public static String filter(String message) {
-
         if (message == null)
             return (null);
 
-        char content[] = new char[message.length()];
+        char[] content = new char[message.length()];
         message.getChars(0, message.length(), content, 0);
-        StringBuffer result = new StringBuffer(content.length + 50);
+        StringBuilder result = new StringBuilder(content.length + 50);
         for (int i = 0; i < content.length; i++) {
             switch (content[i]) {
             case '<':
@@ -106,18 +105,16 @@ public final class RequestUtil {
                 result.append(content[i]);
             }
         }
-        return (result.toString());
-
+        return result.toString();
     }
 
     /**
      * Normalize a relative URI path that may have relative values ("/./",
-     * "/../", and so on ) it it. <strong>WARNING</strong> - This method is
+     * "/../", and so on ) in it. <strong>WARNING</strong> - This method is
      * useful only for normalizing application-generated paths. It does not try
      * to perform security checks for malicious input.
      * 
-     * @param path
-     *      Relative path to be normalized
+     * @param path relative path to be normalized
      */
     public static String normalize(String path) {
 
@@ -174,11 +171,9 @@ public final class RequestUtil {
      * the content type is null, or there is no explicit character encoding,
      * <code>null</code> is returned.
      * 
-     * @param contentType
-     *      a content type header
+     * @param contentType a content type header
      */
     public static String parseCharacterEncoding(String contentType) {
-
         if (contentType == null)
             return (null);
         int start = contentType.indexOf("charset=");
@@ -192,23 +187,20 @@ public final class RequestUtil {
         if ((encoding.length() > 2) && (encoding.startsWith("\""))
                 && (encoding.endsWith("\"")))
             encoding = encoding.substring(1, encoding.length() - 1);
-        return (encoding.trim());
-
+        return encoding.trim();
     }
 
     /**
      * Parse a cookie header into an array of cookies according to RFC 2109.
      * 
-     * @param header
-     *      Value of an HTTP "Cookie" header
+     * @param header value of an HTTP "Cookie" header
      */
     public static Cookie[] parseCookieHeader(String header) {
-
-        if ((header == null) || (header.length() < 1))
+        if ((header == null) || (header.isEmpty()))
             return (new Cookie[0]);
 
-        ArrayList<Cookie> cookies = new ArrayList<Cookie>();
-        while (header.length() > 0) {
+        ArrayList<Cookie> cookies = new ArrayList<>();
+        while (!header.isEmpty()) {
             int semicolon = header.indexOf(';');
             if (semicolon < 0)
                 semicolon = header.length();
@@ -226,13 +218,12 @@ public final class RequestUtil {
                     String value = token.substring(equals + 1).trim();
                     cookies.add(new Cookie(name, value));
                 }
-            } catch (Throwable e) {
-                ;
+            } catch (Throwable ignored) {
+                // ignore
             }
         }
 
-        return ((Cookie[]) cookies.toArray(new Cookie[cookies.size()]));
-
+        return cookies.toArray(new Cookie[0]);
     }
 
     /**
@@ -246,18 +237,17 @@ public final class RequestUtil {
      * the name or value includes an encoded "=" or "{@literal &}" character that would
      * otherwise be interpreted as a delimiter.
      * 
-     * @param map
-     *      Map that accumulates the resulting parameters
-     * @param data
-     *      Input string containing request parameters
+     * @param map map that accumulates the resulting parameters
+     * @param data input string containing request parameters
      * 
-     * @exception IllegalArgumentException
-     *      if the data is malformed
+     * @exception IllegalArgumentException if the data is malformed
      */
-    public static void parseParameters(Map<String, String[]> map, String data,
-            String encoding) throws UnsupportedEncodingException {
-
-        if ((data != null) && (data.length() > 0)) {
+    public static void parseParameters(
+        Map<String, String[]> map,
+        String data,
+        String encoding
+    ) throws UnsupportedEncodingException {
+        if ((data != null) && (!data.isEmpty())) {
 
             // use the specified encoding to extract bytes out of the
             // given string so that the encoding is not lost. If an
@@ -269,7 +259,8 @@ public final class RequestUtil {
                 } else {
                     bytes = data.getBytes(encoding);
                 }
-            } catch (UnsupportedEncodingException uee) {
+            } catch (UnsupportedEncodingException ignored) {
+                // ignore
             }
 
             parseParameters(map, bytes, encoding);
@@ -290,9 +281,7 @@ public final class RequestUtil {
      *      number
      */
     public static String URLDecode(String str) {
-
         return URLDecode(str, null);
-
     }
 
     /**
@@ -307,9 +296,8 @@ public final class RequestUtil {
      *      number
      */
     public static String URLDecode(String str, String enc) {
-
         if (str == null)
-            return (null);
+            return null;
 
         // use the specified encoding to extract bytes out of the
         // given string so that the encoding is not lost. If an
@@ -321,7 +309,8 @@ public final class RequestUtil {
             } else {
                 bytes = str.getBytes(enc);
             }
-        } catch (UnsupportedEncodingException uee) {
+        } catch (UnsupportedEncodingException ignored) {
+            // ignore
         }
 
         return URLDecode(bytes, enc);
@@ -353,9 +342,8 @@ public final class RequestUtil {
      *      number
      */
     public static String URLDecode(byte[] bytes, String enc) {
-
         if (bytes == null)
-            return (null);
+            return null;
 
         int len = bytes.length;
         int ix = 0;
@@ -373,11 +361,10 @@ public final class RequestUtil {
             try {
                 return new String(bytes, 0, ox, enc);
             } catch (Exception e) {
-                e.printStackTrace();
+                LOG.error(format("Failed to decode URL byte array using encoding: {0}", enc), e);
             }
         }
         return new String(bytes, 0, ox);
-
     }
 
     /**
@@ -409,8 +396,8 @@ public final class RequestUtil {
      */
     private static void putMapEntry(Map<String, String[]> map, String name,
             String value) {
-        String[] newValues = null;
-        String[] oldValues = (String[]) map.get(name);
+        String[] newValues;
+        String[] oldValues = map.get(name);
         if (oldValues == null) {
             newValues = new String[1];
             newValues[0] = value;
@@ -434,24 +421,24 @@ public final class RequestUtil {
      * otherwise be interpreted as a delimiter. NOTE: byte array data is
      * modified by this method. Caller beware.
      * 
-     * @param map
-     *      Map that accumulates the resulting parameters
-     * @param data
-     *      Input string containing request parameters
+     * @param map map that accumulates the resulting parameters
+     * @param data input string containing request parameters
      * @param encoding
      *      Encoding to use for converting hex
      * 
      * @exception UnsupportedEncodingException
      *      if the data is malformed
      */
-    public static void parseParameters(Map<String, String[]> map, byte[] data,
-            String encoding) throws UnsupportedEncodingException {
-
+    public static void parseParameters(
+        Map<String, String[]> map,
+        byte[] data,
+        String encoding
+    ) throws UnsupportedEncodingException {
         if (data != null && data.length > 0) {
             int ix = 0;
             int ox = 0;
             String key = null;
-            String value = null;
+            String value;
             while (ix < data.length) {
                 byte c = data[ix++];
                 switch ((char) c) {
@@ -487,7 +474,5 @@ public final class RequestUtil {
                 putMapEntry(map, key, value);
             }
         }
-
     }
-
 }

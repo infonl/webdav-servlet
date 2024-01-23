@@ -22,14 +22,12 @@ package nl.info.webdav;
 import java.util.Date;
 
 public class StoredObject {
-
     private boolean isFolder;
     private Date lastModified;
     private Date creationDate;
     private long contentLength;
     private String  mimeType;
-
-    private boolean isNullRessource;
+    private boolean isNullResource;
 
     /**
      * Determines whether the StoredObject is a folder or a resource
@@ -121,7 +119,7 @@ public class StoredObject {
      * @return true if the resource is in lock-null state
      */
     public boolean isNullResource() {
-        return isNullRessource;
+        return isNullResource;
     }
 
     /**
@@ -131,7 +129,7 @@ public class StoredObject {
      *      true to set the resource as lock-null resource
      */
     public void setNullResource(boolean f) {
-        this.isNullRessource = f;
+        this.isNullResource = f;
         this.isFolder = false;
         this.creationDate = null;
         this.lastModified = null;
@@ -160,5 +158,4 @@ public class StoredObject {
     public void setMimeType(String mimeType) {
         this.mimeType = mimeType;
     }
-
 }

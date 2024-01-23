@@ -29,9 +29,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 public class DoMove extends AbstractMethod {
-
-    private static org.slf4j.Logger LOG = org.slf4j.LoggerFactory
-            .getLogger(DoMove.class);
+    private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(DoMove.class);
 
     private ResourceLocks _resourceLocks;
     private DoDelete _doDelete;

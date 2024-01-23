@@ -16,31 +16,29 @@
 
 package nl.info.webdav;
 
-import jakarta.servlet.ServletException;
 import nl.info.webdav.exceptions.WebdavException;
 
 import java.io.File;
 import java.lang.reflect.Constructor;
+import jakarta.servlet.ServletException;
 
 /**
  * Servlet which provides support for WebDAV level 2.
- * 
+ * <p>
  * the original class is org.apache.catalina.servlets.WebdavServlet by Remy
  * Maucherat, which was heavily changed
  * 
  * @author Remy Maucherat
  */
-
 public class WebdavServlet extends WebDavServletBean {
-
-    private static final String ROOTPATH_PARAMETER = "rootpath";
+    private static org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(WebdavServlet.class);
+    private static final String ROOT_PATH_PARAMETER = "rootpath";
 
     public void init() throws ServletException {
 
         // Parameters from web.xml
-        String clazzName = getServletConfig().getInitParameter(
-                "ResourceHandlerImplementation");
-        if (clazzName == null || clazzName.equals("")) {
+        String clazzName = getServletConfig().getInitParameter("ResourceHandlerImplementation");
+        if (clazzName == null || clazzName.isEmpty()) {
             clazzName = LocalFileSystemStore.class.getName();
         }
 
@@ -72,29 +70,28 @@ public class WebdavServlet extends WebDavServletBean {
                     clazzName);
 
             Constructor<?> ctor = clazz
-                    .getConstructor(new Class[] { File.class });
+                    .getConstructor(File.class);
 
             webdavStore = (IWebdavStore) ctor
                     .newInstance(new Object[] { root });
         } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException("some problem making store component", e);
+            LOG.error("Failed to construct store", e);
+            throw new RuntimeException("Failed to construct store", e);
         }
         return webdavStore;
     }
 
     private File getFileRoot() {
-        String rootPath = getInitParameter(ROOTPATH_PARAMETER);
+        String rootPath = getInitParameter(ROOT_PATH_PARAMETER);
         if (rootPath == null) {
             throw new WebdavException("missing parameter: "
-                    + ROOTPATH_PARAMETER);
+                    + ROOT_PATH_PARAMETER);
         }
         if (rootPath.equals("*WAR-FILE-ROOT*")) {
             String file = LocalFileSystemStore.class.getProtectionDomain()
                     .getCodeSource().getLocation().getFile().replace('\\', '/');
-            if (file.charAt(0) == '/'
-                    && System.getProperty("os.name").indexOf("Windows") != -1) {
-                file = file.substring(1, file.length());
+            if (file.charAt(0) == '/' && System.getProperty("os.name").contains("Windows")) {
+                file = file.substring(1);
             }
 
             int ix = file.indexOf("/WEB-INF/");
@@ -109,5 +106,4 @@ public class WebdavServlet extends WebDavServletBean {
         }
         return new File(rootPath);
     }
-
 }

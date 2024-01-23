@@ -32,11 +32,8 @@ import java.util.BitSet;
  * @author Craig R. McClanahan
  * @author Remy Maucherat
  */
-public class URLEncoder
-{
-    private static org.slf4j.Logger LOG = org.slf4j.LoggerFactory
-            .getLogger(URLEncoder.class);
-
+public class URLEncoder {
+    private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(URLEncoder.class);
 
     protected static final char[] HEXADECIMAL = { '0', '1', '2', '3', '4', '5',
             '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
@@ -65,8 +62,7 @@ public class URLEncoder
 
     public String encode(String path) {
         int maxBytesPerChar = 10;
-        // int caseDiff = ('a' - 'A');
-        StringBuffer rewrittenPath = new StringBuffer(path.length());
+        StringBuilder rewrittenPath = new StringBuilder(path.length());
         ByteArrayOutputStream buf = new ByteArrayOutputStream(maxBytesPerChar);
         OutputStreamWriter writer = null;
         try {
@@ -77,7 +73,7 @@ public class URLEncoder
         }
 
         for (int i = 0; i < path.length(); i++) {
-            int c = (int) path.charAt(i);
+            int c = path.charAt(i);
             if (_safeCharacters.get(c)) {
                 rewrittenPath.append((char) c);
             } else {
@@ -90,9 +86,8 @@ public class URLEncoder
                     continue;
                 }
                 byte[] ba = buf.toByteArray();
-                for (int j = 0; j < ba.length; j++) {
+                for (byte toEncode : ba) {
                     // Converting each byte in the buffer
-                    byte toEncode = ba[j];
                     rewrittenPath.append('%');
                     int low = (int) (toEncode & 0x0f);
                     int high = (int) ((toEncode & 0xf0) >> 4);

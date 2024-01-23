@@ -1,12 +1,7 @@
 package nl.info.webdav;
 
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import nl.info.webdav.exceptions.UnauthenticatedException;
 import nl.info.webdav.exceptions.WebdavException;
-import nl.info.webdav.fromcatalina.MD5Encoder;
 import nl.info.webdav.locking.ResourceLocks;
 import nl.info.webdav.methods.DoCopy;
 import nl.info.webdav.methods.DoDelete;
@@ -28,26 +23,23 @@ import java.security.NoSuchAlgorithmException;
 import java.security.Principal;
 import java.util.Enumeration;
 import java.util.HashMap;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 public class WebDavServletBean extends HttpServlet {
-
-    private static org.slf4j.Logger LOG = org.slf4j.LoggerFactory
-            .getLogger(WebDavServletBean.class);
+    private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(WebDavServletBean.class);
 
     /**
      * MD5 message digest provider.
      */
     protected static MessageDigest MD5_HELPER;
 
-    /**
-     * The MD5 helper object for this class.
-     */
-    protected static final MD5Encoder MD5_ENCODER = new MD5Encoder();
-
     private static final boolean READ_ONLY = false;
-	protected ResourceLocks _resLocks;
-	protected IWebdavStore _store;
-    private HashMap<String, IMethodExecutor> _methodMap = new HashMap<String, IMethodExecutor>();
+    private final HashMap<String, IMethodExecutor> _methodMap = new HashMap<>();
+    protected ResourceLocks _resLocks;
+    protected IWebdavStore _store;
 
     public WebDavServletBean() {
         _resLocks = new ResourceLocks();
@@ -67,9 +59,9 @@ public class WebDavServletBean extends HttpServlet {
 
         IMimeTyper mimeTyper = new IMimeTyper() {
             public String getMimeType(ITransaction transaction, String path) {
-                String retVal= _store.getStoredObject(transaction, path).getMimeType();
-                if ( retVal== null) {
-                    retVal= getServletContext().getMimeType( path);
+                String retVal = _store.getStoredObject(transaction, path).getMimeType();
+                if (retVal == null) {
+                    retVal = getServletContext().getMimeType(path);
                 }
                 return retVal;
             }
@@ -139,12 +131,10 @@ public class WebDavServletBean extends HttpServlet {
                 methodExecutor.execute(transaction, req, resp);
 
                 _store.commit(transaction);
-                /** Clear not consumed data
-                 *
-                 * Clear input stream if available otherwise later access
-                 * include current input.  These cases occure if the client
-                 * sends a request with body to an not existing resource.
-                 */
+
+                // Clear input stream if available otherwise later access
+                // include current input. This occurs if the client
+                // sends a request with body to an not existing resource.
                 if (req.getContentLength() != 0 && req.getInputStream().available() > 0) {
                     if (LOG.isTraceEnabled()) { LOG.trace("Clear not consumed data!"); }
                     while (req.getInputStream().available() > 0) {
@@ -156,7 +146,7 @@ public class WebDavServletBean extends HttpServlet {
                 java.io.StringWriter sw = new java.io.StringWriter();
                 java.io.PrintWriter pw = new java.io.PrintWriter(sw);
                 e.printStackTrace(pw);
-                LOG.error("IOException: " + sw.toString());
+                LOG.error("IOException: " + sw);
                 resp.sendError(WebdavStatus.SC_INTERNAL_SERVER_ERROR);
                 _store.rollback(transaction);
                 throw new ServletException(e);
@@ -168,25 +158,24 @@ public class WebDavServletBean extends HttpServlet {
             java.io.StringWriter sw = new java.io.StringWriter();
             java.io.PrintWriter pw = new java.io.PrintWriter(sw);
             e.printStackTrace(pw);
-            LOG.error("WebdavException: " + sw.toString());
+            LOG.error("WebdavException: " + sw);
             throw new ServletException(e);
         } catch (Exception e) {
             java.io.StringWriter sw = new java.io.StringWriter();
             java.io.PrintWriter pw = new java.io.PrintWriter(sw);
             e.printStackTrace(pw);
-            LOG.error("Exception: " + sw.toString());
+            LOG.error("Exception: " + sw);
         } finally {
             if (needRollback)
                 _store.rollback(transaction);
         }
-
     }
 
     /**
      * Method that permit to customize the way 
      * user information are extracted from the request, default use JAAS
-     * @param req
-     * @return
+     * @param req the request
+     * @return the principal
      */
     protected Principal getUserPrincipal(HttpServletRequest req) {
     	return req.getUserPrincipal();
@@ -214,5 +203,4 @@ public class WebDavServletBean extends HttpServlet {
             LOG.trace("parameter: " + s + " " + req.getParameter(s));
         }
     }
-
 }

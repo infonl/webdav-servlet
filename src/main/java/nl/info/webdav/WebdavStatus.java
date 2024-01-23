@@ -20,7 +20,7 @@ public class WebdavStatus {
      * This Hashtable contains the mapping of HTTP and WebDAV status codes to
      * descriptive text. This is a static variable.
      */
-    private static Hashtable<Integer, String> _mapStatusCodes = new Hashtable<Integer, String>();
+    private static final Hashtable<Integer, String> _mapStatusCodes = new Hashtable<>();
 
     // ------------------------------------------------------ HTTP Status Codes
 
@@ -173,7 +173,7 @@ public class WebdavStatus {
      */
     public static final int SC_UNPROCESSABLE_ENTITY = 418;
 
-    // This one colides with HTTP 1.1
+    // This one collides with HTTP 1.1
     // "418 Reauthentication Required"
 
     /**
@@ -183,7 +183,7 @@ public class WebdavStatus {
      */
     public static final int SC_INSUFFICIENT_SPACE_ON_RESOURCE = 419;
 
-    // This one colides with HTTP 1.1
+    // This one collides with HTTP 1.1
     // "419 Proxy Reauthentication Required"
 
     /**
@@ -199,8 +199,6 @@ public class WebdavStatus {
      * or the Lock-Info header identifies a lock held by another principal.
      */
     public static final int SC_LOCKED = 423;
-
-    // ------------------------------------------------------------ Initializer
 
     static {
         // HTTP 1.0 Status Code
@@ -234,8 +232,6 @@ public class WebdavStatus {
         addStatusCodeMap(SC_LOCKED, "Locked");
     }
 
-    // --------------------------------------------------------- Public Methods
-
     /**
      * Returns the HTTP status text for the HTTP or WebDav status code specified
      * by looking it up in the static mapping. This is a static function.
@@ -249,11 +245,9 @@ public class WebdavStatus {
         if (!_mapStatusCodes.containsKey(httpStatusCode)) {
             return "";
         } else {
-            return (String) _mapStatusCodes.get(httpStatusCode);
+            return _mapStatusCodes.get(httpStatusCode);
         }
     }
-
-    // -------------------------------------------------------- Private Methods
 
     /**
      * Adds a new status code -> status text mapping. This is a static method
@@ -267,5 +261,4 @@ public class WebdavStatus {
     private static void addStatusCodeMap(int nKey, String strVal) {
         _mapStatusCodes.put(nKey, strVal);
     }
-
-};
+}
