@@ -18,6 +18,7 @@ package nl.info.webdav.fromcatalina;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.BitSet;
 
 /**
@@ -66,7 +67,7 @@ public class URLEncoder {
         ByteArrayOutputStream buf = new ByteArrayOutputStream(maxBytesPerChar);
         OutputStreamWriter writer = null;
         try {
-            writer = new OutputStreamWriter(buf, "UTF8");
+            writer = new OutputStreamWriter(buf, StandardCharsets.UTF_8);
         } catch (Exception e) {
             LOG.error("Error in encode <"+path+">", e);
             writer = new OutputStreamWriter(buf);

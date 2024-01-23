@@ -15,8 +15,6 @@
  */
 package nl.info.webdav.methods;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import nl.info.webdav.IMimeTyper;
 import nl.info.webdav.ITransaction;
 import nl.info.webdav.IWebdavStore;
@@ -31,23 +29,20 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Locale;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 public class DoGet extends DoHead {
-
-    private static org.slf4j.Logger LOG = org.slf4j.LoggerFactory
-            .getLogger(DoGet.class);
+    private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(DoGet.class);
 
     public DoGet(IWebdavStore store, String dftIndexFile, String insteadOf404,
             ResourceLocks resourceLocks, IMimeTyper mimeTyper,
             int contentLengthHeader) {
         super(store, dftIndexFile, insteadOf404, resourceLocks, mimeTyper,
                 contentLengthHeader);
-
     }
 
-    protected void doBody(ITransaction transaction, HttpServletResponse resp,
-            String path) {
-
+    protected void doBody(ITransaction transaction, HttpServletResponse resp, String path) {
         try {
             StoredObject so = _store.getStoredObject(transaction, path);
             if (so.isNullResource()) {
@@ -60,7 +55,7 @@ public class DoGet extends DoHead {
             OutputStream out = resp.getOutputStream();
             InputStream in = _store.getResourceContent(transaction, path);
             try {
-                int read = -1;
+                int read;
                 byte[] copyBuffer = new byte[BUF_SIZE];
 
                 while ((read = in.read(copyBuffer, 0, copyBuffer.length)) != -1) {
@@ -71,20 +66,18 @@ public class DoGet extends DoHead {
                 // client disconnected before server finished sending response
                 try {
                     in.close();
-                } catch (Exception e) {
-                    LOG.warn("Closing InputStream causes Exception!\n"
-                            + e.toString());
+                } catch (IOException e) {
+                    LOG.warn("Closing InputStream causes Exception.", e);
                 }
                 try {
                     out.flush();
                     out.close();
-                } catch (Exception e) {
-                    LOG.warn("Flushing OutputStream causes Exception!\n"
-                            + e.toString());
+                } catch (IOException e) {
+                    LOG.warn("Flushing OutputStream causes Exception!", e);
                 }
             }
         } catch (Exception e) {
-            LOG.trace(e.toString());
+            LOG.warn("Failed to copy buffer", e);
         }
     }
 
@@ -204,7 +197,7 @@ public class DoGet extends DoHead {
      * Return the CSS styles used to display the HTML representation
      * of the webdav content.
      * 
-     * @return
+     * @return the CSS styles
      */
     protected String getCSS()
     {
@@ -236,27 +229,21 @@ public class DoGet extends DoHead {
                 "}\n"+
                 "tr.odd {\n"+
                 "	background-color: #FFFFFF;\n"+
-                "}\n"+
-                "";
-        try
-        {
-            // Try loading one via class loader and use that one instead
-            ClassLoader cl = getClass().getClassLoader();
-            InputStream iStream = cl.getResourceAsStream("webdav.css");
-            if(iStream != null)
-            {
+                "}\n";
+        // Try loading one via class loader and use that one instead
+        ClassLoader cl = getClass().getClassLoader();
+        try (InputStream iStream = cl.getResourceAsStream("webdav.css")) {
+            if (iStream != null) {
                 // Found css via class loader, use that one
-                StringBuffer out = new StringBuffer();
+                StringBuilder out = new StringBuilder();
                 byte[] b = new byte[4096];
-                for (int n; (n = iStream.read(b)) != -1;)
-                {
+                for (int n; (n = iStream.read(b)) != -1;) {
                     out.append(new String(b, 0, n));
-}
+                }
                 retVal= out.toString();
             }
         }
-        catch (Exception ex)
-        {
+        catch (Exception ex) {
             LOG.error("Error in reading webdav.css", ex);
         }
 
@@ -266,41 +253,46 @@ public class DoGet extends DoHead {
     /**
      * Return the header to be displayed in front of the folder content
      * 
-     * @param transaction
-     * @param path
-     * @param resp
-     * @param req
-     * @return
+     * @param transaction the transaction
+     * @param path the path
+     * @param resp the http response
+     * @param req the http request
+     * @return the header
      */
-    protected String getHeader(ITransaction transaction, String path,
-            HttpServletResponse resp, HttpServletRequest req)
-    {
+    protected String getHeader(
+        ITransaction transaction,
+        String path,
+        HttpServletResponse resp,
+        HttpServletRequest req
+    ) {
         return "<h1>Content of folder "+path+"</h1>";
     }
 
     /**
      * Return the footer to be displayed after the folder content
-     * 
-     * @param transaction
-     * @param path
-     * @param resp
-     * @param req
-     * @return
+     *
+     * @param transaction the transaction
+     * @param path the path
+     * @param resp the http response
+     * @param req the http request
+     * @return the footer
      */
-    protected String getFooter(ITransaction transaction, String path,
-            HttpServletResponse resp, HttpServletRequest req)
-    {
+    protected String getFooter(
+        ITransaction transaction,
+        String path,
+        HttpServletResponse resp,
+        HttpServletRequest req
+    ) {
         return "";
     }
 
     /**
      * Return this as the Date/Time format for displaying Creation + Modification dates
      *
-     * @param browserLocale
+     * @param browserLocale the browser locale
      * @return DateFormat used to display creation and modification dates
      */
-    protected DateFormat getDateTimeFormat(Locale browserLocale)
-    {
+    protected DateFormat getDateTimeFormat(Locale browserLocale) {
         return SimpleDateFormat.getDateTimeInstance(SimpleDateFormat.SHORT, SimpleDateFormat.MEDIUM, browserLocale);
     }
  }

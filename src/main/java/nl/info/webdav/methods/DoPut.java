@@ -31,14 +31,12 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 public class DoPut extends AbstractMethod {
+    private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(DoPut.class);
 
-    private static org.slf4j.Logger LOG = org.slf4j.LoggerFactory
-            .getLogger(DoPut.class);
-
-    private IWebdavStore _store;
-    private IResourceLocks _resourceLocks;
-    private boolean _readOnly;
-    private boolean _lazyFolderCreationOnPut;
+    private final IWebdavStore _store;
+    private final IResourceLocks _resourceLocks;
+    private final boolean _readOnly;
+    private final boolean _lazyFolderCreationOnPut;
 
     private String _userAgent;
 
@@ -60,7 +58,7 @@ public class DoPut extends AbstractMethod {
 
             _userAgent = req.getHeader("User-Agent");
 
-            Hashtable<String, Integer> errorList = new Hashtable<String, Integer>();
+            Hashtable<String, Integer> errorList = new Hashtable<>();
 
             if (!checkLocks(transaction, req, _resourceLocks, parentPath)) {
                 resp.setStatus(WebdavStatus.SC_LOCKED);
@@ -72,8 +70,7 @@ public class DoPut extends AbstractMethod {
                 return; // resource is locked
             }
 
-            String tempLockOwner = "doPut" + System.currentTimeMillis()
-                    + req.toString();
+            String tempLockOwner = "doPut" + System.currentTimeMillis() + req;
             if (_resourceLocks.lock(transaction, path, tempLockOwner, false, 0,
                     TEMP_TIMEOUT, TEMPORARY)) {
                 StoredObject parentSo, so = null;
@@ -133,8 +130,7 @@ public class DoPut extends AbstractMethod {
 
                                 if (!_resourceLocks.unlock(transaction,
                                         lockToken, owner)) {
-                                    resp
-                                            .sendError(WebdavStatus.SC_INTERNAL_SERVER_ERROR);
+                                    resp.sendError(WebdavStatus.SC_INTERNAL_SERVER_ERROR);
                                 }
                             } else {
                                 errorList.put(path, WebdavStatus.SC_LOCKED);
@@ -169,19 +165,15 @@ public class DoPut extends AbstractMethod {
         } else {
             resp.sendError(WebdavStatus.SC_FORBIDDEN);
         }
-
     }
 
-    /**
-     * @param resp
-     */
     private void doUserAgentWorkaround(HttpServletResponse resp) {
-        if (_userAgent != null && _userAgent.indexOf("WebDAVFS") != -1
-                && _userAgent.indexOf("Transmit") == -1) {
+        if (_userAgent != null && _userAgent.contains("WebDAVFS")
+                && !_userAgent.contains("Transmit")) {
             LOG.trace("DoPut.execute() : do workaround for user agent '"
                     + _userAgent + "'");
             resp.setStatus(WebdavStatus.SC_CREATED);
-        } else if (_userAgent != null && _userAgent.indexOf("Transmit") != -1) {
+        } else if (_userAgent != null && _userAgent.contains("Transmit")) {
             // Transmit also uses WEBDAVFS 1.x.x but crashes
             // with SC_CREATED response
             LOG.trace("DoPut.execute() : do workaround for user agent '"

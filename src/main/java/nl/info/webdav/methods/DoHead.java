@@ -16,8 +16,6 @@ implied.
  */
 package nl.info.webdav.methods;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import nl.info.webdav.IMimeTyper;
 import nl.info.webdav.ITransaction;
 import nl.info.webdav.IWebdavStore;
@@ -30,8 +28,11 @@ import nl.info.webdav.exceptions.WebdavException;
 import nl.info.webdav.locking.ResourceLocks;
 
 import java.io.IOException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 public class DoHead extends AbstractMethod {
+    private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(DoHead.class);
 
     protected String _dftIndexFile;
     protected IWebdavStore _store;
@@ -39,9 +40,6 @@ public class DoHead extends AbstractMethod {
     protected ResourceLocks _resourceLocks;
     protected IMimeTyper _mimeTyper;
     protected int _contentLength;
-
-    private static org.slf4j.Logger LOG = org.slf4j.LoggerFactory
-            .getLogger(DoHead.class);
 
     public DoHead(IWebdavStore store, String dftIndexFile, String insteadOf404,
             ResourceLocks resourceLocks, IMimeTyper mimeTyper,
