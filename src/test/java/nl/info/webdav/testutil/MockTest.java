@@ -5,6 +5,7 @@ import nl.info.webdav.locking.LockedObject;
 import nl.info.webdav.locking.ResourceLocks;
 import nl.info.webdav.methods.TestingOutputStream;
 import org.jmock.Mockery;
+import org.jmock.lib.concurrent.Synchroniser;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 
@@ -71,7 +72,12 @@ public abstract class MockTest {
 
     @BeforeAll
     public static void setUpBeforeClass() {
-        _mockery = new Mockery();
+        _mockery = new Mockery() {{
+            // enable multi-thread support because some of the code under test
+            // is multi-threaded and will fail otherwise.
+            // see: http://jmock.org/threading-synchroniser.html
+            setThreadingPolicy(new Synchroniser());
+        }};
     }
 
     @AfterAll

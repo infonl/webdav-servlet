@@ -10,7 +10,6 @@ import nl.info.webdav.locking.ResourceLocks;
 import nl.info.webdav.testutil.MockTest;
 import org.jmock.Expectations;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.PrintWriter;
@@ -41,7 +40,6 @@ public class DoPutTest extends MockTest {
 
     @Test
     public void testDoPutIfReadOnlyTrue() throws Exception {
-
         _mockery.checking(new Expectations() {
             {
                 oneOf(mockRes).sendError(WebdavStatus.SC_FORBIDDEN);
@@ -107,9 +105,8 @@ public class DoPutTest extends MockTest {
     }
 
     @Test
-    @Disabled("Fails currently")
     public void testDoPutIfLazyFolderCreationOnPutIsFalse() throws Exception {
-        try (final PrintWriter pw = new PrintWriter("/tmp/XMLTestFile")) {
+        try (final PrintWriter pw = new PrintWriter("dummyFileName")) {
             _mockery.checking(new Expectations() {
                 {
                     oneOf(mockReq).getAttribute("javax.servlet.include.request_uri");
@@ -124,18 +121,11 @@ public class DoPutTest extends MockTest {
                     oneOf(mockStore).getStoredObject(mockTransaction, parentPath);
                     will(returnValue(null));
 
-                    oneOf(mockRes).setStatus(WebdavStatus.SC_MULTI_STATUS);
-
-                    oneOf(mockReq).getRequestURI();
-                    will(returnValue("http://foo.bar".concat(path)));
-
-                    oneOf(mockRes).getWriter();
-                    will(returnValue(pw));
+                    oneOf(mockRes).sendError(404, "Not Found");
                 }
             });
 
-            DoPut doPut = new DoPut(mockStore, new ResourceLocks(), !readOnly,
-                !lazyFolderCreationOnPut);
+            DoPut doPut = new DoPut(mockStore, new ResourceLocks(), !readOnly, !lazyFolderCreationOnPut);
             doPut.execute(mockTransaction, mockReq, mockRes);
 
             _mockery.assertIsSatisfied();
