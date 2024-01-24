@@ -26,6 +26,7 @@ project.version = scmVersion.version
 
 dependencyLocking {
 	lockAllConfigurations()
+	lockMode = LockMode.STRICT
 }
 
 java {
