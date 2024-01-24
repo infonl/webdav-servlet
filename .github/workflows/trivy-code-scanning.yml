@@ -28,7 +28,6 @@ jobs:
         uses: aquasecurity/trivy-action@master
         with:
           scan-type: 'fs'
-          ignore-unfixed: true
           format: 'table'
 
       - name: Run Trivy vulnerability scanner in repo mode with Sarif output
