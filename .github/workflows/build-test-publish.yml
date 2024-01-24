@@ -40,7 +40,8 @@ jobs:
         uses: gradle/wrapper-validation-action@v1
 
       - name: Gradle build with unit tests
-        run: ./gradlew build --info
+        # Use --write-locks to support dependency updates from Dependabot PRs
+        run: ./gradlew build --write-locks --info
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v3
