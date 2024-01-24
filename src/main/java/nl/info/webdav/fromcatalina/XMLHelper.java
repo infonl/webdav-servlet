@@ -1,12 +1,11 @@
 package nl.info.webdav.fromcatalina;
 
-import java.util.Vector;
-
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-public class XMLHelper {
+import java.util.Vector;
 
+public class XMLHelper {
     public static Node findSubElement(Node parent, String localName) {
         if (parent == null) {
             return null;
@@ -38,5 +37,4 @@ public class XMLHelper {
         }
         return properties;
     }
-
 }

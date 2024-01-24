@@ -32,13 +32,11 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 public class DoDelete extends AbstractMethod {
+    private static org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(DoDelete.class);
 
-    private static org.slf4j.Logger LOG = org.slf4j.LoggerFactory
-            .getLogger(DoDelete.class);
-
-    private IWebdavStore _store;
-    private ResourceLocks _resourceLocks;
-    private boolean _readOnly;
+    private final IWebdavStore _store;
+    private final ResourceLocks _resourceLocks;
+    private final boolean _readOnly;
 
     public DoDelete(IWebdavStore store, ResourceLocks resourceLocks,
             boolean readOnly) {
@@ -47,15 +45,18 @@ public class DoDelete extends AbstractMethod {
         _readOnly = readOnly;
     }
 
-    public void execute(ITransaction transaction, HttpServletRequest req,
-            HttpServletResponse resp) throws IOException, LockFailedException {
+    public void execute(
+        ITransaction transaction,
+        HttpServletRequest req,
+        HttpServletResponse resp
+    ) throws IOException, LockFailedException {
         LOG.trace("-- " + this.getClass().getName());
 
         if (!_readOnly) {
             String path = getRelativePath(req);
             String parentPath = getParentPath(getCleanPath(path));
 
-            Hashtable<String, Integer> errorList = new Hashtable<String, Integer>();
+            Hashtable<String, Integer> errorList;
 
             if (!checkLocks(transaction, req, _resourceLocks, parentPath)) {
                 resp.setStatus(WebdavStatus.SC_LOCKED);
@@ -67,12 +68,11 @@ public class DoDelete extends AbstractMethod {
                 return; // resource is locked
             }
 
-            String tempLockOwner = "doDelete" + System.currentTimeMillis()
-                    + req.toString();
+            String tempLockOwner = "doDelete" + System.currentTimeMillis() + req;
             if (_resourceLocks.lock(transaction, path, tempLockOwner, false, 0,
                     TEMP_TIMEOUT, TEMPORARY)) {
                 try {
-                    errorList = new Hashtable<String, Integer>();
+                    errorList = new Hashtable<>();
                     deleteResource(transaction, path, errorList, req, resp);
                     if (!errorList.isEmpty()) {
                         sendReport(req, resp, errorList);
@@ -94,7 +94,6 @@ public class DoDelete extends AbstractMethod {
         } else {
             resp.sendError(WebdavStatus.SC_FORBIDDEN);
         }
-
     }
 
     /**
@@ -123,7 +122,6 @@ public class DoDelete extends AbstractMethod {
         resp.setStatus(WebdavStatus.SC_NO_CONTENT);
 
         if (!_readOnly) {
-
             StoredObject so = _store.getStoredObject(transaction, path);
             if (so != null) {
 
@@ -131,7 +129,7 @@ public class DoDelete extends AbstractMethod {
                     _store.removeObject(transaction, path);
                 } else {
                     if (so.isFolder()) {
-                        deleteFolder(transaction, path, errorList, req, resp);
+                        deleteFolder(transaction, path, errorList, req);
                         _store.removeObject(transaction, path);
                     } else {
                         resp.sendError(WebdavStatus.SC_NOT_FOUND);
@@ -140,8 +138,6 @@ public class DoDelete extends AbstractMethod {
             } else {
                 resp.sendError(WebdavStatus.SC_NOT_FOUND);
             }
-            so = null;
-
         } else {
             resp.sendError(WebdavStatus.SC_FORBIDDEN);
         }
@@ -161,15 +157,14 @@ public class DoDelete extends AbstractMethod {
      *      all errors that ocurred
      * @param req
      *      HttpServletRequest
-     * @param resp
-     *      HttpServletResponse
      * @throws WebdavException
      *      if an error in the underlying store occurs
      */
-    private void deleteFolder(ITransaction transaction, String path,
-            Hashtable<String, Integer> errorList, HttpServletRequest req,
-            HttpServletResponse resp) throws WebdavException {
-
+    private void deleteFolder(
+        ITransaction transaction, String path,
+        Hashtable<String, Integer> errorList,
+        HttpServletRequest req
+    ) throws WebdavException {
         String[] children = _store.getChildrenNames(transaction, path);
         children = children == null ? new String[] {} : children;
         for (int i = children.length - 1; i >= 0; i--) {
@@ -180,7 +175,7 @@ public class DoDelete extends AbstractMethod {
                     _store.removeObject(transaction, path + children[i]);
                 } else {
                     deleteFolder(transaction, path + children[i], errorList,
-                            req, resp);
+                            req);
 
                     _store.removeObject(transaction, path + children[i]);
                 }

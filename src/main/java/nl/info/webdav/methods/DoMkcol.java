@@ -31,13 +31,11 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 public class DoMkcol extends AbstractMethod {
+    private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(DoMkcol.class);
 
-    private static org.slf4j.Logger LOG = org.slf4j.LoggerFactory
-            .getLogger(DoMkcol.class);
-
-    private IWebdavStore _store;
-    private IResourceLocks _resourceLocks;
-    private boolean _readOnly;
+    private final IWebdavStore _store;
+    private final IResourceLocks _resourceLocks;
+    private final boolean _readOnly;
 
     public DoMkcol(IWebdavStore store, IResourceLocks resourceLocks,
             boolean readOnly) {
@@ -53,15 +51,9 @@ public class DoMkcol extends AbstractMethod {
         if (!_readOnly) {
             String path = getRelativePath(req);
             String parentPath = getParentPath(getCleanPath(path));
-
-            Hashtable<String, Integer> errorList = new Hashtable<String, Integer>();
+            Hashtable<String, Integer> errorList = new Hashtable<>();
 
             if (!checkLocks(transaction, req, _resourceLocks, parentPath)) {
-                // TODO remove
-                LOG
-                        .trace("MkCol on locked resource (parentPath) not executable!"
-                                + "\n Sending SC_FORBIDDEN (403) error response!");
-
                 resp.sendError(WebdavStatus.SC_FORBIDDEN);
                 return;
             }
@@ -71,7 +63,7 @@ public class DoMkcol extends AbstractMethod {
 
             if (_resourceLocks.lock(transaction, path, tempLockOwner, false, 0,
                     TEMP_TIMEOUT, TEMPORARY)) {
-                StoredObject parentSo, so = null;
+                StoredObject parentSo, so;
                 try {
                     parentSo = _store.getStoredObject(transaction, parentPath);
 					if (parentSo == null) {
@@ -99,7 +91,7 @@ public class DoMkcol extends AbstractMethod {
                                 String nullResourceLockToken = nullResourceLo
                                         .getID();
                                 String[] lockTokens = getLockIdFromIfHeader(req);
-                                String lockToken = null;
+                                String lockToken;
                                 if (lockTokens != null)
                                     lockToken = lockTokens[0];
                                 else {
@@ -123,37 +115,23 @@ public class DoMkcol extends AbstractMethod {
                                         resp
                                                 .sendError(WebdavStatus.SC_INTERNAL_SERVER_ERROR);
                                     }
-
                                 } else {
-                                    // TODO remove
-                                    LOG
-                                            .trace("MkCol on lock-null-resource with wrong lock-token!"
-                                                    + "\n Sending multistatus error report!");
-
                                     errorList.put(path, WebdavStatus.SC_LOCKED);
                                     sendReport(req, resp, errorList);
                                 }
-
                             } else {
                                 String methodsAllowed = DeterminableMethod
                                         .determineMethodsAllowed(so);
                                 resp.addHeader("Allow", methodsAllowed);
-                                resp
-                                        .sendError(WebdavStatus.SC_METHOD_NOT_ALLOWED);
+                                resp.sendError(WebdavStatus.SC_METHOD_NOT_ALLOWED);
                             }
                         }
 
 					} else if (parentPath != null && parentSo.isResource()) {
-                        // TODO remove
-                        LOG
-                                .trace("MkCol on resource is not executable"
-                                        + "\n Sending SC_METHOD_NOT_ALLOWED (405) error response!");
-
                         String methodsAllowed = DeterminableMethod
                                 .determineMethodsAllowed(parentSo);
                         resp.addHeader("Allow", methodsAllowed);
                         resp.sendError(WebdavStatus.SC_METHOD_NOT_ALLOWED);
-
                     } else {
                         resp.sendError(WebdavStatus.SC_FORBIDDEN);
                     }
@@ -173,5 +151,4 @@ public class DoMkcol extends AbstractMethod {
             resp.sendError(WebdavStatus.SC_FORBIDDEN);
         }
     }
-
 }

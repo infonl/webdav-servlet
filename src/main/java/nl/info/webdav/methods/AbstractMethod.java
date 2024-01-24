@@ -43,10 +43,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 public abstract class AbstractMethod implements IMethodExecutor {
-
-    private static final ThreadLocal<DateFormat> thLastmodifiedDateFormat = new ThreadLocal<DateFormat>();
-    private static final ThreadLocal<DateFormat> thCreationDateFormat = new ThreadLocal<DateFormat>();
-    private static final ThreadLocal<DateFormat> thLocalDateFormat = new ThreadLocal<DateFormat>();
+    private static final ThreadLocal<DateFormat> thLastModifiedDateFormat = new ThreadLocal<>();
+    private static final ThreadLocal<DateFormat> thCreationDateFormat = new ThreadLocal<>();
+    private static final ThreadLocal<DateFormat> thLocalDateFormat = new ThreadLocal<>();
     
     /**
      * Array containing the safe characters set.
@@ -73,9 +72,7 @@ public abstract class AbstractMethod implements IMethodExecutor {
     protected static final String LOCAL_DATE_FORMAT = "dd/MM/yy' 'HH:mm:ss";
 
     static {
-        /**
-         * GMT timezone - all HTTP dates are on GMT
-         */
+         // GMT timezone - all HTTP dates are on GMT
         URL_ENCODER = new URLEncoder();
         URL_ENCODER.addSafeCharacter('-');
         URL_ENCODER.addSafeCharacter('_');
@@ -109,13 +106,12 @@ public abstract class AbstractMethod implements IMethodExecutor {
      */
     protected static final int TEMP_TIMEOUT = 10;
 
-    
     public static String lastModifiedDateFormat(final Date date) {
-        DateFormat df = thLastmodifiedDateFormat.get();
+        DateFormat df = thLastModifiedDateFormat.get();
         if( df == null ) {
             df = new SimpleDateFormat(LAST_MODIFIED_DATE_FORMAT, Locale.US);
             df.setTimeZone(TimeZone.getTimeZone("GMT"));
-            thLastmodifiedDateFormat.set( df );
+            thLastModifiedDateFormat.set( df );
         }
         return df.format(date);
     }
@@ -137,7 +133,6 @@ public abstract class AbstractMethod implements IMethodExecutor {
         }
         return df.format(date);
     }
-
     
     /**
      * Return the relative path associated with this servlet.
@@ -146,17 +141,15 @@ public abstract class AbstractMethod implements IMethodExecutor {
      * @return the relative servlet path
      */
     protected String getRelativePath(HttpServletRequest request) {
-
         // Are we being processed by a RequestDispatcher.include()?
         if (request.getAttribute("javax.servlet.include.request_uri") != null) {
-            String result = (String) request
-                    .getAttribute("javax.servlet.include.path_info");
+            String result = (String) request.getAttribute("javax.servlet.include.path_info");
             // if (result == null)
             // result = (String) request
             // .getAttribute("javax.servlet.include.servlet_path");
-            if ((result == null) || (result.equals("")))
+            if ((result == null) || (result.isEmpty()))
                 result = "/";
-            return (result);
+            return result;
         }
 
         // No, extract the desired path directly from the request
@@ -164,10 +157,10 @@ public abstract class AbstractMethod implements IMethodExecutor {
         // if (result == null) {
         // result = request.getServletPath();
         // }
-        if ((result == null) || (result.equals(""))) {
+        if ((result == null) || (result.isEmpty())) {
             result = "/";
         }
-        return (result);
+        return result;
 
     }
 
@@ -175,8 +168,7 @@ public abstract class AbstractMethod implements IMethodExecutor {
      * creates the parent path from the given path by removing the last '/' and
      * everything after that
      * 
-     * @param path
-     *      the path
+     * @param path the path
      * @return parent path
      */
     protected String getParentPath(String path) {
@@ -190,12 +182,10 @@ public abstract class AbstractMethod implements IMethodExecutor {
     /**
      * removes a / at the end of the path string, if present
      * 
-     * @param path
-     *      the path
+     * @param path the path
      * @return the path without trailing /
      */
     protected String getCleanPath(String path) {
-
         if (path.endsWith("/") && path.length() > 1)
             path = path.substring(0, path.length() - 1);
         return path;
@@ -239,8 +229,7 @@ public abstract class AbstractMethod implements IMethodExecutor {
     /**
      * URL rewriter.
      * 
-     * @param path
-     *      Path which has to be rewiten
+     * @param path path which has to be rewiten
      * @return the rewritten path
      */
     protected String rewriteUrl(String path) {
@@ -263,37 +252,34 @@ public abstract class AbstractMethod implements IMethodExecutor {
         }
 
         return "W/\"" + resourceLength + "-" + lastModified + "\"";
-
     }
 
     protected String[] getLockIdFromIfHeader(HttpServletRequest req) {
         String[] ids = new String[2];
         String id = req.getHeader("If");
 
-        if (id != null && !id.equals("")) {
+        if (id != null && !id.isEmpty()) {
             if (id.indexOf(">)") == id.lastIndexOf(">)")) {
                 id = id.substring(id.indexOf("(<"), id.indexOf(">)"));
 
-                if (id.indexOf("locktoken:") != -1) {
+                if (id.contains("locktoken:")) {
                     id = id.substring(id.indexOf(':') + 1);
                 }
                 ids[0] = id;
             } else {
-                String firstId = id.substring(id.indexOf("(<"), id
-                        .indexOf(">)"));
-                if (firstId.indexOf("locktoken:") != -1) {
+                String firstId = id.substring(id.indexOf("(<"), id.indexOf(">)"));
+                if (firstId.contains("locktoken:")) {
                     firstId = firstId.substring(firstId.indexOf(':') + 1);
                 }
                 ids[0] = firstId;
 
                 String secondId = id.substring(id.lastIndexOf("(<"), id
                         .lastIndexOf(">)"));
-                if (secondId.indexOf("locktoken:") != -1) {
+                if (secondId.contains("locktoken:")) {
                     secondId = secondId.substring(secondId.indexOf(':') + 1);
                 }
                 ids[1] = secondId;
             }
-
         } else {
             ids = null;
         }
@@ -305,7 +291,6 @@ public abstract class AbstractMethod implements IMethodExecutor {
 
         if (id != null) {
             id = id.substring(id.indexOf(":") + 1, id.indexOf(">"));
-
         }
 
         return id;
@@ -317,10 +302,8 @@ public abstract class AbstractMethod implements IMethodExecutor {
      * resource. Returning true if no lock exists or the If-Header is
      * corresponding to the locked resource
      * 
-     * @param httpServletRequest
-     *      Servlet request
-     * @param path
-     *      path to the resource
+     * @param httpServletRequest servlet request
+     * @param path path to the resource
      * @return true if no lock on a resource with the given path exists or if
      *  the If-Header corresponds to the locked resource
      */
@@ -333,7 +316,6 @@ public abstract class AbstractMethod implements IMethodExecutor {
         LockedObject loByPath = resourceLocks.getLockedObjectByPath(
                 transaction, path);
         if (loByPath != null) {
-
             if (loByPath.isShared())
                 return true;
 
@@ -353,14 +335,11 @@ public abstract class AbstractMethod implements IMethodExecutor {
                     return false;
                 }
                 if (!loByIf.equals(loByPath)) {
-                    loByIf = null;
                     return false;
                 }
-                loByIf = null;
             }
 
         }
-        loByPath = null;
         return true;
     }
 
@@ -369,12 +348,9 @@ public abstract class AbstractMethod implements IMethodExecutor {
      * client. If the errorList contains only one error, send the error
      * directly without wrapping it in a multistatus message.
      * 
-     * @param req
-     *      Servlet request
-     * @param resp
-     *      Servlet response
-     * @param errorList
-     *      List of error to be displayed
+     * @param req servlet request
+     * @param resp servlet response
+     * @param errorList list of error to be displayed
      */
     protected void sendReport(HttpServletRequest req, HttpServletResponse resp,
             Hashtable<String, Integer> errorList) throws IOException {
@@ -387,14 +363,10 @@ public abstract class AbstractMethod implements IMethodExecutor {
                 resp.sendError(code);
             }
         }
-        else
-        {
+        else {
             resp.setStatus(WebdavStatus.SC_MULTI_STATUS);
 
-            String absoluteUri = req.getRequestURI();
-            // String relativePath = getRelativePath(req);
-
-            HashMap<String, String> namespaces = new HashMap<String, String>();
+            HashMap<String, String> namespaces = new HashMap<>();
             namespaces.put("DAV:", "D");
 
             XMLWriter generatedXML = new XMLWriter(namespaces);
@@ -404,34 +376,18 @@ public abstract class AbstractMethod implements IMethodExecutor {
 
             Enumeration<String> pathList = errorList.keys();
             while (pathList.hasMoreElements()) {
-
-                String errorPath = (String) pathList.nextElement();
-                int errorCode = ((Integer) errorList.get(errorPath)).intValue();
+                String errorPath = pathList.nextElement();
+                int errorCode = errorList.get(errorPath);
 
                 generatedXML.writeElement("DAV::response", XMLWriter.OPENING);
-
                 generatedXML.writeElement("DAV::href", XMLWriter.OPENING);
-                String toAppend = null;
-                if (absoluteUri.endsWith(errorPath)) {
-                    toAppend = absoluteUri;
-
-                } else if (absoluteUri.contains(errorPath)) {
-
-                    int endIndex = absoluteUri.indexOf(errorPath)
-                            + errorPath.length();
-                    toAppend = absoluteUri.substring(0, endIndex);
-                }
-                if (!toAppend.startsWith("/") && !toAppend.startsWith("http:"))
-                    toAppend = "/" + toAppend;
                 generatedXML.writeText(errorPath);
                 generatedXML.writeElement("DAV::href", XMLWriter.CLOSING);
                 generatedXML.writeElement("DAV::status", XMLWriter.OPENING);
                 generatedXML.writeText("HTTP/1.1 " + errorCode + " "
                         + WebdavStatus.getStatusText(errorCode));
                 generatedXML.writeElement("DAV::status", XMLWriter.CLOSING);
-
                 generatedXML.writeElement("DAV::response", XMLWriter.CLOSING);
-
             }
 
             generatedXML.writeElement("DAV::multistatus", XMLWriter.CLOSING);
@@ -441,5 +397,4 @@ public abstract class AbstractMethod implements IMethodExecutor {
             writer.close();
         }
     }
-
 }

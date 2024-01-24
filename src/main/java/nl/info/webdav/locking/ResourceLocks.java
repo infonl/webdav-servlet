@@ -16,6 +16,8 @@
 
 package nl.info.webdav.locking;
 
+import static java.text.MessageFormat.format;
+
 import nl.info.webdav.ITransaction;
 import nl.info.webdav.exceptions.LockFailedException;
 
@@ -23,17 +25,12 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 
 /**
- * simple locking management for concurrent data access, NOT the webdav locking.
- * ( could that be used instead? )
- * 
- * IT IS ACTUALLY USED FOR DOLOCK
+ * Simple locking management for concurrent data access, NOT the webdav locking.
  * 
  * @author re
  */
 public class ResourceLocks implements IResourceLocks {
-
-    private static org.slf4j.Logger LOG = org.slf4j.LoggerFactory
-            .getLogger(ResourceLocks.class);
+    private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(ResourceLocks.class);
 
     /**
      * after creating this much LockedObjects, a cleanup deletes unused
@@ -41,46 +38,51 @@ public class ResourceLocks implements IResourceLocks {
      */
     private final int _cleanupLimit = 100000;
 
+    private final boolean _temporary = true;
+
     protected int _cleanupCounter = 0;
 
     /**
      * keys: path value: LockedObject from that path
      */
-    protected Hashtable<String, LockedObject> _locks = new Hashtable<String, LockedObject>();
+    protected Hashtable<String, LockedObject> _locks = new Hashtable<>();
 
     /**
      * keys: id value: LockedObject from that id
      */
-    protected Hashtable<String, LockedObject> _locksByID = new Hashtable<String, LockedObject>();
+    protected Hashtable<String, LockedObject> _locksByID = new Hashtable<>();
 
     /**
      * keys: path value: Temporary LockedObject from that path
      */
-    protected Hashtable<String, LockedObject> _tempLocks = new Hashtable<String, LockedObject>();
+    protected Hashtable<String, LockedObject> _tempLocks = new Hashtable<>();
 
     /**
      * keys: id value: Temporary LockedObject from that id
      */
-    protected Hashtable<String, LockedObject> _tempLocksByID = new Hashtable<String, LockedObject>();
+    protected Hashtable<String, LockedObject> _tempLocksByID = new Hashtable<>();
 
     // REMEMBER TO REMOVE UNUSED LOCKS FROM THE HASHTABLE AS WELL
 
-    protected LockedObject _root = null;
-
-    protected LockedObject _tempRoot = null;
-
-    private boolean _temporary = true;
+    protected LockedObject _root;
+    protected LockedObject _tempRoot;
 
     public ResourceLocks() {
         _root = new LockedObject(this, "/", true);
         _tempRoot = new LockedObject(this, "/", false);
     }
 
-    public synchronized boolean lock(ITransaction transaction, String path,
-            String owner, boolean exclusive, int depth, int timeout,
-            boolean temporary) throws LockFailedException {
+    public synchronized boolean lock(
+        ITransaction transaction,
+        String path,
+        String owner,
+        boolean exclusive,
+        int depth,
+        int timeout,
+        boolean temporary
+    ) throws LockFailedException {
 
-        LockedObject lo = null;
+        LockedObject lo;
 
         if (temporary) {
             lo = generateTempLockedObjects(transaction, path);
@@ -91,10 +93,9 @@ public class ResourceLocks implements IResourceLocks {
         }
 
         if (lo.checkLocks(exclusive, depth)) {
-
             lo._exclusive = exclusive;
             lo._lockDepth = depth;
-            lo._expiresAt = System.currentTimeMillis() + (timeout * 1000);
+            lo._expiresAt = System.currentTimeMillis() + (timeout * 1000L);
             if (lo._parent != null) {
                 lo._parent._expiresAt = lo._expiresAt;
                 if (lo._parent.equals(_root)) {
@@ -110,21 +111,19 @@ public class ResourceLocks implements IResourceLocks {
             if (lo.addLockedObjectOwner(owner)) {
                 return true;
             } else {
-                LOG.trace("Couldn't set owner \"" + owner
-                        + "\" to resource at '" + path + "'");
+                LOG.trace(format("Could not set owner {0} to resource at {1}", owner, path));
                 return false;
             }
         } else {
             // can not lock
-            LOG.trace("Lock resource at " + path + " failed because"
-                    + "\na parent or child resource is currently locked");
+            LOG.trace(
+                format("Lock resource at {0} failed because a parent or child resource is currently locked", path)
+            );
             return false;
         }
     }
 
-    public synchronized boolean unlock(ITransaction transaction, String id,
-            String owner) {
-
+    public synchronized boolean unlock(ITransaction transaction, String id, String owner) {
         if (_locksByID.containsKey(id)) {
             String path = _locksByID.get(id).getPath();
             if (_locks.containsKey(path)) {
@@ -143,17 +142,15 @@ public class ResourceLocks implements IResourceLocks {
 
             if (_cleanupCounter > _cleanupLimit) {
                 _cleanupCounter = 0;
-                cleanLockedObjects(transaction, _root, !_temporary);
+                cleanLockedObjects(_root, !_temporary);
             }
         }
         checkTimeouts(transaction, !_temporary);
 
         return true;
-
     }
 
-    public synchronized void unlockTemporaryLockedObjects(
-            ITransaction transaction, String path, String owner) {
+    public synchronized void unlockTemporaryLockedObjects(ITransaction transaction, String path, String owner) {
         if (_tempLocks.containsKey(path)) {
             LockedObject lo = _tempLocks.get(path);
             lo.removeLockedObjectOwner(owner);
@@ -166,11 +163,10 @@ public class ResourceLocks implements IResourceLocks {
 
         if (_cleanupCounter > _cleanupLimit) {
             _cleanupCounter = 0;
-            cleanLockedObjects(transaction, _tempRoot, _temporary);
+            cleanLockedObjects(_tempRoot, _temporary);
         }
 
         checkTimeouts(transaction, _temporary);
-
     }
 
     public void checkTimeouts(ITransaction transaction, boolean temporary) {
@@ -193,7 +189,6 @@ public class ResourceLocks implements IResourceLocks {
                 }
             }
         }
-
     }
 
     public boolean exclusiveLock(ITransaction transaction, String path,
@@ -217,7 +212,7 @@ public class ResourceLocks implements IResourceLocks {
     public LockedObject getLockedObjectByPath(ITransaction transaction,
             String path) {
         if (_locks.containsKey(path)) {
-            return (LockedObject) this._locks.get(path);
+            return this._locks.get(path);
         } else {
             return null;
         }
@@ -225,17 +220,13 @@ public class ResourceLocks implements IResourceLocks {
 
     public LockedObject getTempLockedObjectByID(ITransaction transaction,
             String id) {
-        if (_tempLocksByID.containsKey(id)) {
-            return _tempLocksByID.get(id);
-        } else {
-            return null;
-        }
+        return _tempLocksByID.getOrDefault(id, null);
     }
 
     public LockedObject getTempLockedObjectByPath(ITransaction transaction,
             String path) {
         if (_tempLocks.containsKey(path)) {
-            return (LockedObject) this._tempLocks.get(path);
+            return this._tempLocks.get(path);
         } else {
             return null;
         }
@@ -245,9 +236,8 @@ public class ResourceLocks implements IResourceLocks {
      * generates real LockedObjects for the resource at path and its parent
      * folders. does not create new LockedObjects if they already exist
      * 
-     * @param transaction
-     * @param path
-     *      path to the (new) LockedObject
+     * @param transaction the transaction
+     * @param path path to the (new) LockedObject
      * @return the LockedObject for path.
      */
     private LockedObject generateLockedObjects(ITransaction transaction,
@@ -265,7 +255,7 @@ public class ResourceLocks implements IResourceLocks {
             return returnObject;
         } else {
             // there is already a LockedObject on the specified path
-            return (LockedObject) this._locks.get(path);
+            return this._locks.get(path);
         }
 
     }
@@ -274,9 +264,8 @@ public class ResourceLocks implements IResourceLocks {
      * generates temporary LockedObjects for the resource at path and its parent
      * folders. does not create new LockedObjects if they already exist
      * 
-     * @param transaction
-     * @param path
-     *      path to the (new) LockedObject
+     * @param transaction the transaction
+     * @param path path to the (new) LockedObject
      * @return the LockedObject for path.
      */
     private LockedObject generateTempLockedObjects(ITransaction transaction,
@@ -293,26 +282,20 @@ public class ResourceLocks implements IResourceLocks {
             return returnObject;
         } else {
             // there is already a LockedObject on the specified path
-            return (LockedObject) this._tempLocks.get(path);
+            return this._tempLocks.get(path);
         }
-
     }
 
     /**
      * deletes unused LockedObjects and resets the counter. works recursively
      * starting at the given LockedObject
      * 
-     * @param transaction
-     * @param lo
-     *      LockedObject
-     * @param temporary
-     *      Clean temporary or real locks
+     * @param lo LockedObject
+     * @param temporary clean temporary or real locks
      * 
      * @return if cleaned
      */
-    private boolean cleanLockedObjects(ITransaction transaction,
-            LockedObject lo, boolean temporary) {
-
+    private boolean cleanLockedObjects(LockedObject lo, boolean temporary) {
         if (lo._children == null) {
             if (lo._owner == null) {
                 if (temporary) {
@@ -329,10 +312,9 @@ public class ResourceLocks implements IResourceLocks {
             boolean canDelete = true;
             int limit = lo._children.length;
             for (int i = 0; i < limit; i++) {
-                if (!cleanLockedObjects(transaction, lo._children[i], temporary)) {
+                if (!cleanLockedObjects(lo._children[i], temporary)) {
                     canDelete = false;
                 } else {
-
                     // because the deleting shifts the array
                     i--;
                     limit--;
@@ -359,8 +341,7 @@ public class ResourceLocks implements IResourceLocks {
      * creates the parent path from the given path by removing the last '/' and
      * everything after that
      * 
-     * @param path
-     *      the path
+     * @param path the path
      * @return parent path
      */
     private String getParentPath(String path) {
@@ -376,5 +357,4 @@ public class ResourceLocks implements IResourceLocks {
             }
         }
     }
-
 }

@@ -128,8 +128,7 @@ public class XMLWriter {
      *      Element type
      */
     public void writeElement(String name, int type) {
-        StringBuffer nsdecl = new StringBuffer();
-
+        StringBuilder nsdecl = new StringBuilder();
         if (_isRootElement) {
             for (Iterator<String> iter = _namespaces.keySet().iterator(); iter
                     .hasNext();) {
@@ -145,7 +144,7 @@ public class XMLWriter {
         if (pos >= 0) {
             // lookup prefix for namespace
             String fullns = name.substring(0, pos);
-            String prefix = (String) _namespaces.get(fullns);
+            String prefix = _namespaces.get(fullns);
             if (prefix == null) {
                 // there is no prefix for this namespace
                 name = name.substring(pos + 1);
@@ -161,14 +160,14 @@ public class XMLWriter {
 
         switch (type) {
         case OPENING:
-            _buffer.append("<" + name + nsdecl + ">");
+            _buffer.append("<").append(name).append(nsdecl).append(">");
             break;
         case CLOSING:
-            _buffer.append("</" + name + ">\n");
+            _buffer.append("</").append(name).append(">\n");
             break;
         case NO_CONTENT:
         default:
-            _buffer.append("<" + name + nsdecl + "/>");
+            _buffer.append("<").append(name).append(nsdecl).append("/>");
             break;
         }
     }
@@ -190,7 +189,7 @@ public class XMLWriter {
      *      Data to append
      */
     public void writeData(String data) {
-        _buffer.append("<![CDATA[" + data + "]]>");
+        _buffer.append("<![CDATA[").append(data).append("]]>");
     }
 
     /**
@@ -201,7 +200,7 @@ public class XMLWriter {
     }
 
     /**
-     * Send data and reinitializes buffer.
+     * Send data and re-initialize buffer.
      */
     public void sendData() throws IOException {
         if (_writer != null) {
@@ -210,5 +209,4 @@ public class XMLWriter {
             _buffer = new StringBuffer();
         }
     }
-
 }

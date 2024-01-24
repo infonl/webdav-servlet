@@ -221,5 +221,4 @@ public interface IWebdavStore {
      * @return StoredObject
      */
     StoredObject getStoredObject(ITransaction transaction, String uri);
-
 }

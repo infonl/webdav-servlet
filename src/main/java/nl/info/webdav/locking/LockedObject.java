@@ -9,12 +9,9 @@ import java.util.UUID;
  * 
  */
 public class LockedObject {
-
-    private ResourceLocks _resourceLocks;
-
-    private String _path;
-
-    private String _id;
+    private final ResourceLocks _resourceLocks;
+    private final String _path;
+    private final String _id;
 
     /**
      * Describing the depth of a locked collection. If the locked resource is
@@ -31,7 +28,6 @@ public class LockedObject {
      * owner of the lock. shared locks can have multiple owners. is null if no
      * owner is present
      */
-    // protected String[] _owner = null;
     protected String[] _owner = null;
 
     /**
@@ -83,7 +79,6 @@ public class LockedObject {
      * @return true if the owner was added, false otherwise
      */
     public boolean addLockedObjectOwner(String owner) {
-
         if (_owner == null) {
             _owner = new String[1];
         } else {
@@ -93,8 +88,8 @@ public class LockedObject {
 
             // check if the owner is already here (that should actually not
             // happen)
-            for (int i = 0; i < size; i++) {
-                if (_owner[i].equals(owner)) {
+            for (String s : _owner) {
+                if (s.equals(owner)) {
                     return false;
                 }
             }
@@ -114,7 +109,6 @@ public class LockedObject {
      *      string that represents the owner
      */
     public void removeLockedObjectOwner(String owner) {
-
         try {
             if (_owner != null) {
                 int size = _owner.length;

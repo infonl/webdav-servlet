@@ -54,7 +54,7 @@ public class DoProppatch extends AbstractMethod {
         String path = getRelativePath(req);
         String parentPath = getParentPath(getCleanPath(path));
 
-        Hashtable<String, Integer> errorList = new Hashtable<String, Integer>();
+        Hashtable<String, Integer> errorList;
 
         if (!checkLocks(transaction, req, _resourceLocks, parentPath)) {
             resp.setStatus(WebdavStatus.SC_LOCKED);
@@ -70,13 +70,12 @@ public class DoProppatch extends AbstractMethod {
         // everything is fine, but doesn't do anything.
 
         // Retrieve the resources
-        String tempLockOwner = "doProppatch" + System.currentTimeMillis()
-                + req.toString();
+        String tempLockOwner = "doProppatch" + System.currentTimeMillis() + req;
 
         if (_resourceLocks.lock(transaction, path, tempLockOwner, false, 0,
                 TEMP_TIMEOUT, TEMPORARY)) {
-            StoredObject so = null;
-            LockedObject lo = null;
+            StoredObject so;
+            LockedObject lo;
             try {
                 so = _store.getStoredObject(transaction, path);
                 lo = _resourceLocks.getLockedObjectByPath(transaction,
@@ -85,8 +84,7 @@ public class DoProppatch extends AbstractMethod {
                 if (so == null) {
                     resp.sendError(HttpServletResponse.SC_NOT_FOUND);
                     return;
-                    // we do not to continue since there is no root
-                    // resource
+                    // we do not to continue since there is no root resource
                 }
 
                 if (so.isNullResource()) {
@@ -101,22 +99,21 @@ public class DoProppatch extends AbstractMethod {
                 boolean lockTokenMatchesIfHeader = (lockTokens != null && lockTokens[0].equals(lo.getID()));
                 if (lo != null && lo.isExclusive() && !lockTokenMatchesIfHeader) {
                     // Object on specified path is LOCKED
-                    errorList = new Hashtable<String, Integer>();
+                    errorList = new Hashtable<>();
                     errorList.put(path, WebdavStatus.SC_LOCKED);
                     sendReport(req, resp, errorList);
                     return;
                 }
 
-                List<String> toset = null;
-                List<String> toremove = null;
-                List<String> tochange = new Vector<String>();
-                // contains all properties from
-                // toset and toremove
+                List<String> toset;
+                List<String> toremove;
+                List<String> tochange = new Vector<>();
+                // contains all properties from toset and toremove
 
                 path = getCleanPath(getRelativePath(req));
 
-                Node tosetNode = null;
-                Node toremoveNode = null;
+                Node tosetNode;
+                Node toremoveNode;
 
                 if (req.getContentLength() != 0) {
                     try {
@@ -140,7 +137,7 @@ public class DoProppatch extends AbstractMethod {
                     return;
                 }
 
-                HashMap<String, String> namespaces = new HashMap<String, String>();
+                HashMap<String, String> namespaces = new HashMap<>();
                 namespaces.put("DAV:", "D");
 
                 if (tosetNode != null) {
@@ -156,7 +153,7 @@ public class DoProppatch extends AbstractMethod {
                 resp.setStatus(WebdavStatus.SC_MULTI_STATUS);
                 resp.setContentType("text/xml; charset=UTF-8");
 
-                // Create multistatus object
+                // Create multi status object
                 XMLWriter generatedXML = new XMLWriter(resp.getWriter(),
                         namespaces);
                 generatedXML.writeXMLHeader();
@@ -164,8 +161,8 @@ public class DoProppatch extends AbstractMethod {
                         .writeElement("DAV::multistatus", XMLWriter.OPENING);
 
                 generatedXML.writeElement("DAV::response", XMLWriter.OPENING);
-                String status = new String("HTTP/1.1 " + WebdavStatus.SC_OK
-                        + " " + WebdavStatus.getStatusText(WebdavStatus.SC_OK));
+                String status = "HTTP/1.1 " + WebdavStatus.SC_OK
+                    + " " + WebdavStatus.getStatusText(WebdavStatus.SC_OK);
 
                 // Generating href element
                 generatedXML.writeElement("DAV::href", XMLWriter.OPENING);
@@ -184,27 +181,20 @@ public class DoProppatch extends AbstractMethod {
 
                 for (Iterator<String> iter = tochange.iterator(); iter
                         .hasNext();) {
-                    String property = (String) iter.next();
+                    String property = iter.next();
 
-                    generatedXML.writeElement("DAV::propstat",
-                            XMLWriter.OPENING);
-
+                    generatedXML.writeElement("DAV::propstat", XMLWriter.OPENING);
                     generatedXML.writeElement("DAV::prop", XMLWriter.OPENING);
                     generatedXML.writeElement(property, XMLWriter.NO_CONTENT);
                     generatedXML.writeElement("DAV::prop", XMLWriter.CLOSING);
-
                     generatedXML.writeElement("DAV::status", XMLWriter.OPENING);
                     generatedXML.writeText(status);
                     generatedXML.writeElement("DAV::status", XMLWriter.CLOSING);
-
-                    generatedXML.writeElement("DAV::propstat",
-                            XMLWriter.CLOSING);
+                    generatedXML.writeElement("DAV::propstat", XMLWriter.CLOSING);
                 }
 
                 generatedXML.writeElement("DAV::response", XMLWriter.CLOSING);
-
-                generatedXML
-                        .writeElement("DAV::multistatus", XMLWriter.CLOSING);
+                generatedXML.writeElement("DAV::multistatus", XMLWriter.CLOSING);
 
                 generatedXML.sendData();
             } catch (AccessDeniedException e) {
