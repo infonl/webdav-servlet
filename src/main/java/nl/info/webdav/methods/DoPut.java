@@ -40,16 +40,18 @@ public class DoPut extends AbstractMethod {
 
     private String _userAgent;
 
-    public DoPut(IWebdavStore store, IResourceLocks resLocks, boolean readOnly,
-            boolean lazyFolderCreationOnPut) {
+    public DoPut(IWebdavStore store, IResourceLocks resLocks, boolean readOnly, boolean lazyFolderCreationOnPut) {
         _store = store;
         _resourceLocks = resLocks;
         _readOnly = readOnly;
         _lazyFolderCreationOnPut = lazyFolderCreationOnPut;
     }
 
-    public void execute(ITransaction transaction, HttpServletRequest req,
-            HttpServletResponse resp) throws IOException, LockFailedException {
+    public void execute(
+        ITransaction transaction,
+        HttpServletRequest req,
+        HttpServletResponse resp
+    ) throws IOException, LockFailedException {
         LOG.trace("-- " + this.getClass().getName());
 
         if (!_readOnly) {
@@ -81,12 +83,10 @@ public class DoPut extends AbstractMethod {
                         resp.sendError(WebdavStatus.SC_FORBIDDEN);
                         return;
 
-                    } else if (parentPath != null && parentSo == null
-                            && _lazyFolderCreationOnPut) {
+                    } else if (parentPath != null && parentSo == null && _lazyFolderCreationOnPut) {
                         _store.createFolder(transaction, parentPath);
 
-                    } else if (parentPath != null && parentSo == null
-                            && !_lazyFolderCreationOnPut) {
+                    } else if (parentPath != null && parentSo == null && !_lazyFolderCreationOnPut) {
                         errorList.put(parentPath, WebdavStatus.SC_NOT_FOUND);
                         sendReport(req, resp, errorList);
                         return;

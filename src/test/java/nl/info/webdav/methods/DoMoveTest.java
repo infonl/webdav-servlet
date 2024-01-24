@@ -17,7 +17,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 public class DoMoveTest extends MockTest {
-
     static IWebdavStore mockStore;
     static HttpServletRequest mockReq;
     static HttpServletResponse mockRes;
@@ -29,12 +28,10 @@ public class DoMoveTest extends MockTest {
             bais);
 
     static final String tmpFolder = "/tmp/tests";
-
     static final String sourceCollectionPath = tmpFolder + "/sourceFolder";
     static final String destCollectionPath = tmpFolder + "/destFolder";
     static final String sourceFilePath = sourceCollectionPath + "/sourceFile";
     static final String destFilePath = destCollectionPath + "/destFile";
-
     static final String overwritePath = destCollectionPath + "/sourceFolder";
 
     @BeforeAll
@@ -47,7 +44,6 @@ public class DoMoveTest extends MockTest {
 
     @Test
     public void testMovingOfFileOrFolderIfReadOnlyIsTrue() throws Exception {
-
         _mockery.checking(new Expectations() {
             {
                 oneOf(mockRes).sendError(WebdavStatus.SC_FORBIDDEN);
@@ -67,7 +63,6 @@ public class DoMoveTest extends MockTest {
 
     @Test
     public void testMovingOfaFileIfDestinationNotPresent() throws Exception {
-
         _mockery.checking(new Expectations() {
             {
                 oneOf(mockReq).getAttribute("javax.servlet.include.request_uri");
@@ -151,9 +146,7 @@ public class DoMoveTest extends MockTest {
     }
 
     @Test
-    public void testMovingOfaFileIfDestinationIsPresentAndOverwriteFalse()
-            throws Exception {
-
+    public void testMovingOfaFileIfDestinationIsPresentAndOverwriteFalse() throws Exception {
         _mockery.checking(new Expectations() {
             {
                 oneOf(mockReq).getAttribute("javax.servlet.include.request_uri");
@@ -213,9 +206,7 @@ public class DoMoveTest extends MockTest {
     }
 
     @Test
-    public void testMovingOfaFileIfDestinationIsPresentAndOverwriteTrue()
-            throws Exception {
-
+    public void testMovingOfaFileIfDestinationIsPresentAndOverwriteTrue() throws Exception {
         _mockery.checking(new Expectations() {
             {
                 oneOf(mockReq).getAttribute("javax.servlet.include.request_uri");
@@ -293,7 +284,6 @@ public class DoMoveTest extends MockTest {
         ResourceLocks resLocks = new ResourceLocks();
         DoDelete doDelete = new DoDelete(mockStore, resLocks, !readOnly);
         DoCopy doCopy = new DoCopy(mockStore, resLocks, doDelete, !readOnly);
-
         DoMove doMove = new DoMove(resLocks, doDelete, doCopy, !readOnly);
 
         doMove.execute(mockTransaction, mockReq, mockRes);
@@ -303,7 +293,6 @@ public class DoMoveTest extends MockTest {
 
     @Test
     public void testMovingOfaFileIfSourceNotPresent() throws Exception {
-
         _mockery.checking(new Expectations() {
             {
                 oneOf(mockReq).getAttribute("javax.servlet.include.request_uri");
@@ -358,7 +347,6 @@ public class DoMoveTest extends MockTest {
 
     @Test
     public void testMovingIfSourcePathEqualsDestinationPath() throws Exception {
-
         _mockery.checking(new Expectations() {
             {
                 oneOf(mockReq).getAttribute("javax.servlet.include.request_uri");
@@ -404,9 +392,7 @@ public class DoMoveTest extends MockTest {
     }
 
     @Test
-    public void testMovingOfaCollectionIfDestinationIsNotPresent()
-            throws Exception {
-
+    public void testMovingOfaCollectionIfDestinationIsNotPresent() throws Exception {
         _mockery.checking(new Expectations() {
             {
                 oneOf(mockReq).getAttribute("javax.servlet.include.request_uri");
@@ -526,9 +512,7 @@ public class DoMoveTest extends MockTest {
     }
 
     @Test
-    public void testMovingOfaCollectionIfDestinationIsPresentAndOverwriteFalse()
-            throws Exception {
-
+    public void testMovingOfaCollectionIfDestinationIsPresentAndOverwriteFalse() throws Exception {
         _mockery.checking(new Expectations() {
             {
                 oneOf(mockReq).getAttribute("javax.servlet.include.request_uri");
@@ -563,14 +547,12 @@ public class DoMoveTest extends MockTest {
 
                 StoredObject sourceCollectionSo = initFolderStoredObject();
 
-                oneOf(mockStore).getStoredObject(mockTransaction,
-                        sourceCollectionPath);
+                oneOf(mockStore).getStoredObject(mockTransaction, sourceCollectionPath);
                 will(returnValue(sourceCollectionSo));
 
                 StoredObject destCollectionSo = initFolderStoredObject();
 
-                oneOf(mockStore).getStoredObject(mockTransaction,
-                        destCollectionPath);
+                oneOf(mockStore).getStoredObject(mockTransaction, destCollectionPath);
                 will(returnValue(destCollectionSo));
 
                 oneOf(mockRes).sendError(WebdavStatus.SC_PRECONDITION_FAILED);
@@ -590,9 +572,7 @@ public class DoMoveTest extends MockTest {
 
     @Test
     @Disabled("Fails currently")
-    public void testMovingOfaCollectionIfDestinationIsPresentAndOverwriteTrue()
-            throws Exception {
-
+    public void testMovingOfaCollectionIfDestinationIsPresentAndOverwriteTrue() throws Exception {
         _mockery.checking(new Expectations() {
             {
                 oneOf(mockReq).getAttribute("javax.servlet.include.request_uri");
@@ -691,14 +671,12 @@ public class DoMoveTest extends MockTest {
 
                 oneOf(mockRes).setStatus(WebdavStatus.SC_NO_CONTENT);
 
-                oneOf(mockStore).getStoredObject(mockTransaction,
-                        sourceCollectionPath);
+                oneOf(mockStore).getStoredObject(mockTransaction, sourceCollectionPath);
                 will(returnValue(sourceCollectionSo));
 
                 sourceChildren = new String[] { "sourceFile" };
 
-                oneOf(mockStore).getChildrenNames(mockTransaction,
-                        sourceCollectionPath);
+                oneOf(mockStore).getChildrenNames(mockTransaction, sourceCollectionPath);
                 will(returnValue(sourceChildren));
 
                 oneOf(mockStore).getStoredObject(mockTransaction, sourceFilePath);
@@ -714,12 +692,10 @@ public class DoMoveTest extends MockTest {
         ResourceLocks resLocks = new ResourceLocks();
         DoDelete doDelete = new DoDelete(mockStore, resLocks, !readOnly);
         DoCopy doCopy = new DoCopy(mockStore, resLocks, doDelete, !readOnly);
-
         DoMove doMove = new DoMove(resLocks, doDelete, doCopy, !readOnly);
 
         doMove.execute(mockTransaction, mockReq, mockRes);
 
         _mockery.assertIsSatisfied();
     }
-
 }
