@@ -24,13 +24,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Run Trivy vulnerability scanner in repo mode with table output
-        uses: aquasecurity/trivy-action@master
-        with:
-          scan-type: 'fs'
-          format: 'table'
-
       - name: Run Trivy vulnerability scanner in repo mode with Sarif output
+        # Note that Trivy for Java requires a Gradle lock file.
+        # We do not use Gradle dependency locking yet because we use Dependabot
+        # to update our Gradle dependencies and Dependabot does not support Gradle lock
+        # files yet. See: https://github.com/dependabot/dependabot-core/issues/2222
         uses: aquasecurity/trivy-action@master
         # Only run on main branch
         if: github.ref == 'refs/heads/main'
