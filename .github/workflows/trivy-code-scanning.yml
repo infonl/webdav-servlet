@@ -27,7 +27,7 @@ jobs:
       - name: Run Trivy vulnerability scanner in repo mode with Sarif output
         # Note that Trivy for Java requires a Gradle lock file.
         # We do not use Gradle dependency locking yet because we use Dependabot
-        # to update our Gradle dependencies and Dependabot does not support Gradke lock
+        # to update our Gradle dependencies and Dependabot does not support Gradle lock
         # files yet. See: https://github.com/dependabot/dependabot-core/issues/2222
         uses: aquasecurity/trivy-action@master
         # Only run on main branch
