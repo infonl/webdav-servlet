@@ -106,30 +106,28 @@ public class DoPutTest extends MockTest {
 
     @Test
     public void testDoPutIfLazyFolderCreationOnPutIsFalse() throws Exception {
-        try (final PrintWriter pw = new PrintWriter("dummyFileName")) {
-            _mockery.checking(new Expectations() {
-                {
-                    oneOf(mockReq).getAttribute("javax.servlet.include.request_uri");
-                    will(returnValue(null));
+        _mockery.checking(new Expectations() {
+            {
+                oneOf(mockReq).getAttribute("javax.servlet.include.request_uri");
+                will(returnValue(null));
 
-                    oneOf(mockReq).getPathInfo();
-                    will(returnValue(path));
+                oneOf(mockReq).getPathInfo();
+                will(returnValue(path));
 
-                    oneOf(mockReq).getHeader("User-Agent");
-                    will(returnValue("Transmit agent"));
+                oneOf(mockReq).getHeader("User-Agent");
+                will(returnValue("Transmit agent"));
 
-                    oneOf(mockStore).getStoredObject(mockTransaction, parentPath);
-                    will(returnValue(null));
+                oneOf(mockStore).getStoredObject(mockTransaction, parentPath);
+                will(returnValue(null));
 
-                    oneOf(mockRes).sendError(404, "Not Found");
-                }
-            });
+                oneOf(mockRes).sendError(404, "Not Found");
+            }
+        });
 
-            DoPut doPut = new DoPut(mockStore, new ResourceLocks(), !readOnly, !lazyFolderCreationOnPut);
-            doPut.execute(mockTransaction, mockReq, mockRes);
+        DoPut doPut = new DoPut(mockStore, new ResourceLocks(), !readOnly, !lazyFolderCreationOnPut);
+        doPut.execute(mockTransaction, mockReq, mockRes);
 
-            _mockery.assertIsSatisfied();
-        } 
+        _mockery.assertIsSatisfied();
     }
 
     @Test
