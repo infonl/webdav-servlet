@@ -48,6 +48,18 @@ jobs:
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
+  dependabot-auto-merge:
+    needs: [build]
+    runs-on: ubuntu-22.04
+    if: startsWith(github.ref, 'refs/heads/dependabot/')
+    permissions:
+      pull-requests: write
+      contents: write
+    steps:
+      - uses: fastify/github-action-merge-dependabot@v3
+        with:
+          target: minor
+
   next-version:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
