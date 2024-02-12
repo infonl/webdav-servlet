@@ -58,6 +58,10 @@ jobs:
     steps:
       - uses: fastify/github-action-merge-dependabot@v3
         with:
+          # Our Dependabot PRs are not merged automatically because an automatically merged PR
+          # does not trigger our push workflow (and so no release would be made).
+          # see: https://github.com/fastify/github-action-merge-dependabot/issues/134
+          approve-only: true
           target: minor
 
   next-version:
