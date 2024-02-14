@@ -42,6 +42,9 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
+/**
+ * Abstract base class for the implementation of the different WebDAV methods.
+ */
 public abstract class AbstractMethod implements IMethodExecutor {
     private static final ThreadLocal<DateFormat> thLastModifiedDateFormat = new ThreadLocal<>();
     private static final ThreadLocal<DateFormat> thCreationDateFormat = new ThreadLocal<>();
@@ -68,7 +71,10 @@ public abstract class AbstractMethod implements IMethodExecutor {
      * 1123)
      */
     protected static final String LAST_MODIFIED_DATE_FORMAT = "EEE, dd MMM yyyy HH:mm:ss z";
-    
+
+    /**
+     * Format for local date values.
+     */
     protected static final String LOCAL_DATE_FORMAT = "dd/MM/yy' 'HH:mm:ss";
 
     static {
@@ -301,8 +307,10 @@ public abstract class AbstractMethod implements IMethodExecutor {
      * the If-Header to make sure the If-Header corresponds to the locked
      * resource. Returning true if no lock exists or the If-Header is
      * corresponding to the locked resource
-     * 
+     *
+     * @param transaction the current WebDAV transaction
      * @param httpServletRequest servlet request
+     * @param resourceLocks resource locks
      * @param path path to the resource
      * @return true if no lock on a resource with the given path exists or if
      *  the If-Header corresponds to the locked resource
@@ -344,17 +352,20 @@ public abstract class AbstractMethod implements IMethodExecutor {
     }
 
     /**
-     * Send a multistatus element containing a complete error report to the
+     * Send a multi-status element containing a complete error report to the
      * client. If the errorList contains only one error, send the error
-     * directly without wrapping it in a multistatus message.
+     * directly without wrapping it in a multi-status message.
      * 
      * @param req servlet request
      * @param resp servlet response
      * @param errorList list of error to be displayed
+     * @throws IOException if an error occurs while sending the error report
      */
-    protected void sendReport(HttpServletRequest req, HttpServletResponse resp,
-            Hashtable<String, Integer> errorList) throws IOException {
-
+    protected void sendReport(
+            HttpServletRequest req,
+            HttpServletResponse resp,
+            Hashtable<String, Integer> errorList
+    ) throws IOException {
         if (errorList.size() == 1) {
             int code = errorList.elements().nextElement();
             if (WebdavStatus.getStatusText(code) != "") {
