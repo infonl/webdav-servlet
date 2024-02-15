@@ -29,8 +29,8 @@ dependencyLocking {
 }
 
 java {
-	java.sourceCompatibility = JavaVersion.VERSION_21
-	java.targetCompatibility = JavaVersion.VERSION_21
+	java.sourceCompatibility = JavaVersion.VERSION_17
+	java.targetCompatibility = JavaVersion.VERSION_17
 }
 
 dependencies {
