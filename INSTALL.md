@@ -2,7 +2,7 @@
   
 ## Requirements
 
-- JDK 1.7 or higher
+- JDK 21 or higher
 
 ## Build the software
 
