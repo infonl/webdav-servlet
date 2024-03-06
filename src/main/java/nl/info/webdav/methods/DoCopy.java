@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,6 +14,12 @@
  * limitations under the License.
  */
 package nl.info.webdav.methods;
+
+import java.io.IOException;
+import java.util.Hashtable;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import nl.info.webdav.ITransaction;
 import nl.info.webdav.IWebdavStore;
@@ -27,11 +33,6 @@ import nl.info.webdav.exceptions.WebdavException;
 import nl.info.webdav.fromcatalina.RequestUtil;
 import nl.info.webdav.locking.ResourceLocks;
 
-import java.io.IOException;
-import java.util.Hashtable;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-
 public class DoCopy extends AbstractMethod {
     private static org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(DoCopy.class);
 
@@ -40,23 +41,29 @@ public class DoCopy extends AbstractMethod {
     private final DoDelete _doDelete;
     private final boolean _readOnly;
 
-    public DoCopy(IWebdavStore store, ResourceLocks resourceLocks,
-            DoDelete doDelete, boolean readOnly) {
+    public DoCopy(
+            IWebdavStore store,
+            ResourceLocks resourceLocks,
+            DoDelete doDelete,
+            boolean readOnly
+    ) {
         _store = store;
         _resourceLocks = resourceLocks;
         _doDelete = doDelete;
         _readOnly = readOnly;
     }
 
-    public void execute(ITransaction transaction, HttpServletRequest req,
-            HttpServletResponse resp) throws IOException, LockFailedException {
+    public void execute(
+            ITransaction transaction,
+            HttpServletRequest req,
+            HttpServletResponse resp
+    ) throws IOException, LockFailedException {
         LOG.trace("-- " + this.getClass().getName());
 
         String path = getRelativePath(req);
         if (!_readOnly) {
 
-            String tempLockOwner = "doCopy" + System.currentTimeMillis()
-                    + req;
+            String tempLockOwner = "doCopy" + System.currentTimeMillis() + req;
             if (_resourceLocks.lock(transaction, path, tempLockOwner, false, 0,
                     TEMP_TIMEOUT, TEMPORARY)) {
                 try {
@@ -88,22 +95,22 @@ public class DoCopy extends AbstractMethod {
      * Copy a resource.
      * 
      * @param transaction
-     *      indicates that the method is within the scope of a WebDAV
-     *      transaction
+     *                    indicates that the method is within the scope of a WebDAV
+     *                    transaction
      * @param req
-     *      Servlet request
+     *                    Servlet request
      * @param resp
-     *      Servlet response
+     *                    Servlet response
      * @return true if the copy is successful
      * @throws WebdavException
-     *      if an error in the underlying store occurs
+     *                         if an error in the underlying store occurs
      * @throws IOException
-     *      when an error occurs while sending the response
+     *                         when an error occurs while sending the response
      */
     public boolean copyResource(
-        ITransaction transaction,
-        HttpServletRequest req,
-        HttpServletResponse resp
+            ITransaction transaction,
+            HttpServletRequest req,
+            HttpServletResponse resp
     ) throws WebdavException, IOException {
 
         // Parsing destination header
@@ -214,26 +221,26 @@ public class DoCopy extends AbstractMethod {
      * created here.
      * 
      * @param transaction
-     *      indicates that the method is within the scope of a WebDAV
-     *      transaction
+     *                        indicates that the method is within the scope of a WebDAV
+     *                        transaction
      * @param sourcePath
-     *      path from where to read
+     *                        path from where to read
      * @param destinationPath
-     *      path where to write
+     *                        path where to write
      * @param req
-     *      HttpServletRequest
+     *                        HttpServletRequest
      * @param resp
-     *      HttpServletResponse
+     *                        HttpServletResponse
      * @throws WebdavException
-     *      if an error in the underlying store occurs
+     *                         if an error in the underlying store occurs
      */
     private void copy(
-        ITransaction transaction,
-        String sourcePath,
-        String destinationPath,
-        Hashtable<String, Integer> errorList,
-        HttpServletRequest req,
-        HttpServletResponse resp
+            ITransaction transaction,
+            String sourcePath,
+            String destinationPath,
+            Hashtable<String, Integer> errorList,
+            HttpServletRequest req,
+            HttpServletResponse resp
     ) throws WebdavException, IOException {
         StoredObject sourceSo = _store.getStoredObject(transaction, sourcePath);
         if (sourceSo.isResource()) {
@@ -263,23 +270,27 @@ public class DoCopy extends AbstractMethod {
      * destination path
      * 
      * @param transaction
-     *      indicates that the method is within the scope of a WebDAV
-     *      transaction
+     *                        indicates that the method is within the scope of a WebDAV
+     *                        transaction
      * @param sourcePath
-     *      where to read
+     *                        where to read
      * @param destinationPath
-     *      where to write
+     *                        where to write
      * @param errorList
-     *      all errors that ocurred
+     *                        all errors that ocurred
      * @param req
-     *      HttpServletRequest
+     *                        HttpServletRequest
      * @throws WebdavException
-     *      if an error in the underlying store occurs
+     *                         if an error in the underlying store occurs
      */
-    private void copyFolder(ITransaction transaction, String sourcePath,
-            String destinationPath, Hashtable<String, Integer> errorList,
-            HttpServletRequest req)
-            throws WebdavException {
+    private void copyFolder(
+            ITransaction transaction,
+            String sourcePath,
+            String destinationPath,
+            Hashtable<String, Integer> errorList,
+            HttpServletRequest req
+    )
+      throws WebdavException {
 
         _store.createFolder(transaction, destinationPath);
         boolean infiniteDepth = true;
@@ -292,7 +303,7 @@ public class DoCopy extends AbstractMethod {
         if (infiniteDepth) {
             String[] children = _store
                     .getChildrenNames(transaction, sourcePath);
-            children = children == null ? new String[] {} : children;
+            children = children == null ? new String[]{} : children;
 
             StoredObject childSo;
             for (int i = children.length - 1; i >= 0; i--) {
@@ -301,8 +312,7 @@ public class DoCopy extends AbstractMethod {
                     childSo = _store.getStoredObject(transaction,
                             (sourcePath + children[i]));
                     if (childSo.isResource()) {
-                        _store.createResource(transaction, destinationPath
-                                + children[i]);
+                        _store.createResource(transaction, destinationPath + children[i]);
                         long resourceLength = _store.setResourceContent(
                                 transaction, destinationPath + children[i],
                                 _store.getResourceContent(transaction,
@@ -336,13 +346,15 @@ public class DoCopy extends AbstractMethod {
     /**
      * Parses and normalizes the destination header.
      * 
-     * @param req servlet request
+     * @param req  servlet request
      * @param resp servlet response
      * @return destinationPath
      * @throws IOException if an error occurs while sending response
      */
-    private String parseDestinationHeader(HttpServletRequest req,
-            HttpServletResponse resp) throws IOException {
+    private String parseDestinationHeader(
+            HttpServletRequest req,
+            HttpServletResponse resp
+    ) throws IOException {
         String destinationPath = req.getHeader("Destination");
 
         if (destinationPath == null) {
@@ -396,8 +408,7 @@ public class DoCopy extends AbstractMethod {
         String pathInfo = req.getPathInfo();
         if (pathInfo != null) {
             String servletPath = req.getServletPath();
-            if ((servletPath != null)
-                    && (destinationPath.startsWith(servletPath))) {
+            if ((servletPath != null) && (destinationPath.startsWith(servletPath))) {
                 destinationPath = destinationPath.substring(servletPath
                         .length());
             }
@@ -437,8 +448,7 @@ public class DoCopy extends AbstractMethod {
             int index = normalized.indexOf("//");
             if (index < 0)
                 break;
-            normalized = normalized.substring(0, index)
-                    + normalized.substring(index + 1);
+            normalized = normalized.substring(0, index) + normalized.substring(index + 1);
         }
 
         // Resolve occurrences of "/./" in the normalized path
@@ -446,8 +456,7 @@ public class DoCopy extends AbstractMethod {
             int index = normalized.indexOf("/./");
             if (index < 0)
                 break;
-            normalized = normalized.substring(0, index)
-                    + normalized.substring(index + 2);
+            normalized = normalized.substring(0, index) + normalized.substring(index + 2);
         }
 
         // Resolve occurrences of "/../" in the normalized path
@@ -458,8 +467,7 @@ public class DoCopy extends AbstractMethod {
             if (index == 0)
                 return (null); // Trying to go outside our context
             int index2 = normalized.lastIndexOf('/', index - 1);
-            normalized = normalized.substring(0, index2)
-                    + normalized.substring(index + 3);
+            normalized = normalized.substring(0, index2) + normalized.substring(index + 3);
         }
 
         // Return the normalized path that we have completed

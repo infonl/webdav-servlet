@@ -3,6 +3,16 @@ package nl.info.webdav.methods;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
+import java.io.ByteArrayInputStream;
+import java.util.Locale;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
+import org.jmock.Expectations;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+
 import nl.info.webdav.IMimeTyper;
 import nl.info.webdav.ITransaction;
 import nl.info.webdav.IWebdavStore;
@@ -11,14 +21,6 @@ import nl.info.webdav.WebdavStatus;
 import nl.info.webdav.locking.ResourceLocks;
 import nl.info.webdav.testutil.DelegatingServletInputStream;
 import nl.info.webdav.testutil.MockTest;
-import org.jmock.Expectations;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-
-import java.io.ByteArrayInputStream;
-import java.util.Locale;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 
 
 public class DoGetTest extends MockTest {
@@ -29,8 +31,8 @@ public class DoGetTest extends MockTest {
     static HttpServletResponse mockRes;
     static ITransaction mockTransaction;
     static TestingOutputStream tos = new TestingOutputStream();;
-    static byte[] resourceContent = new byte[] { '<', 'h', 'e', 'l', 'l', 'o',
-            '/', '>' };
+    static byte[] resourceContent = new byte[]{'<', 'h', 'e', 'l', 'l', 'o',
+                                               '/', '>'};
     static ByteArrayInputStream bais = new ByteArrayInputStream(resourceContent);
     static DelegatingServletInputStream dsis = new DelegatingServletInputStream(
             bais);
@@ -135,7 +137,7 @@ public class DoGetTest extends MockTest {
 
     @Test
     public void testAccessOfaDirectoryResultsInRudimentaryChildList()
-            throws Exception {
+                                                                      throws Exception {
 
         _mockery.checking(new Expectations() {
             {
@@ -160,23 +162,23 @@ public class DoGetTest extends MockTest {
 
                 exactly(2).of(mockReq).getLocale();
                 will(returnValue(Locale.GERMAN));
-                
+
                 oneOf(mockRes).setContentType("text/html");
-				oneOf(mockRes).setCharacterEncoding("UTF8");
-                
+                oneOf(mockRes).setCharacterEncoding("UTF8");
+
                 tos = new TestingOutputStream();
 
                 oneOf(mockRes).getOutputStream();
                 will(returnValue(tos));
 
                 oneOf(mockStore).getChildrenNames(mockTransaction, "/foo/");
-                will(returnValue(new String[] { "AAA", "BBB" }));
-                
+                will(returnValue(new String[]{"AAA", "BBB"}));
+
                 oneOf(mockStore).getStoredObject(mockTransaction, "/foo//AAA");
                 will(returnValue(aaa));
 
                 oneOf(mockStore).getStoredObject(mockTransaction, "/foo//BBB");
-				will(returnValue(bbb));
+                will(returnValue(bbb));
 
             }
         });
@@ -193,7 +195,7 @@ public class DoGetTest extends MockTest {
 
     @Test
     public void testAccessOfaDirectoryResultsInRedirectIfDefaultIndexFilePresent()
-            throws Exception {
+                                                                                   throws Exception {
 
         _mockery.checking(new Expectations() {
             {
@@ -227,7 +229,7 @@ public class DoGetTest extends MockTest {
 
     @Test
     public void testAccessOfaMissingPageResultsInPossibleAlternatveTo404()
-            throws Exception {
+                                                                           throws Exception {
 
         _mockery.checking(new Expectations() {
             {

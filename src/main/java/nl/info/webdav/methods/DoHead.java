@@ -5,16 +5,21 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
-implied.
+ * implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
 package nl.info.webdav.methods;
+
+import java.io.IOException;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import nl.info.webdav.IMimeTyper;
 import nl.info.webdav.ITransaction;
@@ -27,10 +32,6 @@ import nl.info.webdav.exceptions.ObjectAlreadyExistsException;
 import nl.info.webdav.exceptions.WebdavException;
 import nl.info.webdav.locking.ResourceLocks;
 
-import java.io.IOException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-
 public class DoHead extends AbstractMethod {
     private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(DoHead.class);
 
@@ -41,9 +42,14 @@ public class DoHead extends AbstractMethod {
     protected IMimeTyper _mimeTyper;
     protected int _contentLength;
 
-    public DoHead(IWebdavStore store, String dftIndexFile, String insteadOf404,
-            ResourceLocks resourceLocks, IMimeTyper mimeTyper,
-            int contentLengthHeader) {
+    public DoHead(
+            IWebdavStore store,
+            String dftIndexFile,
+            String insteadOf404,
+            ResourceLocks resourceLocks,
+            IMimeTyper mimeTyper,
+            int contentLengthHeader
+    ) {
         _store = store;
         _dftIndexFile = dftIndexFile;
         _insteadOf404 = insteadOf404;
@@ -52,8 +58,11 @@ public class DoHead extends AbstractMethod {
         _contentLength = contentLengthHeader;
     }
 
-    public void execute(ITransaction transaction, HttpServletRequest req,
-            HttpServletResponse resp) throws IOException, LockFailedException {
+    public void execute(
+            ITransaction transaction,
+            HttpServletRequest req,
+            HttpServletResponse resp
+    ) throws IOException, LockFailedException {
 
         // determines if the uri exists.
 
@@ -81,8 +90,7 @@ public class DoHead extends AbstractMethod {
             if (so.isFolder()) {
                 if (_dftIndexFile != null && !_dftIndexFile.trim().equals("")) {
                     resp.sendRedirect(resp.encodeRedirectURL(req
-                            .getRequestURI()
-                            + this._dftIndexFile));
+                            .getRequestURI() + this._dftIndexFile));
                     return;
                 }
             } else if (so.isNullResource()) {
@@ -93,8 +101,7 @@ public class DoHead extends AbstractMethod {
                 return;
             }
 
-            String tempLockOwner = "doGet" + System.currentTimeMillis()
-                    + req.toString();
+            String tempLockOwner = "doGet" + System.currentTimeMillis() + req.toString();
 
             if (_resourceLocks.lock(transaction, path, tempLockOwner, false, 0,
                     TEMP_TIMEOUT, TEMPORARY)) {
@@ -130,8 +137,7 @@ public class DoHead extends AbstractMethod {
                                         resp
                                                 .setContentLength((int) resourceLength);
                                     } else {
-                                        resp.setHeader("content-length", ""
-                                                + resourceLength);
+                                        resp.setHeader("content-length", "" + resourceLength);
                                         // is "content-length" the right header?
                                         // is long a valid format?
                                     }
@@ -178,14 +184,21 @@ public class DoHead extends AbstractMethod {
 
     }
 
-    protected void folderBody(ITransaction transaction, String path,
-            HttpServletResponse resp, HttpServletRequest req)
-            throws IOException {
+    protected void folderBody(
+            ITransaction transaction,
+            String path,
+            HttpServletResponse resp,
+            HttpServletRequest req
+    )
+      throws IOException {
         // no body for HEAD
     }
 
-    protected void doBody(ITransaction transaction, HttpServletResponse resp,
-            String path) throws IOException {
+    protected void doBody(
+            ITransaction transaction,
+            HttpServletResponse resp,
+            String path
+    ) throws IOException {
         // no body for HEAD
     }
 }

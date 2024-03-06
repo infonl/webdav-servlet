@@ -4,7 +4,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,8 +14,6 @@
  *
  */
 package nl.info.webdav;
-
-import nl.info.webdav.exceptions.WebdavException;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -29,6 +27,8 @@ import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
+import nl.info.webdav.exceptions.WebdavException;
 
 /**
  * Reference Implementation of WebdavStore
@@ -55,16 +55,14 @@ public class LocalFileSystemStore implements IWebdavStore {
         LOG.trace("LocalFileSystemStore.begin()");
         if (!_root.exists()) {
             if (!_root.mkdirs()) {
-                throw new WebdavException("root path: "
-                        + _root.getAbsolutePath()
-                        + " does not exist and could not be created");
+                throw new WebdavException("root path: " + _root.getAbsolutePath() + " does not exist and could not be created");
             }
         }
         return null;
     }
 
     public void checkAuthentication(ITransaction transaction)
-            throws SecurityException {
+                                                              throws SecurityException {
         LOG.trace("LocalFileSystemStore.checkAuthentication()");
         // do nothing
 
@@ -82,7 +80,7 @@ public class LocalFileSystemStore implements IWebdavStore {
     }
 
     public void createFolder(ITransaction transaction, String uri)
-            throws WebdavException {
+                                                                   throws WebdavException {
         LOG.trace("LocalFileSystemStore.createFolder(" + uri + ")");
         File file = new File(_root, uri);
         if (!file.mkdir())
@@ -90,7 +88,7 @@ public class LocalFileSystemStore implements IWebdavStore {
     }
 
     public void createResource(ITransaction transaction, String uri)
-            throws WebdavException {
+                                                                     throws WebdavException {
         LOG.trace("LocalFileSystemStore.createResource(" + uri + ")");
         File file = new File(_root, uri);
         try {
@@ -98,15 +96,19 @@ public class LocalFileSystemStore implements IWebdavStore {
                 throw new WebdavException("cannot create file: " + uri);
         } catch (IOException e) {
             LOG
-                    .error("LocalFileSystemStore.createResource(" + uri
-                            + ") failed");
+                    .error("LocalFileSystemStore.createResource(" + uri + ") failed");
             throw new WebdavException(e);
         }
     }
 
-    public long setResourceContent(ITransaction transaction, String uri,
-            InputStream is, String contentType, String characterEncoding)
-            throws WebdavException {
+    public long setResourceContent(
+            ITransaction transaction,
+            String uri,
+            InputStream is,
+            String contentType,
+            String characterEncoding
+    )
+      throws WebdavException {
 
         LOG.trace("LocalFileSystemStore.setResourceContent(" + uri + ")");
         File file = new File(_root, uri);
@@ -128,8 +130,7 @@ public class LocalFileSystemStore implements IWebdavStore {
                 }
             }
         } catch (IOException e) {
-            LOG.error("LocalFileSystemStore.setResourceContent(" + uri
-                    + ") failed");
+            LOG.error("LocalFileSystemStore.setResourceContent(" + uri + ") failed");
             throw new WebdavException(e);
         }
         long length = -1;
@@ -137,15 +138,14 @@ public class LocalFileSystemStore implements IWebdavStore {
         try {
             length = file.length();
         } catch (SecurityException e) {
-            LOG.error("LocalFileSystemStore.setResourceContent(" + uri
-                    + ") failed" + "\nCan't get file.length");
+            LOG.error("LocalFileSystemStore.setResourceContent(" + uri + ") failed" + "\nCan't get file.length");
         }
 
         return length;
     }
 
     public String[] getChildrenNames(ITransaction transaction, String uri)
-            throws WebdavException {
+                                                                           throws WebdavException {
         LOG.trace("LocalFileSystemStore.getChildrenNames(" + uri + ")");
         File file = new File(_root, uri);
         String[] childrenNames = null;
@@ -165,7 +165,7 @@ public class LocalFileSystemStore implements IWebdavStore {
     }
 
     public void removeObject(ITransaction transaction, String uri)
-            throws WebdavException {
+                                                                   throws WebdavException {
         File file = new File(_root, uri);
         boolean success = file.delete();
         LOG.trace("LocalFileSystemStore.removeObject(" + uri + ")=" + success);
@@ -176,7 +176,7 @@ public class LocalFileSystemStore implements IWebdavStore {
     }
 
     public InputStream getResourceContent(ITransaction transaction, String uri)
-            throws WebdavException {
+                                                                                throws WebdavException {
         LOG.trace("LocalFileSystemStore.getResourceContent(" + uri + ")");
         File file = new File(_root, uri);
 
@@ -184,15 +184,14 @@ public class LocalFileSystemStore implements IWebdavStore {
         try {
             in = new BufferedInputStream(new FileInputStream(file));
         } catch (IOException e) {
-            LOG.error("LocalFileSystemStore.getResourceContent(" + uri
-                    + ") failed");
+            LOG.error("LocalFileSystemStore.getResourceContent(" + uri + ") failed");
             throw new WebdavException(e);
         }
         return in;
     }
 
     public long getResourceLength(ITransaction transaction, String uri)
-            throws WebdavException {
+                                                                        throws WebdavException {
         LOG.trace("LocalFileSystemStore.getResourceLength(" + uri + ")");
         File file = new File(_root, uri);
         return file.length();

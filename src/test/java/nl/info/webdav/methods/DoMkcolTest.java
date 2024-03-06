@@ -1,5 +1,15 @@
 package nl.info.webdav.methods;
 
+import java.io.ByteArrayInputStream;
+import java.io.PrintWriter;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
+import org.jmock.Expectations;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+
 import nl.info.webdav.ITransaction;
 import nl.info.webdav.IWebdavStore;
 import nl.info.webdav.StoredObject;
@@ -9,14 +19,6 @@ import nl.info.webdav.locking.LockedObject;
 import nl.info.webdav.locking.ResourceLocks;
 import nl.info.webdav.testutil.DelegatingServletInputStream;
 import nl.info.webdav.testutil.MockTest;
-import org.jmock.Expectations;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-
-import java.io.ByteArrayInputStream;
-import java.io.PrintWriter;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 
 public class DoMkcolTest extends MockTest {
 
@@ -106,8 +108,7 @@ public class DoMkcolTest extends MockTest {
                 oneOf(mockStore).getStoredObject(mockTransaction, parentPath);
                 will(returnValue(parentSo));
 
-                String methodsAllowed = "OPTIONS, GET, HEAD, POST, DELETE, TRACE, "
-                        + "PROPPATCH, COPY, MOVE, LOCK, UNLOCK, PROPFIND";
+                String methodsAllowed = "OPTIONS, GET, HEAD, POST, DELETE, TRACE, " + "PROPPATCH, COPY, MOVE, LOCK, UNLOCK, PROPFIND";
 
                 oneOf(mockRes).addHeader("Allow", methodsAllowed);
 
@@ -124,7 +125,7 @@ public class DoMkcolTest extends MockTest {
 
     @Test
     public void testMkcolIfParentPathIsAFolderButObjectAlreadyExists()
-            throws Exception {
+                                                                       throws Exception {
 
         _mockery.checking(new Expectations() {
             {
@@ -163,7 +164,7 @@ public class DoMkcolTest extends MockTest {
 
     @Test
     public void testMkcolIfParentFolderIsLockedWithRightLockToken()
-            throws Exception {
+                                                                    throws Exception {
 
         ResourceLocks resLocks = new ResourceLocks();
         resLocks.lock(mockTransaction, parentPath, owner, true, -1, 200, false);
@@ -207,12 +208,11 @@ public class DoMkcolTest extends MockTest {
 
     @Test
     public void testMkcolIfParentFolderIsLockedWithWrongLockToken()
-            throws Exception {
+                                                                    throws Exception {
 
         ResourceLocks resLocks = new ResourceLocks();
         resLocks.lock(mockTransaction, parentPath, owner, true, -1, 200, false);
-        final String wrongLockToken = "(<opaquelocktoken:" + "aWrongLockToken"
-                + ">)";
+        final String wrongLockToken = "(<opaquelocktoken:" + "aWrongLockToken" + ">)";
 
         _mockery.checking(new Expectations() {
             {

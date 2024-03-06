@@ -1,5 +1,22 @@
 package nl.info.webdav.methods;
 
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Vector;
+
+import javax.xml.parsers.DocumentBuilder;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.xml.sax.InputSource;
+
 import nl.info.webdav.ITransaction;
 import nl.info.webdav.IWebdavStore;
 import nl.info.webdav.StoredObject;
@@ -11,20 +28,6 @@ import nl.info.webdav.fromcatalina.XMLHelper;
 import nl.info.webdav.fromcatalina.XMLWriter;
 import nl.info.webdav.locking.LockedObject;
 import nl.info.webdav.locking.ResourceLocks;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.xml.sax.InputSource;
-
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Hashtable;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Vector;
-import javax.xml.parsers.DocumentBuilder;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 
 public class DoProppatch extends AbstractMethod {
 
@@ -35,15 +38,21 @@ public class DoProppatch extends AbstractMethod {
     private IWebdavStore _store;
     private ResourceLocks _resourceLocks;
 
-    public DoProppatch(IWebdavStore store, ResourceLocks resLocks,
-            boolean readOnly) {
+    public DoProppatch(
+            IWebdavStore store,
+            ResourceLocks resLocks,
+            boolean readOnly
+    ) {
         _readOnly = readOnly;
         _store = store;
         _resourceLocks = resLocks;
     }
 
-    public void execute(ITransaction transaction, HttpServletRequest req,
-            HttpServletResponse resp) throws IOException, LockFailedException {
+    public void execute(
+            ITransaction transaction,
+            HttpServletRequest req,
+            HttpServletResponse resp
+    ) throws IOException, LockFailedException {
         LOG.trace("-- " + this.getClass().getName());
 
         if (_readOnly) {
@@ -161,8 +170,7 @@ public class DoProppatch extends AbstractMethod {
                         .writeElement("DAV::multistatus", XMLWriter.OPENING);
 
                 generatedXML.writeElement("DAV::response", XMLWriter.OPENING);
-                String status = "HTTP/1.1 " + WebdavStatus.SC_OK
-                    + " " + WebdavStatus.getStatusText(WebdavStatus.SC_OK);
+                String status = "HTTP/1.1 " + WebdavStatus.SC_OK + " " + WebdavStatus.getStatusText(WebdavStatus.SC_OK);
 
                 // Generating href element
                 generatedXML.writeElement("DAV::href", XMLWriter.OPENING);

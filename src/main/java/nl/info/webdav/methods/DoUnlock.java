@@ -1,5 +1,10 @@
 package nl.info.webdav.methods;
 
+import java.io.IOException;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
 import nl.info.webdav.ITransaction;
 import nl.info.webdav.IWebdavStore;
 import nl.info.webdav.StoredObject;
@@ -8,10 +13,6 @@ import nl.info.webdav.exceptions.LockFailedException;
 import nl.info.webdav.locking.IResourceLocks;
 import nl.info.webdav.locking.LockedObject;
 
-import java.io.IOException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-
 public class DoUnlock extends DeterminableMethod {
     private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(DoUnlock.class);
 
@@ -19,15 +20,21 @@ public class DoUnlock extends DeterminableMethod {
     private final IResourceLocks _resourceLocks;
     private final boolean _readOnly;
 
-    public DoUnlock(IWebdavStore store, IResourceLocks resourceLocks,
-            boolean readOnly) {
+    public DoUnlock(
+            IWebdavStore store,
+            IResourceLocks resourceLocks,
+            boolean readOnly
+    ) {
         _store = store;
         _resourceLocks = resourceLocks;
         _readOnly = readOnly;
     }
 
-    public void execute(ITransaction transaction, HttpServletRequest req,
-            HttpServletResponse resp) throws IOException, LockFailedException {
+    public void execute(
+            ITransaction transaction,
+            HttpServletRequest req,
+            HttpServletResponse resp
+    ) throws IOException, LockFailedException {
         LOG.trace("-- " + this.getClass().getName());
 
         if (_readOnly) {
@@ -41,9 +48,8 @@ public class DoUnlock extends DeterminableMethod {
 
                     String lockId = getLockIdFromLockTokenHeader(req);
                     LockedObject lo;
-                    if (lockId != null
-                            && ((lo = _resourceLocks.getLockedObjectByID(
-                                    transaction, lockId)) != null)) {
+                    if (lockId != null && ((lo = _resourceLocks.getLockedObjectByID(
+                            transaction, lockId)) != null)) {
 
                         String[] owners = lo.getOwner();
                         String owner = null;

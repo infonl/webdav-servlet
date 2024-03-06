@@ -1,5 +1,12 @@
 package nl.info.webdav.methods;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
+import org.jmock.Expectations;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+
 import nl.info.webdav.IMimeTyper;
 import nl.info.webdav.ITransaction;
 import nl.info.webdav.IWebdavStore;
@@ -7,12 +14,6 @@ import nl.info.webdav.StoredObject;
 import nl.info.webdav.WebdavStatus;
 import nl.info.webdav.locking.ResourceLocks;
 import nl.info.webdav.testutil.MockTest;
-import org.jmock.Expectations;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 
 public class DoHeadTest extends MockTest {
 
@@ -22,8 +23,8 @@ public class DoHeadTest extends MockTest {
     static HttpServletResponse mockRes;
     static TestingOutputStream tos;
     static ITransaction mockTransaction;
-    static byte[] resourceContent = new byte[] { '<', 'h', 'e', 'l', 'l', 'o',
-            '/', '>' };
+    static byte[] resourceContent = new byte[]{'<', 'h', 'e', 'l', 'l', 'o',
+                                               '/', '>'};
 
     @BeforeAll
     public static void setUp() throws Exception {
@@ -87,7 +88,7 @@ public class DoHeadTest extends MockTest {
                 oneOf(mockRes).addHeader(with(any(String.class)),
                         with(any(String.class)));
 
-                oneOf(mockMimeTyper).getMimeType(mockTransaction,"/index.html");
+                oneOf(mockMimeTyper).getMimeType(mockTransaction, "/index.html");
                 will(returnValue("text/foo"));
 
                 oneOf(mockRes).setContentType("text/foo");
@@ -104,7 +105,7 @@ public class DoHeadTest extends MockTest {
 
     @Test
     public void testAccessOfaDirectoryResultsInRedirectIfDefaultIndexFilePresent()
-            throws Exception {
+                                                                                   throws Exception {
 
         _mockery.checking(new Expectations() {
             {

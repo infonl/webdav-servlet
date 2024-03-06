@@ -1,12 +1,13 @@
 package nl.info.webdav.methods;
 
+import java.io.IOException;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
 import nl.info.webdav.IMethodExecutor;
 import nl.info.webdav.ITransaction;
 import nl.info.webdav.WebdavStatus;
-
-import java.io.IOException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 
 public class DoNotImplemented implements IMethodExecutor {
 
@@ -17,8 +18,11 @@ public class DoNotImplemented implements IMethodExecutor {
         _readOnly = readOnly;
     }
 
-    public void execute(ITransaction transaction, HttpServletRequest req,
-            HttpServletResponse resp) throws IOException {
+    public void execute(
+            ITransaction transaction,
+            HttpServletRequest req,
+            HttpServletResponse resp
+    ) throws IOException {
         LOG.trace("-- " + req.getMethod());
 
         if (_readOnly) {

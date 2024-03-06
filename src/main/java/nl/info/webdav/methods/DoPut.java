@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,6 +14,12 @@
  * limitations under the License.
  */
 package nl.info.webdav.methods;
+
+import java.io.IOException;
+import java.util.Hashtable;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import nl.info.webdav.ITransaction;
 import nl.info.webdav.IWebdavStore;
@@ -24,11 +30,6 @@ import nl.info.webdav.exceptions.LockFailedException;
 import nl.info.webdav.exceptions.WebdavException;
 import nl.info.webdav.locking.IResourceLocks;
 import nl.info.webdav.locking.LockedObject;
-
-import java.io.IOException;
-import java.util.Hashtable;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 
 public class DoPut extends AbstractMethod {
     private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(DoPut.class);
@@ -48,9 +49,9 @@ public class DoPut extends AbstractMethod {
     }
 
     public void execute(
-        ITransaction transaction,
-        HttpServletRequest req,
-        HttpServletResponse resp
+            ITransaction transaction,
+            HttpServletRequest req,
+            HttpServletResponse resp
     ) throws IOException, LockFailedException {
         LOG.trace("-- " + this.getClass().getName());
 
@@ -78,8 +79,7 @@ public class DoPut extends AbstractMethod {
                 StoredObject parentSo, so = null;
                 try {
                     parentSo = _store.getStoredObject(transaction, parentPath);
-                    if (parentPath != null && parentSo != null
-                            && parentSo.isResource()) {
+                    if (parentPath != null && parentSo != null && parentSo.isResource()) {
                         resp.sendError(WebdavStatus.SC_FORBIDDEN);
                         return;
 
@@ -168,16 +168,13 @@ public class DoPut extends AbstractMethod {
     }
 
     private void doUserAgentWorkaround(HttpServletResponse resp) {
-        if (_userAgent != null && _userAgent.contains("WebDAVFS")
-                && !_userAgent.contains("Transmit")) {
-            LOG.trace("DoPut.execute() : do workaround for user agent '"
-                    + _userAgent + "'");
+        if (_userAgent != null && _userAgent.contains("WebDAVFS") && !_userAgent.contains("Transmit")) {
+            LOG.trace("DoPut.execute() : do workaround for user agent '" + _userAgent + "'");
             resp.setStatus(WebdavStatus.SC_CREATED);
         } else if (_userAgent != null && _userAgent.contains("Transmit")) {
             // Transmit also uses WEBDAVFS 1.x.x but crashes
             // with SC_CREATED response
-            LOG.trace("DoPut.execute() : do workaround for user agent '"
-                    + _userAgent + "'");
+            LOG.trace("DoPut.execute() : do workaround for user agent '" + _userAgent + "'");
             resp.setStatus(WebdavStatus.SC_NO_CONTENT);
         } else {
             resp.setStatus(WebdavStatus.SC_CREATED);

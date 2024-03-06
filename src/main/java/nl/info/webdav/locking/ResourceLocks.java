@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  * 
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,11 +18,11 @@ package nl.info.webdav.locking;
 
 import static java.text.MessageFormat.format;
 
-import nl.info.webdav.ITransaction;
-import nl.info.webdav.exceptions.LockFailedException;
-
 import java.util.Enumeration;
 import java.util.Hashtable;
+
+import nl.info.webdav.ITransaction;
+import nl.info.webdav.exceptions.LockFailedException;
 
 /**
  * Simple locking management for concurrent data access, NOT the webdav locking.
@@ -73,13 +73,13 @@ public class ResourceLocks implements IResourceLocks {
     }
 
     public synchronized boolean lock(
-        ITransaction transaction,
-        String path,
-        String owner,
-        boolean exclusive,
-        int depth,
-        int timeout,
-        boolean temporary
+            ITransaction transaction,
+            String path,
+            String owner,
+            boolean exclusive,
+            int depth,
+            int timeout,
+            boolean temporary
     ) throws LockFailedException {
 
         LockedObject lo;
@@ -117,7 +117,7 @@ public class ResourceLocks implements IResourceLocks {
         } else {
             // can not lock
             LOG.trace(
-                format("Lock resource at {0} failed because a parent or child resource is currently locked", path)
+                    format("Lock resource at {0} failed because a parent or child resource is currently locked", path)
             );
             return false;
         }
@@ -191,13 +191,23 @@ public class ResourceLocks implements IResourceLocks {
         }
     }
 
-    public boolean exclusiveLock(ITransaction transaction, String path,
-            String owner, int depth, int timeout) throws LockFailedException {
+    public boolean exclusiveLock(
+            ITransaction transaction,
+            String path,
+            String owner,
+            int depth,
+            int timeout
+    ) throws LockFailedException {
         return lock(transaction, path, owner, true, depth, timeout, false);
     }
 
-    public boolean sharedLock(ITransaction transaction, String path,
-            String owner, int depth, int timeout) throws LockFailedException {
+    public boolean sharedLock(
+            ITransaction transaction,
+            String path,
+            String owner,
+            int depth,
+            int timeout
+    ) throws LockFailedException {
         return lock(transaction, path, owner, false, depth, timeout, false);
     }
 
@@ -209,8 +219,10 @@ public class ResourceLocks implements IResourceLocks {
         }
     }
 
-    public LockedObject getLockedObjectByPath(ITransaction transaction,
-            String path) {
+    public LockedObject getLockedObjectByPath(
+            ITransaction transaction,
+            String path
+    ) {
         if (_locks.containsKey(path)) {
             return this._locks.get(path);
         } else {
@@ -218,13 +230,17 @@ public class ResourceLocks implements IResourceLocks {
         }
     }
 
-    public LockedObject getTempLockedObjectByID(ITransaction transaction,
-            String id) {
+    public LockedObject getTempLockedObjectByID(
+            ITransaction transaction,
+            String id
+    ) {
         return _tempLocksByID.getOrDefault(id, null);
     }
 
-    public LockedObject getTempLockedObjectByPath(ITransaction transaction,
-            String path) {
+    public LockedObject getTempLockedObjectByPath(
+            ITransaction transaction,
+            String path
+    ) {
         if (_tempLocks.containsKey(path)) {
             return this._tempLocks.get(path);
         } else {
@@ -237,11 +253,13 @@ public class ResourceLocks implements IResourceLocks {
      * folders. does not create new LockedObjects if they already exist
      * 
      * @param transaction the transaction
-     * @param path path to the (new) LockedObject
+     * @param path        path to the (new) LockedObject
      * @return the LockedObject for path.
      */
-    private LockedObject generateLockedObjects(ITransaction transaction,
-            String path) {
+    private LockedObject generateLockedObjects(
+            ITransaction transaction,
+            String path
+    ) {
         if (!_locks.containsKey(path)) {
             LockedObject returnObject = new LockedObject(this, path,
                     !_temporary);
@@ -265,11 +283,13 @@ public class ResourceLocks implements IResourceLocks {
      * folders. does not create new LockedObjects if they already exist
      * 
      * @param transaction the transaction
-     * @param path path to the (new) LockedObject
+     * @param path        path to the (new) LockedObject
      * @return the LockedObject for path.
      */
-    private LockedObject generateTempLockedObjects(ITransaction transaction,
-            String path) {
+    private LockedObject generateTempLockedObjects(
+            ITransaction transaction,
+            String path
+    ) {
         if (!_tempLocks.containsKey(path)) {
             LockedObject returnObject = new LockedObject(this, path, _temporary);
             String parentPath = getParentPath(path);
@@ -290,7 +310,7 @@ public class ResourceLocks implements IResourceLocks {
      * deletes unused LockedObjects and resets the counter. works recursively
      * starting at the given LockedObject
      * 
-     * @param lo LockedObject
+     * @param lo        LockedObject
      * @param temporary clean temporary or real locks
      * 
      * @return if cleaned

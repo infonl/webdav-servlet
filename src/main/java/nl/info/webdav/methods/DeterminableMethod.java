@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,8 +21,8 @@ public abstract class DeterminableMethod extends AbstractMethod {
 
     private static final String NULL_RESOURCE_METHODS_ALLOWED = "OPTIONS, MKCOL, PUT, PROPFIND, LOCK, UNLOCK";
 
-    private static final String RESOURCE_METHODS_ALLOWED = "OPTIONS, GET, HEAD, POST, DELETE, TRACE"
-            + ", PROPPATCH, COPY, MOVE, LOCK, UNLOCK, PROPFIND";
+    private static final String RESOURCE_METHODS_ALLOWED = "OPTIONS, GET, HEAD, POST, DELETE, TRACE" +
+                                                           ", PROPPATCH, COPY, MOVE, LOCK, UNLOCK, PROPFIND";
 
     private static final String FOLDER_METHOD_ALLOWED = ", PUT";
 
@@ -32,7 +32,7 @@ public abstract class DeterminableMethod extends AbstractMethod {
      * Determines the methods normally allowed for the resource.
      * 
      * @param so
-     *      StoredObject representing the resource
+     *           StoredObject representing the resource
      * @return all allowed methods, separated by commas
      */
     protected static String determineMethodsAllowed(StoredObject so) {

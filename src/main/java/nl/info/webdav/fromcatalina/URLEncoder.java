@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  * 
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -36,8 +36,8 @@ import java.util.BitSet;
 public class URLEncoder {
     private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(URLEncoder.class);
 
-    protected static final char[] HEXADECIMAL = { '0', '1', '2', '3', '4', '5',
-            '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
+    protected static final char[] HEXADECIMAL = {'0', '1', '2', '3', '4', '5',
+                                                 '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
 
     // Array containing the safe characters set.
     protected BitSet _safeCharacters = new BitSet(256);
@@ -52,8 +52,8 @@ public class URLEncoder {
         for (char i = '0'; i <= '9'; i++) {
             addSafeCharacter(i);
         }
-        for(char c : "$-_.+!*'(),".toCharArray()){
-             addSafeCharacter(c);
+        for (char c : "$-_.+!*'(),".toCharArray()) {
+            addSafeCharacter(c);
         }
     }
 
@@ -69,7 +69,7 @@ public class URLEncoder {
         try {
             writer = new OutputStreamWriter(buf, StandardCharsets.UTF_8);
         } catch (Exception e) {
-            LOG.error("Error in encode <"+path+">", e);
+            LOG.error("Error in encode <" + path + ">", e);
             writer = new OutputStreamWriter(buf);
         }
 

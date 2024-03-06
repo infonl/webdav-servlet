@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,6 +15,12 @@
  */
 package nl.info.webdav.methods;
 
+import java.io.IOException;
+import java.util.Hashtable;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
 import nl.info.webdav.ITransaction;
 import nl.info.webdav.WebdavStatus;
 import nl.info.webdav.exceptions.AccessDeniedException;
@@ -22,11 +28,6 @@ import nl.info.webdav.exceptions.LockFailedException;
 import nl.info.webdav.exceptions.ObjectAlreadyExistsException;
 import nl.info.webdav.exceptions.WebdavException;
 import nl.info.webdav.locking.ResourceLocks;
-
-import java.io.IOException;
-import java.util.Hashtable;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 
 public class DoMove extends AbstractMethod {
     private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(DoMove.class);
@@ -36,16 +37,23 @@ public class DoMove extends AbstractMethod {
     private final DoCopy _doCopy;
     private final boolean _readOnly;
 
-    public DoMove(ResourceLocks resourceLocks, DoDelete doDelete,
-            DoCopy doCopy, boolean readOnly) {
+    public DoMove(
+            ResourceLocks resourceLocks,
+            DoDelete doDelete,
+            DoCopy doCopy,
+            boolean readOnly
+    ) {
         _resourceLocks = resourceLocks;
         _doDelete = doDelete;
         _doCopy = doCopy;
         _readOnly = readOnly;
     }
 
-    public void execute(ITransaction transaction, HttpServletRequest req,
-            HttpServletResponse resp) throws IOException, LockFailedException {
+    public void execute(
+            ITransaction transaction,
+            HttpServletRequest req,
+            HttpServletResponse resp
+    ) throws IOException, LockFailedException {
 
         if (!_readOnly) {
             LOG.trace("-- " + this.getClass().getName());
@@ -70,8 +78,7 @@ public class DoMove extends AbstractMethod {
                 return;
             }
 
-            String tempLockOwner = "doMove" + System.currentTimeMillis()
-                    + req;
+            String tempLockOwner = "doMove" + System.currentTimeMillis() + req;
 
             if (_resourceLocks.lock(transaction, sourcePath, tempLockOwner,
                     false, 0, TEMP_TIMEOUT, TEMPORARY)) {

@@ -1,9 +1,9 @@
 package nl.info.webdav.fromcatalina;
 
+import java.util.Vector;
+
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-
-import java.util.Vector;
 
 public class XMLHelper {
     public static Node findSubElement(Node parent, String localName) {
@@ -12,8 +12,7 @@ public class XMLHelper {
         }
         Node child = parent.getFirstChild();
         while (child != null) {
-            if ((child.getNodeType() == Node.ELEMENT_NODE)
-                    && (child.getLocalName().equals(localName))) {
+            if ((child.getNodeType() == Node.ELEMENT_NODE) && (child.getLocalName().equals(localName))) {
                 return child;
             }
             child = child.getNextSibling();
