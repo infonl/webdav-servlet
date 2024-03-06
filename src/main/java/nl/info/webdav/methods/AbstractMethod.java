@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,6 +15,15 @@
  */
 
 package nl.info.webdav.methods;
+
+import nl.info.webdav.IMethodExecutor;
+import nl.info.webdav.ITransaction;
+import nl.info.webdav.StoredObject;
+import nl.info.webdav.WebdavStatus;
+import nl.info.webdav.fromcatalina.URLEncoder;
+import nl.info.webdav.fromcatalina.XMLWriter;
+import nl.info.webdav.locking.IResourceLocks;
+import nl.info.webdav.locking.LockedObject;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -26,23 +35,12 @@ import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Locale;
 import java.util.TimeZone;
-
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-
-import nl.info.webdav.IMethodExecutor;
-import nl.info.webdav.ITransaction;
-import nl.info.webdav.StoredObject;
-import nl.info.webdav.WebdavStatus;
-import nl.info.webdav.fromcatalina.URLEncoder;
-import nl.info.webdav.fromcatalina.XMLWriter;
-import nl.info.webdav.locking.IResourceLocks;
-import nl.info.webdav.locking.LockedObject;
 
 /**
  * Abstract base class for the implementation of the different WebDAV methods.
@@ -51,7 +49,7 @@ public abstract class AbstractMethod implements IMethodExecutor {
     private static final ThreadLocal<DateFormat> thLastModifiedDateFormat = new ThreadLocal<>();
     private static final ThreadLocal<DateFormat> thCreationDateFormat = new ThreadLocal<>();
     private static final ThreadLocal<DateFormat> thLocalDateFormat = new ThreadLocal<>();
-
+    
     /**
      * Array containing the safe characters set.
      */
@@ -80,7 +78,7 @@ public abstract class AbstractMethod implements IMethodExecutor {
     protected static final String LOCAL_DATE_FORMAT = "dd/MM/yy' 'HH:mm:ss";
 
     static {
-        // GMT timezone - all HTTP dates are on GMT
+         // GMT timezone - all HTTP dates are on GMT
         URL_ENCODER = new URLEncoder();
         URL_ENCODER.addSafeCharacter('-');
         URL_ENCODER.addSafeCharacter('_');
@@ -116,32 +114,32 @@ public abstract class AbstractMethod implements IMethodExecutor {
 
     public static String lastModifiedDateFormat(final Date date) {
         DateFormat df = thLastModifiedDateFormat.get();
-        if (df == null) {
+        if( df == null ) {
             df = new SimpleDateFormat(LAST_MODIFIED_DATE_FORMAT, Locale.US);
             df.setTimeZone(TimeZone.getTimeZone("GMT"));
-            thLastModifiedDateFormat.set(df);
+            thLastModifiedDateFormat.set( df );
         }
         return df.format(date);
     }
 
     public static String creationDateFormat(final Date date) {
         DateFormat df = thCreationDateFormat.get();
-        if (df == null) {
+        if( df == null ) {
             df = new SimpleDateFormat(CREATION_DATE_FORMAT);
             df.setTimeZone(TimeZone.getTimeZone("GMT"));
-            thCreationDateFormat.set(df);
+            thCreationDateFormat.set( df );
         }
         return df.format(date);
     }
 
     public static String getLocalDateFormat(final Date date, final Locale loc) {
         DateFormat df = thLocalDateFormat.get();
-        if (df == null) {
+        if( df == null ) {
             df = new SimpleDateFormat(LOCAL_DATE_FORMAT, loc);
         }
         return df.format(date);
     }
-
+    
     /**
      * Return the relative path associated with this servlet.
      * 
@@ -310,18 +308,18 @@ public abstract class AbstractMethod implements IMethodExecutor {
      * resource. Returning true if no lock exists or the If-Header is
      * corresponding to the locked resource
      *
-     * @param transaction        the current WebDAV transaction
+     * @param transaction the current WebDAV transaction
      * @param httpServletRequest servlet request
-     * @param resourceLocks      resource locks
-     * @param path               path to the resource
+     * @param resourceLocks resource locks
+     * @param path path to the resource
      * @return true if no lock on a resource with the given path exists or if
-     *         the If-Header corresponds to the locked resource
+     *  the If-Header corresponds to the locked resource
      */
     protected boolean checkLocks(
-            ITransaction transaction,
-            HttpServletRequest httpServletRequest,
-            IResourceLocks resourceLocks,
-            String path
+        ITransaction transaction,
+        HttpServletRequest httpServletRequest,
+        IResourceLocks resourceLocks,
+        String path
     ) {
         LockedObject loByPath = resourceLocks.getLockedObjectByPath(
                 transaction, path);
@@ -358,8 +356,8 @@ public abstract class AbstractMethod implements IMethodExecutor {
      * client. If the errorList contains only one error, send the error
      * directly without wrapping it in a multi-status message.
      * 
-     * @param req       servlet request
-     * @param resp      servlet response
+     * @param req servlet request
+     * @param resp servlet response
      * @param errorList list of error to be displayed
      * @throws IOException if an error occurs while sending the error report
      */
@@ -375,7 +373,8 @@ public abstract class AbstractMethod implements IMethodExecutor {
             } else {
                 resp.sendError(code);
             }
-        } else {
+        }
+        else {
             resp.setStatus(WebdavStatus.SC_MULTI_STATUS);
 
             HashMap<String, String> namespaces = new HashMap<>();
@@ -396,7 +395,8 @@ public abstract class AbstractMethod implements IMethodExecutor {
                 generatedXML.writeText(errorPath);
                 generatedXML.writeElement("DAV::href", XMLWriter.CLOSING);
                 generatedXML.writeElement("DAV::status", XMLWriter.OPENING);
-                generatedXML.writeText("HTTP/1.1 " + errorCode + " " + WebdavStatus.getStatusText(errorCode));
+                generatedXML.writeText("HTTP/1.1 " + errorCode + " "
+                        + WebdavStatus.getStatusText(errorCode));
                 generatedXML.writeElement("DAV::status", XMLWriter.CLOSING);
                 generatedXML.writeElement("DAV::response", XMLWriter.CLOSING);
             }

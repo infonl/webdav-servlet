@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  * 
- * http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,7 +21,6 @@ import static java.text.MessageFormat.format;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Map;
-
 import jakarta.servlet.http.Cookie;
 
 /**
@@ -90,20 +89,20 @@ public final class RequestUtil {
         StringBuilder result = new StringBuilder(content.length + 50);
         for (int i = 0; i < content.length; i++) {
             switch (content[i]) {
-                case '<':
-                    result.append("&lt;");
-                    break;
-                case '>':
-                    result.append("&gt;");
-                    break;
-                case '&':
-                    result.append("&amp;");
-                    break;
-                case '"':
-                    result.append("&quot;");
-                    break;
-                default:
-                    result.append(content[i]);
+            case '<':
+                result.append("&lt;");
+                break;
+            case '>':
+                result.append("&gt;");
+                break;
+            case '&':
+                result.append("&amp;");
+                break;
+            case '"':
+                result.append("&quot;");
+                break;
+            default:
+                result.append(content[i]);
             }
         }
         return result.toString();
@@ -137,7 +136,8 @@ public final class RequestUtil {
             int index = normalized.indexOf("//");
             if (index < 0)
                 break;
-            normalized = normalized.substring(0, index) + normalized.substring(index + 1);
+            normalized = normalized.substring(0, index)
+                    + normalized.substring(index + 1);
         }
 
         // Resolve occurrences of "/./" in the normalized path
@@ -145,7 +145,8 @@ public final class RequestUtil {
             int index = normalized.indexOf("/./");
             if (index < 0)
                 break;
-            normalized = normalized.substring(0, index) + normalized.substring(index + 2);
+            normalized = normalized.substring(0, index)
+                    + normalized.substring(index + 2);
         }
 
         // Resolve occurrences of "/../" in the normalized path
@@ -156,7 +157,8 @@ public final class RequestUtil {
             if (index == 0)
                 return (null); // Trying to go outside our context
             int index2 = normalized.lastIndexOf('/', index - 1);
-            normalized = normalized.substring(0, index2) + normalized.substring(index + 3);
+            normalized = normalized.substring(0, index2)
+                    + normalized.substring(index + 3);
         }
 
         // Return the normalized path that we have completed
@@ -182,7 +184,8 @@ public final class RequestUtil {
         if (end >= 0)
             encoding = encoding.substring(0, end);
         encoding = encoding.trim();
-        if ((encoding.length() > 2) && (encoding.startsWith("\"")) && (encoding.endsWith("\"")))
+        if ((encoding.length() > 2) && (encoding.startsWith("\""))
+                && (encoding.endsWith("\"")))
             encoding = encoding.substring(1, encoding.length() - 1);
         return encoding.trim();
     }
@@ -234,15 +237,15 @@ public final class RequestUtil {
      * the name or value includes an encoded "=" or "{@literal &}" character that would
      * otherwise be interpreted as a delimiter.
      * 
-     * @param map  map that accumulates the resulting parameters
+     * @param map map that accumulates the resulting parameters
      * @param data input string containing request parameters
      * 
      * @exception IllegalArgumentException if the data is malformed
      */
     public static void parseParameters(
-            Map<String, String[]> map,
-            String data,
-            String encoding
+        Map<String, String[]> map,
+        String data,
+        String encoding
     ) throws UnsupportedEncodingException {
         if ((data != null) && (!data.isEmpty())) {
 
@@ -271,11 +274,11 @@ public final class RequestUtil {
      * used... This may be different than some other servers.
      * 
      * @param str
-     *            The url-encoded string
+     *      The url-encoded string
      * 
      * @exception IllegalArgumentException
-     *                                     if a '%' character is not followed by a valid 2-digit hexadecimal
-     *                                     number
+     *      if a '%' character is not followed by a valid 2-digit hexadecimal
+     *      number
      */
     public static String URLDecode(String str) {
         return URLDecode(str, null);
@@ -285,12 +288,12 @@ public final class RequestUtil {
      * Decode and return the specified URL-encoded String.
      * 
      * @param str
-     *            The url-encoded string
+     *      The url-encoded string
      * @param enc
-     *            The encoding to use; if null, the default encoding is used
+     *      The encoding to use; if null, the default encoding is used
      * @exception IllegalArgumentException
-     *                                     if a '%' character is not followed by a valid 2-digit hexadecimal
-     *                                     number
+     *      if a '%' character is not followed by a valid 2-digit hexadecimal
+     *      number
      */
     public static String URLDecode(String str, String enc) {
         if (str == null)
@@ -318,10 +321,10 @@ public final class RequestUtil {
      * Decode and return the specified URL-encoded byte array.
      * 
      * @param bytes
-     *              The url-encoded byte array
+     *      The url-encoded byte array
      * @exception IllegalArgumentException
-     *                                     if a '%' character is not followed by a valid 2-digit hexadecimal
-     *                                     number
+     *      if a '%' character is not followed by a valid 2-digit hexadecimal
+     *      number
      */
     public static String URLDecode(byte[] bytes) {
         return URLDecode(bytes, null);
@@ -331,12 +334,12 @@ public final class RequestUtil {
      * Decode and return the specified URL-encoded byte array.
      * 
      * @param bytes
-     *              The url-encoded byte array
+     *      The url-encoded byte array
      * @param enc
-     *              The encoding to use; if null, the default encoding is used
+     *      The encoding to use; if null, the default encoding is used
      * @exception IllegalArgumentException
-     *                                     if a '%' character is not followed by a valid 2-digit hexadecimal
-     *                                     number
+     *      if a '%' character is not followed by a valid 2-digit hexadecimal
+     *      number
      */
     public static String URLDecode(byte[] bytes, String enc) {
         if (bytes == null)
@@ -368,7 +371,7 @@ public final class RequestUtil {
      * Convert a byte character value to hexidecimal digit value.
      * 
      * @param b
-     *          the character value byte
+     *      the character value byte
      */
     private static byte convertHexDigit(byte b) {
         if ((b >= '0') && (b <= '9'))
@@ -385,17 +388,14 @@ public final class RequestUtil {
      * array of values.
      * 
      * @param map
-     *              The map to populate
+     *      The map to populate
      * @param name
-     *              The parameter name
+     *      The parameter name
      * @param value
-     *              The parameter value
+     *      The parameter value
      */
-    private static void putMapEntry(
-            Map<String, String[]> map,
-            String name,
-            String value
-    ) {
+    private static void putMapEntry(Map<String, String[]> map, String name,
+            String value) {
         String[] newValues;
         String[] oldValues = map.get(name);
         if (oldValues == null) {
@@ -421,18 +421,18 @@ public final class RequestUtil {
      * otherwise be interpreted as a delimiter. NOTE: byte array data is
      * modified by this method. Caller beware.
      * 
-     * @param map      map that accumulates the resulting parameters
-     * @param data     input string containing request parameters
+     * @param map map that accumulates the resulting parameters
+     * @param data input string containing request parameters
      * @param encoding
-     *                 Encoding to use for converting hex
+     *      Encoding to use for converting hex
      * 
      * @exception UnsupportedEncodingException
-     *                                         if the data is malformed
+     *      if the data is malformed
      */
     public static void parseParameters(
-            Map<String, String[]> map,
-            byte[] data,
-            String encoding
+        Map<String, String[]> map,
+        byte[] data,
+        String encoding
     ) throws UnsupportedEncodingException {
         if (data != null && data.length > 0) {
             int ix = 0;
@@ -442,30 +442,30 @@ public final class RequestUtil {
             while (ix < data.length) {
                 byte c = data[ix++];
                 switch ((char) c) {
-                    case '&':
-                        value = new String(data, 0, ox, encoding);
-                        if (key != null) {
-                            putMapEntry(map, key, value);
-                            key = null;
-                        }
+                case '&':
+                    value = new String(data, 0, ox, encoding);
+                    if (key != null) {
+                        putMapEntry(map, key, value);
+                        key = null;
+                    }
+                    ox = 0;
+                    break;
+                case '=':
+                    if (key == null) {
+                        key = new String(data, 0, ox, encoding);
                         ox = 0;
-                        break;
-                    case '=':
-                        if (key == null) {
-                            key = new String(data, 0, ox, encoding);
-                            ox = 0;
-                        } else {
-                            data[ox++] = c;
-                        }
-                        break;
-                    case '+':
-                        data[ox++] = (byte) ' ';
-                        break;
-                    case '%':
-                        data[ox++] = (byte) ((convertHexDigit(data[ix++]) << 4) + convertHexDigit(data[ix++]));
-                        break;
-                    default:
+                    } else {
                         data[ox++] = c;
+                    }
+                    break;
+                case '+':
+                    data[ox++] = (byte) ' ';
+                    break;
+                case '%':
+                    data[ox++] = (byte) ((convertHexDigit(data[ix++]) << 4) + convertHexDigit(data[ix++]));
+                    break;
+                default:
+                    data[ox++] = c;
                 }
             }
             // The last value does not end in '&'. So save it now.

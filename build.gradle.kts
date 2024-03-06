@@ -61,6 +61,8 @@ configure<com.diffplug.gradle.spotless.SpotlessExtension> {
 		endWithNewline()
 	}
 	java {
+		targetExcludeIfContentContains("Apache Software Foundation")
+
 		removeUnusedImports()
 		importOrderFile("config/importOrder.txt")
 

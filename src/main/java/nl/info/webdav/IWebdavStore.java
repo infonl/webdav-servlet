@@ -11,7 +11,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,10 +23,10 @@
 
 package nl.info.webdav;
 
+import nl.info.webdav.exceptions.WebdavException;
+
 import java.io.InputStream;
 import java.security.Principal;
-
-import nl.info.webdav.exceptions.WebdavException;
 
 /**
  * Interface for simple webdav store implementations.
@@ -49,11 +49,11 @@ public interface IWebdavStore {
      * called by (@link WebdavStoreAdapter} at the beginning of each request.
      *
      * @param principal
-     *                  the principal that started this request or <code>null</code> if
-     *                  there is none available
+     *      the principal that started this request or <code>null</code> if
+     *      there is none available
      * 
      * @throws WebdavException
-     *                         if something goes wrong on the store level
+     *    if something goes wrong on the store level
      */
     ITransaction begin(Principal principal) throws WebdavException;
 
@@ -62,8 +62,8 @@ public interface IWebdavStore {
      * exception.
      * 
      * @param transaction
-     *                    indicates that the method is within the scope of a WebDAV
-     *                    transaction
+     *      indicates that the method is within the scope of a WebDAV
+     *      transaction
      */
     void checkAuthentication(ITransaction transaction);
 
@@ -73,11 +73,11 @@ public interface IWebdavStore {
      * shall be terminated.
      * 
      * @param transaction
-     *                    indicates that the method is within the scope of a WebDAV
-     *                    transaction
+     *      indicates that the method is within the scope of a WebDAV
+     *      transaction
      * 
      * @throws WebdavException
-     *                         if something goes wrong on the store level
+     *      if something goes wrong on the store level
      */
     void commit(ITransaction transaction) throws WebdavException;
 
@@ -87,11 +87,11 @@ public interface IWebdavStore {
      * terminated.
      * 
      * @param transaction
-     *                    indicates that the method is within the scope of a WebDAV
-     *                    transaction
+     *      indicates that the method is within the scope of a WebDAV
+     *      transaction
      * 
      * @throws WebdavException
-     *                         if something goes wrong on the store level
+     *      if something goes wrong on the store level
      */
     void rollback(ITransaction transaction) throws WebdavException;
 
@@ -99,12 +99,12 @@ public interface IWebdavStore {
      * Creates a folder at the position specified by <code>folderUri</code>.
      * 
      * @param transaction
-     *                    indicates that the method is within the scope of a WebDAV
-     *                    transaction
+     *      indicates that the method is within the scope of a WebDAV
+     *      transaction
      * @param folderUri
-     *                    URI of the folder
+     *      URI of the folder
      * @throws WebdavException
-     *                         if something goes wrong on the store level
+     *      if something goes wrong on the store level
      */
     void createFolder(ITransaction transaction, String folderUri) throws WebdavException;
 
@@ -113,12 +113,12 @@ public interface IWebdavStore {
      * <code>resourceUri</code>.
      * 
      * @param transaction
-     *                    indicates that the method is within the scope of a WebDAV
-     *                    transaction
+     *      indicates that the method is within the scope of a WebDAV
+     *      transaction
      * @param resourceUri
-     *                    URI of the content resource
+     *      URI of the content resource
      * @throws WebdavException
-     *                         if something goes wrong on the store level
+     *      if something goes wrong on the store level
      */
     void createResource(ITransaction transaction, String resourceUri) throws WebdavException;
 
@@ -126,13 +126,13 @@ public interface IWebdavStore {
      * Gets the content of the resource specified by <code>resourceUri</code>.
      * 
      * @param transaction
-     *                    indicates that the method is within the scope of a WebDAV
-     *                    transaction
+     *      indicates that the method is within the scope of a WebDAV
+     *      transaction
      * @param resourceUri
-     *                    URI of the content resource
+     *      URI of the content resource
      * @return input stream you can read the content of the resource from
      * @throws WebdavException
-     *                         if something goes wrong on the store level
+     *      if something goes wrong on the store level
      */
     InputStream getResourceContent(ITransaction transaction, String resourceUri) throws WebdavException;
 
@@ -141,27 +141,27 @@ public interface IWebdavStore {
      * <code>resourceUri</code>.
      * 
      * @param transaction
-     *                          indicates that the method is within the scope of a WebDAV
-     *                          transaction
+     *      indicates that the method is within the scope of a WebDAV
+     *      transaction
      * @param resourceUri
-     *                          URI of the resource where the content will be stored
+     *      URI of the resource where the content will be stored
      * @param content
-     *                          input stream from which the content will be read from
+     *      input stream from which the content will be read from
      * @param contentType
-     *                          content type of the resource or <code>null</code> if unknown
+     *      content type of the resource or <code>null</code> if unknown
      * @param characterEncoding
-     *                          character encoding of the resource or <code>null</code> if unknown
-     *                          or not applicable
+     *      character encoding of the resource or <code>null</code> if unknown
+     *      or not applicable
      * @return length of the resource
      * @throws WebdavException
-     *                         if something goes wrong on the store level
+     *      if something goes wrong on the store level
      */
     long setResourceContent(
-            ITransaction transaction,
-            String resourceUri,
-            InputStream content,
-            String contentType,
-            String characterEncoding
+        ITransaction transaction,
+        String resourceUri,
+        InputStream content,
+        String contentType,
+        String characterEncoding
     ) throws WebdavException;
 
     /**
@@ -169,14 +169,14 @@ public interface IWebdavStore {
      * <code>folderUri</code>.
      * 
      * @param transaction
-     *                    indicates that the method is within the scope of a WebDAV
-     *                    transaction
+     *      indicates that the method is within the scope of a WebDAV
+     *      transaction
      * @param folderUri
-     *                    URI of the folder
+     *      URI of the folder
      * @return a (possibly empty) list of children, or <code>null</code> if the
-     *         uri points to a file
+     *  uri points to a file
      * @throws WebdavException
-     *                         if something goes wrong on the store level
+     *      if something goes wrong on the store level
      */
     String[] getChildrenNames(ITransaction transaction, String folderUri) throws WebdavException;
 
@@ -185,15 +185,15 @@ public interface IWebdavStore {
      * <code>resourceUri</code>.
      * 
      * @param transaction
-     *                    indicates that the method is within the scope of a WebDAV
-     *                    transaction
+     *      indicates that the method is within the scope of a WebDAV
+     *      transaction
      * @param path
-     *                    URI of the content resource
+     *      URI of the content resource
      * @return length of the resource in bytes, <code>-1</code> declares this
-     *         value as invalid and asks the adapter to try to set it from the
-     *         properties if possible
+     *  value as invalid and asks the adapter to try to set it from the
+     *  properties if possible
      * @throws WebdavException
-     *                         if something goes wrong on the store level
+     *      if something goes wrong on the store level
      */
     long getResourceLength(ITransaction transaction, String path) throws WebdavException;
 
@@ -201,12 +201,12 @@ public interface IWebdavStore {
      * Removes the object specified by <code>uri</code>.
      * 
      * @param transaction
-     *                    indicates that the method is within the scope of a WebDAV
-     *                    transaction
+     *      indicates that the method is within the scope of a WebDAV
+     *      transaction
      * @param uri
-     *                    URI of the object, i.e. content resource or folder
+     *      URI of the object, i.e. content resource or folder
      * @throws WebdavException
-     *                         if something goes wrong on the store level
+     *      if something goes wrong on the store level
      */
     void removeObject(ITransaction transaction, String uri) throws WebdavException;
 
@@ -214,10 +214,10 @@ public interface IWebdavStore {
      * Gets the storedObject specified by <code>uri</code>
      * 
      * @param transaction
-     *                    indicates that the method is within the scope of a WebDAV
-     *                    transaction
+     *      indicates that the method is within the scope of a WebDAV
+     *      transaction
      * @param uri
-     *                    URI
+     *      URI
      * @return StoredObject
      */
     StoredObject getStoredObject(ITransaction transaction, String uri);
