@@ -1,5 +1,15 @@
 package nl.info.webdav.methods;
 
+import java.io.ByteArrayInputStream;
+import java.io.PrintWriter;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
+import org.jmock.Expectations;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+
 import nl.info.webdav.ITransaction;
 import nl.info.webdav.IWebdavStore;
 import nl.info.webdav.StoredObject;
@@ -9,14 +19,6 @@ import nl.info.webdav.locking.LockedObject;
 import nl.info.webdav.locking.ResourceLocks;
 import nl.info.webdav.testutil.DelegatingServletInputStream;
 import nl.info.webdav.testutil.MockTest;
-import org.jmock.Expectations;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-
-import java.io.ByteArrayInputStream;
-import java.io.PrintWriter;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 
 public class DoUnlockTest extends MockTest {
 
@@ -56,7 +58,7 @@ public class DoUnlockTest extends MockTest {
 
     @Test
     public void testDoUnlockaLockedResourceWithRightLockToken()
-            throws Exception {
+                                                                throws Exception {
 
         final String lockPath = "/lockedResource";
         final String lockOwner = "theOwner";
@@ -99,7 +101,7 @@ public class DoUnlockTest extends MockTest {
 
     @Test
     public void testDoUnlockaLockedResourceWithWrongLockToken()
-            throws Exception {
+                                                                throws Exception {
 
         final String lockPath = "/lockedResource";
         final String lockOwner = "theOwner";
@@ -171,9 +173,9 @@ public class DoUnlockTest extends MockTest {
 
         try (final PrintWriter pw = new PrintWriter("/tmp/XMLTestFile");
              final ByteArrayInputStream baisExclusive = new ByteArrayInputStream(
-                 exclusiveLockRequestByteArray);
+                     exclusiveLockRequestByteArray);
              final DelegatingServletInputStream dsisExclusive = new DelegatingServletInputStream(
-                 baisExclusive)
+                     baisExclusive)
         ) {
             _mockery.checking(new Expectations() {
                 {
@@ -186,22 +188,22 @@ public class DoUnlockTest extends MockTest {
                     LockedObject lockNullResourceLo = null;
 
                     oneOf(mockResourceLocks).getLockedObjectByPath(mockTransaction,
-                        nullLoPath);
+                            nullLoPath);
                     will(returnValue(lockNullResourceLo));
 
                     LockedObject parentLo = null;
 
                     oneOf(mockResourceLocks).getLockedObjectByPath(mockTransaction,
-                        parentPath);
+                            parentPath);
                     will(returnValue(parentLo));
 
                     oneOf(mockReq).getHeader("User-Agent");
                     will(returnValue("Goliath"));
 
                     oneOf(mockResourceLocks).lock(with(any(ITransaction.class)),
-                        with(any(String.class)), with(any(String.class)),
-                        with(any(boolean.class)), with(any(int.class)),
-                        with(any(int.class)), with(any(boolean.class)));
+                            with(any(String.class)), with(any(String.class)),
+                            with(any(boolean.class)), with(any(int.class)),
+                            with(any(int.class)), with(any(boolean.class)));
                     will(returnValue(true));
 
                     oneOf(mockReq).getHeader("If");
@@ -243,14 +245,14 @@ public class DoUnlockTest extends MockTest {
                     ResourceLocks resLocks = ResourceLocks.class.newInstance();
 
                     oneOf(mockResourceLocks).exclusiveLock(mockTransaction,
-                        nullLoPath, "I'am the Lock Owner", 0, 604800);
+                            nullLoPath, "I'am the Lock Owner", 0, 604800);
                     will(returnValue(true));
 
                     lockNullResourceLo = initLockNullLockedObject(resLocks,
-                        nullLoPath);
+                            nullLoPath);
 
                     oneOf(mockResourceLocks).getLockedObjectByPath(mockTransaction,
-                        nullLoPath);
+                            nullLoPath);
                     will(returnValue(lockNullResourceLo));
 
                     oneOf(mockRes).setStatus(WebdavStatus.SC_OK);
@@ -269,8 +271,8 @@ public class DoUnlockTest extends MockTest {
                     oneOf(mockRes).addHeader("Lock-Token", lockToken);
 
                     oneOf(mockResourceLocks).unlockTemporaryLockedObjects(
-                        with(any(ITransaction.class)), with(any(String.class)),
-                        with(any(String.class)));
+                            with(any(ITransaction.class)), with(any(String.class)),
+                            with(any(String.class)));
 
                     // -----LOCK on a non-existing resource successful------
                     // ----------------now try to unlock it-----------------
@@ -282,16 +284,16 @@ public class DoUnlockTest extends MockTest {
                     will(returnValue(nullLoPath));
 
                     oneOf(mockResourceLocks).lock(with(any(ITransaction.class)),
-                        with(any(String.class)), with(any(String.class)),
-                        with(any(boolean.class)), with(any(int.class)),
-                        with(any(int.class)), with(any(boolean.class)));
+                            with(any(String.class)), with(any(String.class)),
+                            with(any(boolean.class)), with(any(int.class)),
+                            with(any(int.class)), with(any(boolean.class)));
                     will(returnValue(true));
 
                     oneOf(mockReq).getHeader("Lock-Token");
                     will(returnValue(lockToken));
 
                     oneOf(mockResourceLocks).getLockedObjectByID(mockTransaction,
-                        loId);
+                            loId);
                     will(returnValue(lockNullResourceLo));
 
                     String[] owners = lockNullResourceLo.getOwner();
@@ -310,8 +312,8 @@ public class DoUnlockTest extends MockTest {
                     oneOf(mockRes).setStatus(WebdavStatus.SC_NO_CONTENT);
 
                     oneOf(mockResourceLocks).unlockTemporaryLockedObjects(
-                        with(any(ITransaction.class)), with(any(String.class)),
-                        with(any(String.class)));
+                            with(any(ITransaction.class)), with(any(String.class)),
+                            with(any(String.class)));
 
                 }
             });
@@ -320,7 +322,7 @@ public class DoUnlockTest extends MockTest {
             doLock.execute(mockTransaction, mockReq, mockRes);
 
             DoUnlock doUnlock = new DoUnlock(mockStore, mockResourceLocks,
-                !readOnly);
+                    !readOnly);
             doUnlock.execute(mockTransaction, mockReq, mockRes);
 
             _mockery.assertIsSatisfied();

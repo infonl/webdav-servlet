@@ -1,5 +1,14 @@
 package nl.info.webdav.methods;
 
+import java.io.IOException;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
+import org.jmock.Expectations;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+
 import nl.info.webdav.IMimeTyper;
 import nl.info.webdav.ITransaction;
 import nl.info.webdav.IWebdavStore;
@@ -7,13 +16,6 @@ import nl.info.webdav.StoredObject;
 import nl.info.webdav.exceptions.LockFailedException;
 import nl.info.webdav.locking.ResourceLocks;
 import nl.info.webdav.testutil.MockTest;
-import org.jmock.Expectations;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-
-import java.io.IOException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 
 public class DoOptionsTest extends MockTest {
 
@@ -22,8 +24,8 @@ public class DoOptionsTest extends MockTest {
     static HttpServletResponse mockRes;
     static IMimeTyper mockMimeTyper;
     static ITransaction mockTransaction;
-    static byte[] resourceContent = new byte[] { '<', 'h', 'e', 'l', 'l', 'o',
-            '/', '>' };
+    static byte[] resourceContent = new byte[]{'<', 'h', 'e', 'l', 'l', 'o',
+                                               '/', '>'};
 
     @BeforeAll
     public static void setUp() throws Exception {
@@ -36,7 +38,7 @@ public class DoOptionsTest extends MockTest {
 
     @Test
     public void testOptionsOnExistingNode() throws IOException,
-            LockFailedException {
+                                            LockFailedException {
 
         _mockery.checking(new Expectations() {
             {
@@ -55,9 +57,7 @@ public class DoOptionsTest extends MockTest {
 
                 oneOf(mockRes).addHeader(
                         "Allow",
-                        "OPTIONS, GET, HEAD, POST, DELETE, "
-                                + "TRACE, PROPPATCH, COPY, "
-                                + "MOVE, LOCK, UNLOCK, PROPFIND");
+                        "OPTIONS, GET, HEAD, POST, DELETE, " + "TRACE, PROPPATCH, COPY, " + "MOVE, LOCK, UNLOCK, PROPFIND");
 
                 oneOf(mockRes).addHeader("MS-Author-Via", "DAV");
             }
@@ -71,7 +71,7 @@ public class DoOptionsTest extends MockTest {
 
     @Test
     public void testOptionsOnNonExistingNode() throws IOException,
-            LockFailedException {
+                                               LockFailedException {
 
         _mockery.checking(new Expectations() {
             {

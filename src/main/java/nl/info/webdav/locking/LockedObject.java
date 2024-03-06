@@ -50,11 +50,11 @@ public class LockedObject {
 
     /**
      * @param resourceLocks
-     *      the resourceLocks where locks are stored
+     *                      the resourceLocks where locks are stored
      * @param path
-     *      the path to the locked object
+     *                      the path to the locked object
      * @param isTemporary
-     *      indicates if the LockedObject should be temporary or not
+     *                      indicates if the LockedObject should be temporary or not
      */
     public LockedObject(ResourceLocks resourceLocks, String path, boolean isTemporary) {
         _path = path;
@@ -75,7 +75,7 @@ public class LockedObject {
      * adds a new owner to a lock
      * 
      * @param owner
-     *      string that represents the owner
+     *              string that represents the owner
      * @return true if the owner was added, false otherwise
      */
     public boolean addLockedObjectOwner(String owner) {
@@ -106,7 +106,7 @@ public class LockedObject {
      * tries to remove the owner from the lock
      * 
      * @param owner
-     *      string that represents the owner
+     *              string that represents the owner
      */
     public void removeLockedObjectOwner(String owner) {
         try {
@@ -116,7 +116,7 @@ public class LockedObject {
                     // check every owner if it is the requested one
                     if (_owner[i].equals(owner)) {
                         // remove the owner
-                    	size -= 1;
+                        size -= 1;
                         String[] newLockedObjectOwner = new String[size];
                         for (int j = 0; j < size; j++) {
                             if (j < i) {
@@ -143,7 +143,7 @@ public class LockedObject {
      * adds a new child lock to this lock
      * 
      * @param newChild
-     *      new child
+     *                 new child
      */
     public void addChild(LockedObject newChild) {
         if (_children == null) {
@@ -235,9 +235,9 @@ public class LockedObject {
      * children up to "depth"
      * 
      * @param exclusive
-     *      wheather the new lock should be exclusive
+     *                  wheather the new lock should be exclusive
      * @param depth
-     *      the depth to which should be checked
+     *                  the depth to which should be checked
      * @return true if the lock can be placed
      */
     public boolean checkLocks(boolean exclusive, int depth) {
@@ -251,7 +251,7 @@ public class LockedObject {
      * helper of checkLocks(). looks if the parents are locked
      * 
      * @param exclusive
-     *      wheather the new lock should be exclusive
+     *                  wheather the new lock should be exclusive
      * @return true if no locks at the parent path are forbidding a new lock
      */
     private boolean checkParents(boolean exclusive) {
@@ -263,8 +263,7 @@ public class LockedObject {
                 return _parent != null && _parent.checkParents(exclusive);
             } else {
                 // there already is a owner
-                return !(_exclusive || exclusive)
-                        && _parent.checkParents(exclusive);
+                return !(_exclusive || exclusive) && _parent.checkParents(exclusive);
             }
         }
     }
@@ -273,10 +272,10 @@ public class LockedObject {
      * helper of checkLocks(). looks if the children are locked
      * 
      * @param exclusive
-     *      wheather the new lock should be exclusive
+     *                  wheather the new lock should be exclusive
      * @return true if no locks at the children paths are forbidding a new lock
      * @param depth
-     *      depth
+     *              depth
      */
     private boolean checkChildren(boolean exclusive, int depth) {
         if (_children == null) {

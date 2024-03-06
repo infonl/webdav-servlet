@@ -1,5 +1,15 @@
 package nl.info.webdav.methods;
 
+import java.io.ByteArrayInputStream;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
+import org.jmock.Expectations;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+
 import nl.info.webdav.ITransaction;
 import nl.info.webdav.IWebdavStore;
 import nl.info.webdav.StoredObject;
@@ -7,22 +17,14 @@ import nl.info.webdav.WebdavStatus;
 import nl.info.webdav.locking.ResourceLocks;
 import nl.info.webdav.testutil.DelegatingServletInputStream;
 import nl.info.webdav.testutil.MockTest;
-import org.jmock.Expectations;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
-
-import java.io.ByteArrayInputStream;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 
 public class DoMoveTest extends MockTest {
     static IWebdavStore mockStore;
     static HttpServletRequest mockReq;
     static HttpServletResponse mockRes;
     static ITransaction mockTransaction;
-    static byte[] resourceContent = new byte[] { '<', 'h', 'e', 'l', 'l', 'o',
-            '/', '>' };
+    static byte[] resourceContent = new byte[]{'<', 'h', 'e', 'l', 'l', 'o',
+                                               '/', '>'};
     static ByteArrayInputStream bais = new ByteArrayInputStream(resourceContent);
     static DelegatingServletInputStream dsis = new DelegatingServletInputStream(
             bais);
@@ -449,7 +451,7 @@ public class DoMoveTest extends MockTest {
                 oneOf(mockReq).getHeader("Depth");
                 will(returnValue(null));
 
-                String[] sourceChildren = new String[] { "sourceFile" };
+                String[] sourceChildren = new String[]{"sourceFile"};
 
                 oneOf(mockStore).getChildrenNames(mockTransaction,
                         sourceCollectionPath);
@@ -484,7 +486,7 @@ public class DoMoveTest extends MockTest {
                         sourceCollectionPath);
                 will(returnValue(sourceCollectionSo));
 
-                sourceChildren = new String[] { "sourceFile" };
+                sourceChildren = new String[]{"sourceFile"};
 
                 oneOf(mockStore).getChildrenNames(mockTransaction,
                         sourceCollectionPath);
@@ -674,7 +676,7 @@ public class DoMoveTest extends MockTest {
                 oneOf(mockStore).getStoredObject(mockTransaction, sourceCollectionPath);
                 will(returnValue(sourceCollectionSo));
 
-                sourceChildren = new String[] { "sourceFile" };
+                sourceChildren = new String[]{"sourceFile"};
 
                 oneOf(mockStore).getChildrenNames(mockTransaction, sourceCollectionPath);
                 will(returnValue(sourceChildren));

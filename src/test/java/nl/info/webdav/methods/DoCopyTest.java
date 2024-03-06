@@ -1,5 +1,15 @@
 package nl.info.webdav.methods;
 
+import java.io.ByteArrayInputStream;
+import java.io.PrintWriter;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
+import org.jmock.Expectations;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+
 import nl.info.webdav.ITransaction;
 import nl.info.webdav.IWebdavStore;
 import nl.info.webdav.StoredObject;
@@ -8,14 +18,6 @@ import nl.info.webdav.locking.LockedObject;
 import nl.info.webdav.locking.ResourceLocks;
 import nl.info.webdav.testutil.DelegatingServletInputStream;
 import nl.info.webdav.testutil.MockTest;
-import org.jmock.Expectations;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-
-import java.io.ByteArrayInputStream;
-import java.io.PrintWriter;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 
 
 public class DoCopyTest extends MockTest {
@@ -133,8 +135,7 @@ public class DoCopyTest extends MockTest {
 
         final LockedObject lo = resLocks.getLockedObjectByPath(mockTransaction,
                 destCollectionPath);
-        final String wrongLockToken = "(<opaquelocktoken:" + lo.getID()
-                + "WRONG>)";
+        final String wrongLockToken = "(<opaquelocktoken:" + lo.getID() + "WRONG>)";
 
         final PrintWriter pw = new PrintWriter("/tmp/XMLTestFile");
 
@@ -396,7 +397,7 @@ public class DoCopyTest extends MockTest {
                 oneOf(mockReq).getHeader("Depth");
                 will(returnValue("-1"));
 
-                sourceChildren = new String[] { "sourceFile" };
+                sourceChildren = new String[]{"sourceFile"};
 
                 oneOf(mockStore).getChildrenNames(mockTransaction,
                         sourceCollectionPath);
@@ -493,7 +494,7 @@ public class DoCopyTest extends MockTest {
 
     @Test
     public void testDoCopyIfDestinationAlreadyExistsAndOverwriteTrue()
-            throws Exception {
+                                                                       throws Exception {
 
         _mockery.checking(new Expectations() {
             {
@@ -574,7 +575,7 @@ public class DoCopyTest extends MockTest {
 
     @Test
     public void testDoCopyIfDestinationAlreadyExistsAndOverwriteFalse()
-            throws Exception {
+                                                                        throws Exception {
 
         _mockery.checking(new Expectations() {
             {

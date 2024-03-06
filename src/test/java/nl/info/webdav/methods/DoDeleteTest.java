@@ -1,5 +1,14 @@
 package nl.info.webdav.methods;
 
+import java.io.PrintWriter;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
+import org.jmock.Expectations;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+
 import nl.info.webdav.ITransaction;
 import nl.info.webdav.IWebdavStore;
 import nl.info.webdav.StoredObject;
@@ -7,13 +16,6 @@ import nl.info.webdav.WebdavStatus;
 import nl.info.webdav.locking.LockedObject;
 import nl.info.webdav.locking.ResourceLocks;
 import nl.info.webdav.testutil.MockTest;
-import org.jmock.Expectations;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-
-import java.io.PrintWriter;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 
 public class DoDeleteTest extends MockTest {
 
@@ -21,8 +23,8 @@ public class DoDeleteTest extends MockTest {
     static HttpServletRequest mockReq;
     static HttpServletResponse mockRes;
     static ITransaction mockTransaction;
-    static byte[] resourceContent = new byte[] { '<', 'h', 'e', 'l', 'l', 'o',
-            '/', '>' };
+    static byte[] resourceContent = new byte[]{'<', 'h', 'e', 'l', 'l', 'o',
+                                               '/', '>'};
 
     @BeforeAll
     public static void setUp() throws Exception {
@@ -129,7 +131,7 @@ public class DoDeleteTest extends MockTest {
 
                 oneOf(mockStore).getChildrenNames(mockTransaction,
                         sourceCollectionPath);
-                will(returnValue(new String[] { "subFolder", "sourceFile" }));
+                will(returnValue(new String[]{"subFolder", "sourceFile"}));
 
                 StoredObject fileSo = initFileStoredObject(resourceContent);
 
@@ -146,7 +148,7 @@ public class DoDeleteTest extends MockTest {
 
                 oneOf(mockStore).getChildrenNames(mockTransaction,
                         sourceCollectionPath + "/subFolder");
-                will(returnValue(new String[] { "fileInSubFolder" }));
+                will(returnValue(new String[]{"fileInSubFolder"}));
 
                 StoredObject fileInSubFolderSo = initFileStoredObject(resourceContent);
 
@@ -236,7 +238,7 @@ public class DoDeleteTest extends MockTest {
 
     @Test
     public void testDeleteFileInLockedFolderWithWrongLockToken()
-            throws Exception {
+                                                                 throws Exception {
 
         final String lockedFolderPath = "/lockedFolder";
         final String fileInLockedFolderPath = lockedFolderPath
@@ -249,8 +251,7 @@ public class DoDeleteTest extends MockTest {
                 TEMP_TIMEOUT, !TEMPORARY);
         LockedObject lo = resLocks.getLockedObjectByPath(mockTransaction,
                 lockedFolderPath);
-        final String wrongLockToken = "(<opaquelocktoken:" + lo.getID()
-                + "WRONG>)";
+        final String wrongLockToken = "(<opaquelocktoken:" + lo.getID() + "WRONG>)";
 
         final PrintWriter pw = new PrintWriter("/tmp/XMLTestFile");
 
@@ -278,7 +279,7 @@ public class DoDeleteTest extends MockTest {
 
     @Test
     public void testDeleteFileInLockedFolderWithRightLockToken()
-            throws Exception {
+                                                                 throws Exception {
 
         final String path = "/lockedFolder/fileInLockedFolder";
         final String parentPath = "/lockedFolder";

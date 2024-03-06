@@ -1,5 +1,14 @@
 package nl.info.webdav.methods;
 
+import java.io.PrintWriter;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
+import org.jmock.Expectations;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+
 import nl.info.webdav.IMimeTyper;
 import nl.info.webdav.ITransaction;
 import nl.info.webdav.IWebdavStore;
@@ -7,13 +16,6 @@ import nl.info.webdav.StoredObject;
 import nl.info.webdav.WebdavStatus;
 import nl.info.webdav.locking.ResourceLocks;
 import nl.info.webdav.testutil.MockTest;
-import org.jmock.Expectations;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-
-import java.io.PrintWriter;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 
 public class DoPropfindTest extends MockTest {
     static IWebdavStore mockStore;
@@ -22,8 +24,8 @@ public class DoPropfindTest extends MockTest {
     static HttpServletResponse mockRes;
     static ITransaction mockTransaction;
     static PrintWriter printWriter;
-    static byte[] resourceContent = new byte[] { '<', 'h', 'e', 'l', 'l', 'o',
-            '/', '>' };
+    static byte[] resourceContent = new byte[]{'<', 'h', 'e', 'l', 'l', 'o',
+                                               '/', '>'};
 
     @BeforeAll
     public static void setUp() throws Exception {
@@ -84,7 +86,7 @@ public class DoPropfindTest extends MockTest {
                 will(returnValue(path));
 
                 oneOf(mockStore).getChildrenNames(mockTransaction, path);
-                will(returnValue(new String[] { "file1", "file2" }));
+                will(returnValue(new String[]{"file1", "file2"}));
 
                 StoredObject file1So = initFileStoredObject(resourceContent);
 
@@ -99,7 +101,7 @@ public class DoPropfindTest extends MockTest {
 
                 oneOf(mockStore)
                         .getChildrenNames(mockTransaction, path + "file1");
-                will(returnValue(new String[] {}));
+                will(returnValue(new String[]{}));
 
                 StoredObject file2So = initFileStoredObject(resourceContent);
 
@@ -114,7 +116,7 @@ public class DoPropfindTest extends MockTest {
 
                 oneOf(mockStore)
                         .getChildrenNames(mockTransaction, path + "file2");
-                will(returnValue(new String[] {}));
+                will(returnValue(new String[]{}));
             }
         });
 

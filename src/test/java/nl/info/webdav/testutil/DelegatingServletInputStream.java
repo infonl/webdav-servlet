@@ -2,6 +2,7 @@ package nl.info.webdav.testutil;
 
 import java.io.IOException;
 import java.io.InputStream;
+
 import jakarta.servlet.ReadListener;
 import jakarta.servlet.ServletInputStream;
 
@@ -26,6 +27,7 @@ public class DelegatingServletInputStream extends ServletInputStream {
 
     /**
      * Create a DelegatingServletInputStream for the given source stream.
+     * 
      * @param sourceStream the source stream (never <code>null</code>)
      */
     public DelegatingServletInputStream(InputStream sourceStream) {

@@ -1,5 +1,3 @@
-import org.gradle.internal.impldep.org.junit.platform.launcher.EngineFilter.includeEngines
-
 /*
  * SPDX-FileCopyrightText: 2024 INFO.nl
  * SPDX-License-Identifier: EUPL-1.2+
@@ -14,6 +12,8 @@ plugins {
 
 	alias(libs.plugins.axion.release)
 	alias(libs.plugins.nexus.publish.plugin)
+
+	id("com.diffplug.spotless") version "6.25.0"
 }
 
 repositories {
@@ -50,6 +50,31 @@ dependencies {
 java {
 	withJavadocJar()
 	withSourcesJar()
+}
+
+configure<com.diffplug.gradle.spotless.SpotlessExtension> {
+	format("misc") {
+		target("*.gradle", ".gitattributes", ".gitignore")
+
+		trimTrailingWhitespace()
+		indentWithSpaces()
+		endWithNewline()
+	}
+	java {
+		targetExcludeIfContentContains("Apache Software Foundation")
+
+		removeUnusedImports()
+		importOrderFile("config/importOrder.txt")
+
+		formatAnnotations()
+
+		// Latest supported version:
+		// https://github.com/diffplug/spotless/tree/main/lib-extra/src/main/resources/com/diffplug/spotless/extra/eclipse_wtp_formatter
+		eclipse("4.21").configFile("config/webdav-servlet.xml")
+
+		licenseHeaderFile("config/licenseHeader.txt")
+				.onlyIfContentMatches("FileCopyrightText: 2[0-9-]+ Lifely").updateYearWithLatest(true)
+	}
 }
 
 nexusPublishing {

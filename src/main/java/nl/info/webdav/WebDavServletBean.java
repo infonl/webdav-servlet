@@ -1,5 +1,17 @@
 package nl.info.webdav;
 
+import java.io.IOException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.Principal;
+import java.util.Enumeration;
+import java.util.HashMap;
+
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
 import nl.info.webdav.exceptions.UnauthenticatedException;
 import nl.info.webdav.exceptions.WebdavException;
 import nl.info.webdav.locking.ResourceLocks;
@@ -16,17 +28,6 @@ import nl.info.webdav.methods.DoPropfind;
 import nl.info.webdav.methods.DoProppatch;
 import nl.info.webdav.methods.DoPut;
 import nl.info.webdav.methods.DoUnlock;
-
-import java.io.IOException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.security.Principal;
-import java.util.Enumeration;
-import java.util.HashMap;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 
 public class WebDavServletBean extends HttpServlet {
     private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(WebDavServletBean.class);
@@ -51,9 +52,13 @@ public class WebDavServletBean extends HttpServlet {
         }
     }
 
-    public void init(IWebdavStore store, String dftIndexFile,
-            String insteadOf404, int nocontentLenghHeaders,
-            boolean lazyFolderCreationOnPut) throws ServletException {
+    public void init(
+            IWebdavStore store,
+            String dftIndexFile,
+            String insteadOf404,
+            int nocontentLenghHeaders,
+            boolean lazyFolderCreationOnPut
+    ) throws ServletException {
 
         _store = store;
 
@@ -89,7 +94,7 @@ public class WebDavServletBean extends HttpServlet {
 
     @Override
     public void destroy() {
-        if(_store != null)
+        if (_store != null)
             _store.destroy();
         super.destroy();
     }
@@ -104,7 +109,7 @@ public class WebDavServletBean extends HttpServlet {
      */
     @Override
     protected void service(HttpServletRequest req, HttpServletResponse resp)
-            throws ServletException, IOException {
+                                                                             throws ServletException, IOException {
 
         String methodName = req.getMethod();
         ITransaction transaction = null;
@@ -136,7 +141,9 @@ public class WebDavServletBean extends HttpServlet {
                 // include current input. This occurs if the client
                 // sends a request with body to an not existing resource.
                 if (req.getContentLength() != 0 && req.getInputStream().available() > 0) {
-                    if (LOG.isTraceEnabled()) { LOG.trace("Clear not consumed data!"); }
+                    if (LOG.isTraceEnabled()) {
+                        LOG.trace("Clear not consumed data!");
+                    }
                     while (req.getInputStream().available() > 0) {
                         req.getInputStream().read();
                     }
@@ -172,15 +179,16 @@ public class WebDavServletBean extends HttpServlet {
     }
 
     /**
-     * Method that permit to customize the way 
+     * Method that permit to customize the way
      * user information are extracted from the request, default use JAAS
+     * 
      * @param req the request
      * @return the principal
      */
     protected Principal getUserPrincipal(HttpServletRequest req) {
-    	return req.getUserPrincipal();
+        return req.getUserPrincipal();
     }
-    
+
     private void debugRequest(String methodName, HttpServletRequest req) {
         LOG.trace("-----------");
         LOG.trace("WebdavServlet\n request: methodName = " + methodName);
