@@ -37,7 +37,7 @@ jobs:
         uses: gradle/gradle-build-action@v3
 
       - name: Validate Gradle wrapper
-        uses: gradle/wrapper-validation-action@v2
+        uses: gradle/wrapper-validation-action@v3
 
       - name: Gradle build with unit tests
         # Use --write-locks to support dependency updates from Dependabot PRs
@@ -118,7 +118,7 @@ jobs:
         uses: gradle/gradle-build-action@v3
 
       - name: Validate Gradle wrapper
-        uses: gradle/wrapper-validation-action@v2
+        uses: gradle/wrapper-validation-action@v3
 
       - name: Create a new release
         run: ./gradlew release
