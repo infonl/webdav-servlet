@@ -4,7 +4,7 @@ jakarta-servlet = "6.0.0"
 jmock = "2.13.1"
 junit = "5.10.2"
 nexus-publish-plugin = "2.0.0"
-slf4j = "2.0.12"
+slf4j = "2.0.13"
 
 [libraries]
 jakarta-servlet-api = { group = "jakarta.servlet", name = "jakarta.servlet-api", version.ref = "jakarta-servlet" }
