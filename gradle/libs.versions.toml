@@ -1,5 +1,5 @@
 [versions]
-axion-release = "1.17.0"
+axion-release = "1.17.1"
 jakarta-servlet = "6.0.0"
 jmock = "2.13.1"
 junit = "5.10.2"
