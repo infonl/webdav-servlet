@@ -13,7 +13,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import nl.info.webdav.exceptions.UnauthenticatedException;
-import nl.info.webdav.exceptions.WebdavException;
 import nl.info.webdav.locking.ResourceLocks;
 import nl.info.webdav.methods.DoCopy;
 import nl.info.webdav.methods.DoDelete;
@@ -56,26 +55,22 @@ public class WebDavServletBean extends HttpServlet {
             IWebdavStore store,
             String dftIndexFile,
             String insteadOf404,
-            int nocontentLenghHeaders,
+            int noContentLengthHeaders,
             boolean lazyFolderCreationOnPut
-    ) throws ServletException {
-
+    ) {
         _store = store;
-
-        IMimeTyper mimeTyper = new IMimeTyper() {
-            public String getMimeType(ITransaction transaction, String path) {
-                String retVal = _store.getStoredObject(transaction, path).getMimeType();
-                if (retVal == null) {
-                    retVal = getServletContext().getMimeType(path);
-                }
-                return retVal;
+        IMimeTyper mimeTyper = (transaction, path) -> {
+            String retVal = _store.getStoredObject(transaction, path).getMimeType();
+            if (retVal == null) {
+                retVal = getServletContext().getMimeType(path);
             }
+            return retVal;
         };
 
         register("GET", new DoGet(store, dftIndexFile, insteadOf404, _resLocks,
-                mimeTyper, nocontentLenghHeaders));
+                mimeTyper, noContentLengthHeaders));
         register("HEAD", new DoHead(store, dftIndexFile, insteadOf404,
-                _resLocks, mimeTyper, nocontentLenghHeaders));
+                _resLocks, mimeTyper, noContentLengthHeaders));
         DoDelete doDelete = (DoDelete) register("DELETE", new DoDelete(store,
                 _resLocks, READ_ONLY));
         DoCopy doCopy = (DoCopy) register("COPY", new DoCopy(store, _resLocks,
@@ -108,9 +103,7 @@ public class WebDavServletBean extends HttpServlet {
      * Handles the special WebDAV methods.
      */
     @Override
-    protected void service(HttpServletRequest req, HttpServletResponse resp)
-                                                                             throws ServletException, IOException {
-
+    protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String methodName = req.getMethod();
         ITransaction transaction = null;
         boolean needRollback = false;
@@ -126,52 +119,40 @@ public class WebDavServletBean extends HttpServlet {
             resp.setStatus(WebdavStatus.SC_OK);
 
             try {
-                IMethodExecutor methodExecutor = (IMethodExecutor) _methodMap
+                IMethodExecutor methodExecutor = _methodMap
                         .get(methodName);
                 if (methodExecutor == null) {
-                    methodExecutor = (IMethodExecutor) _methodMap
+                    methodExecutor = _methodMap
                             .get("*NO*IMPL*");
                 }
-
                 methodExecutor.execute(transaction, req, resp);
-
                 _store.commit(transaction);
 
                 // Clear input stream if available otherwise later access
                 // include current input. This occurs if the client
-                // sends a request with body to an not existing resource.
-                if (req.getContentLength() != 0 && req.getInputStream().available() > 0) {
-                    if (LOG.isTraceEnabled()) {
-                        LOG.trace("Clear not consumed data!");
-                    }
-                    while (req.getInputStream().available() > 0) {
-                        req.getInputStream().read();
+                // sends a request with body to a resource that does not exist.
+                if (req.getContentLength() != 0 && !req.getInputStream().isFinished()) {
+                    LOG.trace("Skipping over unconsumed data from the input stream.");
+                    int bytesAvailable;
+                    while ((bytesAvailable = req.getInputStream().available()) > 0) {
+                        long bytesSkipped = req.getInputStream().skip(bytesAvailable);
+                        LOG.trace("Skipped over {} bytes from the input stream.", bytesSkipped);
                     }
                 }
                 needRollback = false;
-            } catch (IOException e) {
-                java.io.StringWriter sw = new java.io.StringWriter();
-                java.io.PrintWriter pw = new java.io.PrintWriter(sw);
-                e.printStackTrace(pw);
-                LOG.error("IOException: " + sw);
-                resp.sendError(WebdavStatus.SC_INTERNAL_SERVER_ERROR);
+            } catch (IOException ioException) {
+                LOG.error("Error occurred during handling of WebDAV method. Rolling back transaction.", ioException);
+                if (!resp.isCommitted())
+                    resp.sendError(WebdavStatus.SC_INTERNAL_SERVER_ERROR);
                 _store.rollback(transaction);
-                throw new ServletException(e);
+                throw new ServletException(ioException);
             }
-
-        } catch (UnauthenticatedException e) {
-            resp.sendError(WebdavStatus.SC_FORBIDDEN);
-        } catch (WebdavException e) {
-            java.io.StringWriter sw = new java.io.StringWriter();
-            java.io.PrintWriter pw = new java.io.PrintWriter(sw);
-            e.printStackTrace(pw);
-            LOG.error("WebdavException: " + sw);
-            throw new ServletException(e);
-        } catch (Exception e) {
-            java.io.StringWriter sw = new java.io.StringWriter();
-            java.io.PrintWriter pw = new java.io.PrintWriter(sw);
-            e.printStackTrace(pw);
-            LOG.error("Exception: " + sw);
+        } catch (UnauthenticatedException exception) {
+            if (!resp.isCommitted())
+                resp.sendError(WebdavStatus.SC_FORBIDDEN);
+        } catch (Exception exception) {
+            LOG.error("Error occurred during handling of WebDAV method. Rolling back transaction.", exception);
+            throw new ServletException(exception);
         } finally {
             if (needRollback)
                 _store.rollback(transaction);
@@ -191,24 +172,24 @@ public class WebDavServletBean extends HttpServlet {
 
     private void debugRequest(String methodName, HttpServletRequest req) {
         LOG.trace("-----------");
-        LOG.trace("WebdavServlet\n request: methodName = " + methodName);
-        LOG.trace("time: " + System.currentTimeMillis());
-        LOG.trace("path: " + req.getRequestURI());
+        LOG.trace("WebdavServlet\n request: methodName = {}", methodName);
+        LOG.trace("time: {}", System.currentTimeMillis());
+        LOG.trace("path: {}", req.getRequestURI());
         LOG.trace("-----------");
         Enumeration<?> e = req.getHeaderNames();
         while (e.hasMoreElements()) {
             String s = (String) e.nextElement();
-            LOG.trace("header: " + s + " " + req.getHeader(s));
+            LOG.trace("header: {} {}", s, req.getHeader(s));
         }
         e = req.getAttributeNames();
         while (e.hasMoreElements()) {
             String s = (String) e.nextElement();
-            LOG.trace("attribute: " + s + " " + req.getAttribute(s));
+            LOG.trace("attribute: {} {}", s, req.getAttribute(s));
         }
         e = req.getParameterNames();
         while (e.hasMoreElements()) {
             String s = (String) e.nextElement();
-            LOG.trace("parameter: " + s + " " + req.getParameter(s));
+            LOG.trace("parameter: {} {}", s, req.getParameter(s));
         }
     }
 }
