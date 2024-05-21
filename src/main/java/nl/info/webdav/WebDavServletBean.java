@@ -55,26 +55,22 @@ public class WebDavServletBean extends HttpServlet {
             IWebdavStore store,
             String dftIndexFile,
             String insteadOf404,
-            int nocontentLenghHeaders,
+            int noContentLengthHeaders,
             boolean lazyFolderCreationOnPut
-    ) throws ServletException {
-
+    ) {
         _store = store;
-
-        IMimeTyper mimeTyper = new IMimeTyper() {
-            public String getMimeType(ITransaction transaction, String path) {
-                String retVal = _store.getStoredObject(transaction, path).getMimeType();
-                if (retVal == null) {
-                    retVal = getServletContext().getMimeType(path);
-                }
-                return retVal;
+        IMimeTyper mimeTyper = (transaction, path) -> {
+            String retVal = _store.getStoredObject(transaction, path).getMimeType();
+            if (retVal == null) {
+                retVal = getServletContext().getMimeType(path);
             }
+            return retVal;
         };
 
         register("GET", new DoGet(store, dftIndexFile, insteadOf404, _resLocks,
-                mimeTyper, nocontentLenghHeaders));
+                mimeTyper, noContentLengthHeaders));
         register("HEAD", new DoHead(store, dftIndexFile, insteadOf404,
-                _resLocks, mimeTyper, nocontentLenghHeaders));
+                _resLocks, mimeTyper, noContentLengthHeaders));
         DoDelete doDelete = (DoDelete) register("DELETE", new DoDelete(store,
                 _resLocks, READ_ONLY));
         DoCopy doCopy = (DoCopy) register("COPY", new DoCopy(store, _resLocks,
@@ -146,12 +142,14 @@ public class WebDavServletBean extends HttpServlet {
                 needRollback = false;
             } catch (IOException ioException) {
                 LOG.error("Error occurred during handling of WebDAV method. Rolling back transaction.", ioException);
-                resp.sendError(WebdavStatus.SC_INTERNAL_SERVER_ERROR);
+                if (!resp.isCommitted())
+                    resp.sendError(WebdavStatus.SC_INTERNAL_SERVER_ERROR);
                 _store.rollback(transaction);
                 throw new ServletException(ioException);
             }
         } catch (UnauthenticatedException exception) {
-            resp.sendError(WebdavStatus.SC_FORBIDDEN);
+            if (!resp.isCommitted())
+                resp.sendError(WebdavStatus.SC_FORBIDDEN);
         } catch (Exception exception) {
             LOG.error("Error occurred during handling of WebDAV method. Rolling back transaction.", exception);
             throw new ServletException(exception);
@@ -174,24 +172,24 @@ public class WebDavServletBean extends HttpServlet {
 
     private void debugRequest(String methodName, HttpServletRequest req) {
         LOG.trace("-----------");
-        LOG.trace("WebdavServlet\n request: methodName = " + methodName);
-        LOG.trace("time: " + System.currentTimeMillis());
-        LOG.trace("path: " + req.getRequestURI());
+        LOG.trace("WebdavServlet\n request: methodName = {}", methodName);
+        LOG.trace("time: {}", System.currentTimeMillis());
+        LOG.trace("path: {}", req.getRequestURI());
         LOG.trace("-----------");
         Enumeration<?> e = req.getHeaderNames();
         while (e.hasMoreElements()) {
             String s = (String) e.nextElement();
-            LOG.trace("header: " + s + " " + req.getHeader(s));
+            LOG.trace("header: {} {}", s, req.getHeader(s));
         }
         e = req.getAttributeNames();
         while (e.hasMoreElements()) {
             String s = (String) e.nextElement();
-            LOG.trace("attribute: " + s + " " + req.getAttribute(s));
+            LOG.trace("attribute: {} {}", s, req.getAttribute(s));
         }
         e = req.getParameterNames();
         while (e.hasMoreElements()) {
             String s = (String) e.nextElement();
-            LOG.trace("parameter: " + s + " " + req.getParameter(s));
+            LOG.trace("parameter: {} {}", s, req.getParameter(s));
         }
     }
 }
