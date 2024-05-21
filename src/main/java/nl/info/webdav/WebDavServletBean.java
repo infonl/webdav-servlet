@@ -13,7 +13,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import nl.info.webdav.exceptions.UnauthenticatedException;
-import nl.info.webdav.exceptions.WebdavException;
 import nl.info.webdav.locking.ResourceLocks;
 import nl.info.webdav.methods.DoCopy;
 import nl.info.webdav.methods.DoDelete;
@@ -108,9 +107,7 @@ public class WebDavServletBean extends HttpServlet {
      * Handles the special WebDAV methods.
      */
     @Override
-    protected void service(HttpServletRequest req, HttpServletResponse resp)
-                                                                             throws ServletException, IOException {
-
+    protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String methodName = req.getMethod();
         ITransaction transaction = null;
         boolean needRollback = false;
@@ -126,52 +123,38 @@ public class WebDavServletBean extends HttpServlet {
             resp.setStatus(WebdavStatus.SC_OK);
 
             try {
-                IMethodExecutor methodExecutor = (IMethodExecutor) _methodMap
+                IMethodExecutor methodExecutor = _methodMap
                         .get(methodName);
                 if (methodExecutor == null) {
-                    methodExecutor = (IMethodExecutor) _methodMap
+                    methodExecutor = _methodMap
                             .get("*NO*IMPL*");
                 }
-
                 methodExecutor.execute(transaction, req, resp);
-
                 _store.commit(transaction);
 
                 // Clear input stream if available otherwise later access
                 // include current input. This occurs if the client
-                // sends a request with body to an not existing resource.
-                if (req.getContentLength() != 0 && req.getInputStream().available() > 0) {
-                    if (LOG.isTraceEnabled()) {
-                        LOG.trace("Clear not consumed data!");
-                    }
-                    while (req.getInputStream().available() > 0) {
-                        req.getInputStream().read();
+                // sends a request with body to a resource that does not exist.
+                if (req.getContentLength() != 0 && !req.getInputStream().isFinished()) {
+                    LOG.trace("Skipping over unconsumed data from the input stream.");
+                    int bytesAvailable;
+                    while ((bytesAvailable = req.getInputStream().available()) > 0) {
+                        long bytesSkipped = req.getInputStream().skip(bytesAvailable);
+                        LOG.trace("Skipped over {} bytes from the input stream.", bytesSkipped);
                     }
                 }
                 needRollback = false;
-            } catch (IOException e) {
-                java.io.StringWriter sw = new java.io.StringWriter();
-                java.io.PrintWriter pw = new java.io.PrintWriter(sw);
-                e.printStackTrace(pw);
-                LOG.error("IOException: " + sw);
+            } catch (IOException ioException) {
+                LOG.error("Error occurred during handling of WebDAV method. Rolling back transaction.", ioException);
                 resp.sendError(WebdavStatus.SC_INTERNAL_SERVER_ERROR);
                 _store.rollback(transaction);
-                throw new ServletException(e);
+                throw new ServletException(ioException);
             }
-
-        } catch (UnauthenticatedException e) {
+        } catch (UnauthenticatedException exception) {
             resp.sendError(WebdavStatus.SC_FORBIDDEN);
-        } catch (WebdavException e) {
-            java.io.StringWriter sw = new java.io.StringWriter();
-            java.io.PrintWriter pw = new java.io.PrintWriter(sw);
-            e.printStackTrace(pw);
-            LOG.error("WebdavException: " + sw);
-            throw new ServletException(e);
-        } catch (Exception e) {
-            java.io.StringWriter sw = new java.io.StringWriter();
-            java.io.PrintWriter pw = new java.io.PrintWriter(sw);
-            e.printStackTrace(pw);
-            LOG.error("Exception: " + sw);
+        } catch (Exception exception) {
+            LOG.error("Error occurred during handling of WebDAV method. Rolling back transaction.", exception);
+            throw new ServletException(exception);
         } finally {
             if (needRollback)
                 _store.rollback(transaction);

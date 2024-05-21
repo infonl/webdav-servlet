@@ -50,15 +50,21 @@ public class DoCopy extends AbstractMethod {
 
     public void execute(ITransaction transaction, HttpServletRequest req,
             HttpServletResponse resp) throws IOException, LockFailedException {
-        LOG.trace("-- " + this.getClass().getName());
+        LOG.trace("-- {}", this.getClass().getName());
 
         String path = getRelativePath(req);
         if (!_readOnly) {
-
             String tempLockOwner = "doCopy" + System.currentTimeMillis()
                     + req;
-            if (_resourceLocks.lock(transaction, path, tempLockOwner, false, 0,
-                    TEMP_TIMEOUT, TEMPORARY)) {
+            if (_resourceLocks.lock(
+                    transaction,
+                    path,
+                    tempLockOwner,
+                    false,
+                    0,
+                    TEMP_TIMEOUT,
+                    TEMPORARY
+            )) {
                 try {
                     copyResource(transaction, req, resp);
                 } catch (AccessDeniedException e) {
