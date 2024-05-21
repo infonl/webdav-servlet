@@ -12,8 +12,7 @@ plugins {
 
 	alias(libs.plugins.axion.release)
 	alias(libs.plugins.nexus.publish.plugin)
-
-	id("com.diffplug.spotless") version "6.25.0"
+	alias(libs.plugins.spotless)
 }
 
 repositories {
@@ -29,8 +28,8 @@ dependencyLocking {
 }
 
 java {
-	java.sourceCompatibility = JavaVersion.VERSION_17
-	java.targetCompatibility = JavaVersion.VERSION_17
+	java.sourceCompatibility = JavaVersion.VERSION_21
+	java.targetCompatibility = JavaVersion.VERSION_21
 }
 
 dependencies {
@@ -70,10 +69,7 @@ configure<com.diffplug.gradle.spotless.SpotlessExtension> {
 
 		// Latest supported version:
 		// https://github.com/diffplug/spotless/tree/main/lib-extra/src/main/resources/com/diffplug/spotless/extra/eclipse_wtp_formatter
-		eclipse("4.21").configFile("config/webdav-servlet.xml")
-
-		licenseHeaderFile("config/licenseHeader.txt")
-				.onlyIfContentMatches("FileCopyrightText: 2[0-9-]+ Lifely").updateYearWithLatest(true)
+		eclipse(libs.versions.spotless.eclipse.formatter.get()).configFile("config/webdav-servlet.xml")
 	}
 }
 
@@ -122,25 +118,19 @@ publishing {
 						email = "bas@info.nl"
 					}
 					developer {
-						id = "jorann"
-						name = "Jorann de Waaij"
-						email = "joran@lifely.nl"
+						id = "felixcicatt"
+						name = "Felix Cornelissen"
+						email = "felix@info.nl"
 					}
-					developer {
-						id = "RickWoltheus"
-						name = "Rick Woltheus"
-						email = "rick@lifely.nl"
-						scm {
-							connection = "scm:git:https://github.com/infonl/webdav-servlet.git"
-							developerConnection =
-								"scm:git:https://github.com/infonl/webdav-servlet.git"
-							url = "https://github.com/infonl/webdav-servlet"
-						}
+				}
+				scm {
+					connection = "scm:git:https://github.com/infonl/webdav-servlet.git"
+					developerConnection = "scm:git:https://github.com/infonl/webdav-servlet.git"
+					url = "https://github.com/infonl/webdav-servlet"
 					}
 				}
 			}
 		}
-	}
 	repositories {
 		maven {
 			name = "GitHubPackages"
