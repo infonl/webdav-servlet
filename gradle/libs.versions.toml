@@ -1,6 +1,6 @@
 [versions]
 axion-release = "1.17.2"
-jakarta-servlet = "6.0.0"
+jakarta-servlet = "6.1.0"
 jmock = "2.13.1"
 junit = "5.10.2"
 nexus-publish-plugin = "2.0.0"
