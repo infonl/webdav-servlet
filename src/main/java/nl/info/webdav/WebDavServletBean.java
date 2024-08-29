@@ -1,8 +1,6 @@
 package nl.info.webdav;
 
 import java.io.IOException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.security.Principal;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -31,11 +29,6 @@ import nl.info.webdav.methods.DoUnlock;
 public class WebDavServletBean extends HttpServlet {
     private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(WebDavServletBean.class);
 
-    /**
-     * MD5 message digest provider.
-     */
-    protected static MessageDigest MD5_HELPER;
-
     private static final boolean READ_ONLY = false;
     private final HashMap<String, IMethodExecutor> _methodMap = new HashMap<>();
     protected ResourceLocks _resLocks;
@@ -43,12 +36,6 @@ public class WebDavServletBean extends HttpServlet {
 
     public WebDavServletBean() {
         _resLocks = new ResourceLocks();
-
-        try {
-            MD5_HELPER = MessageDigest.getInstance("MD5");
-        } catch (NoSuchAlgorithmException e) {
-            throw new IllegalStateException();
-        }
     }
 
     public void init(
