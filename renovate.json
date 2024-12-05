@@ -1,9 +1,14 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "config:base"
+    "config:best-practices",
+    "helpers:pinGitHubActionDigestsToSemver",
+    ":separateMultipleMajorReleases",
+    ":separatePatchReleases",
+    ":preserveSemverRanges",
+    ":maintainLockFilesWeekly",
+    ":automergeDigest",
+    "docker:pinDigests",
+    "docker:enableMajor"
   ],
-  "enabledManagers": [
-    "gradle-wrapper"
-  ]
 }
