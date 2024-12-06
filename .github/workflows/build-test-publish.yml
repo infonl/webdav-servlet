@@ -56,7 +56,7 @@ jobs:
       pull-requests: write
       contents: write
     steps:
-      - uses: fastify/github-action-merge-dependabot@v3
+      - uses: fastify/github-action-merge-dependabot@17c6db1d88efa8dfd19fe28e86a8d37d1269bfdb # v3.0.2
         with:
           # Our Dependabot PRs are not merged automatically because an automatically merged PR
           # does not trigger our push workflow (and so no release would be made).
