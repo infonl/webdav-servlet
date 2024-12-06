@@ -88,7 +88,7 @@ jobs:
           RELEASE_BRANCHES: main
       - name: Get next version
         id: get-version
-        uses: frabert/replace-string-action@v2.5
+        uses: frabert/replace-string-action@b6828c5a4cb6371753ff873b0d1c4c4fbd9a63cb # v2.5
         with:
           pattern: 'v(.*)'
           string: ${{ steps.get-tag.outputs.new_tag }}
