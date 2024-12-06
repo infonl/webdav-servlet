@@ -25,7 +25,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: Setup JDK
         uses: actions/setup-java@v4
@@ -73,7 +73,7 @@ jobs:
     steps:
       # Checkout the repository including tags
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           fetch-depth: 0
       # Determine the next semantic version based on the commit message tags
@@ -104,7 +104,7 @@ jobs:
     timeout-minutes: 10
     if: github.ref == 'refs/heads/main'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           fetch-depth: 0
 
@@ -137,7 +137,7 @@ jobs:
        NEXT_VERSION_TAG: ${{ needs.next-version.outputs.tag }}
      steps:
        - name: Checkout
-         uses: actions/checkout@v4
+         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
          with:
            fetch-depth: 0
        - name: Create or update GitHub release
