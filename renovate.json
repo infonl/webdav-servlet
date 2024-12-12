@@ -4,6 +4,7 @@
     "config:best-practices",
     "helpers:pinGitHubActionDigestsToSemver",
     ":separateMultipleMajorReleases",
+    ":separateMultipleMinorReleases",
     ":separatePatchReleases",
     ":pinDependencies",
     ":maintainLockFilesWeekly",
@@ -11,5 +12,22 @@
     "docker:pinDigests",
     "docker:enableMajor"
   ],
-  "reviewers": ["team:dimpact","hsiliev"]
+  "reviewers": [
+    "team:dimpact",
+    "hsiliev"
+  ],
+  "prConcurrentLimit": 5,
+  "packageRules": [
+    {
+      "matchDatasources": [
+        "docker"
+      ],
+      "matchUpdateTypes": [
+        "digest"
+      ],
+      "schedule": [
+        "every weekend on the 1st through 7th day of the month"
+      ]
+    }
+  ]
 }
