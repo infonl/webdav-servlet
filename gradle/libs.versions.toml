@@ -6,7 +6,7 @@ junit = "5.11.4"
 nexus-publish-plugin = "2.0.0"
 spotless = "7.0.2"
 spotless-eclipse-formatter = "4.21"
-slf4j = "2.0.16"
+slf4j = "2.0.17"
 
 [libraries]
 jakarta-servlet-api = { group = "jakarta.servlet", name = "jakarta.servlet-api", version.ref = "jakarta-servlet" }
