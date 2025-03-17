@@ -48,22 +48,6 @@ jobs:
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
-  dependabot-auto-merge:
-    needs: [build]
-    runs-on: ubuntu-24.04
-    if: github.actor == 'dependabot[bot]'
-    permissions:
-      pull-requests: write
-      contents: write
-    steps:
-      - uses: fastify/github-action-merge-dependabot@e820d631adb1d8ab16c3b93e5afe713450884a4a # v3.11.1
-        with:
-          # Our Dependabot PRs are not merged automatically because an automatically merged PR
-          # does not trigger our push workflow (and so no release would be made).
-          # see: https://github.com/fastify/github-action-merge-dependabot/issues/134
-          approve-only: true
-          target: minor
-
   next-version:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
