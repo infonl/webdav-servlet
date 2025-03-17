@@ -44,6 +44,7 @@ dependencies {
 	testImplementation(libs.slf4j.simple)
 	
 	testRuntimeOnly(libs.junit.jupiter.engine)
+	testRuntimeOnly(libs.junit.platform)
 }
 
 java {
