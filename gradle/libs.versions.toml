@@ -2,7 +2,7 @@
 axion-release = "1.18.18"
 jakarta-servlet = "6.1.0"
 jmock = "2.13.1"
-junit = "5.12.1"
+junit = "5.12.2"
 nexus-publish-plugin = "2.0.0"
 spotless = "7.0.3"
 spotless-eclipse-formatter = "4.21"
