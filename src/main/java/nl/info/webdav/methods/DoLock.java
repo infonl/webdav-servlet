@@ -34,13 +34,15 @@ import org.xml.sax.SAXException;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.xml.parsers.DocumentBuilder;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 public class DoLock extends AbstractMethod {
-    private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(DoLock.class);
+    private static final Logger LOG = Logger.getLogger(DoLock.class.getName());
 
     private final IWebdavStore _store;
     private final IResourceLocks _resourceLocks;
@@ -62,7 +64,7 @@ public class DoLock extends AbstractMethod {
 
     public void execute(ITransaction transaction, HttpServletRequest req,
             HttpServletResponse resp) throws IOException, LockFailedException {
-        LOG.trace("-- " + this.getClass().getName());
+        LOG.fine("-- " + this.getClass().getName());
 
         if (_readOnly) {
             resp.sendError(WebdavStatus.SC_FORBIDDEN);
@@ -102,7 +104,7 @@ public class DoLock extends AbstractMethod {
                     }
                 } catch (LockFailedException e) {
                     resp.sendError(WebdavStatus.SC_LOCKED);
-                    LOG.error("Lockfailed exception", e);
+                    LOG.log(Level.SEVERE, "Lockfailed exception", e);
                 } finally {
                     _resourceLocks.unlockTemporaryLockedObjects(transaction,
                             _path, tempLockOwner);
@@ -146,7 +148,7 @@ public class DoLock extends AbstractMethod {
 
         } catch (ServletException e) {
             resp.sendError(WebdavStatus.SC_INTERNAL_SERVER_ERROR);
-            LOG.trace(e.toString());
+            LOG.log(Level.WARNING, "Failed to excute lock", e);
         } catch (LockFailedException e) {
             sendLockFailError(req, resp);
         }
@@ -175,9 +177,7 @@ public class DoLock extends AbstractMethod {
 
                 // Transmit expects 204 response-code, not 201
                 if (_userAgent != null && _userAgent.indexOf("Transmit") != -1) {
-                    LOG
-                            .trace("DoLock.execute() : do workaround for user agent '"
-                                    + _userAgent + "'");
+                    LOG.fine("DoLock.execute() : do workaround for user agent '" + _userAgent + "'");
                     resp.setStatus(WebdavStatus.SC_NO_CONTENT);
                 } else {
                     resp.setStatus(WebdavStatus.SC_CREATED);
@@ -198,10 +198,10 @@ public class DoLock extends AbstractMethod {
             sendLockFailError(req, resp);
         } catch (WebdavException e) {
             resp.sendError(WebdavStatus.SC_INTERNAL_SERVER_ERROR);
-            LOG.error("Webdav exception", e);
+            LOG.log(Level.SEVERE, "Webdav exception", e);
         } catch (ServletException e) {
             resp.sendError(WebdavStatus.SC_INTERNAL_SERVER_ERROR);
-            LOG.error("Servlet exception", e);
+            LOG.log(Level.SEVERE, "Servlet exception", e);
         }
     }
 
@@ -245,7 +245,7 @@ public class DoLock extends AbstractMethod {
 
         // macOS lock request workaround
         if (_macLockRequest) {
-            LOG.trace("DoLock.execute() : do workaround for user agent '" + _userAgent + "'");
+            LOG.fine("DoLock.execute() : do workaround for user agent '" + _userAgent + "'");
 
             doMacLockRequestWorkaround(transaction, req, resp);
         } else {
@@ -397,11 +397,11 @@ public class DoLock extends AbstractMethod {
 
         } catch (DOMException e) {
             resp.sendError(WebdavStatus.SC_INTERNAL_SERVER_ERROR);
-            LOG.error("DOM exception", e);
+            LOG.log(Level.SEVERE, "DOM exception", e);
             return false;
         } catch (SAXException e) {
             resp.sendError(WebdavStatus.SC_INTERNAL_SERVER_ERROR);
-            LOG.error("SAX exception", e);
+            LOG.log(Level.SEVERE, "SAX exception", e);
             return false;
         }
 

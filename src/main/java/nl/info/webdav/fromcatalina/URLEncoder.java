@@ -20,6 +20,8 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.BitSet;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * 
@@ -34,7 +36,7 @@ import java.util.BitSet;
  * @author Remy Maucherat
  */
 public class URLEncoder {
-    private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(URLEncoder.class);
+    private static final Logger LOG = Logger.getLogger(URLEncoder.class.getName());
 
     protected static final char[] HEXADECIMAL = { '0', '1', '2', '3', '4', '5',
             '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
@@ -68,8 +70,8 @@ public class URLEncoder {
         OutputStreamWriter writer = null;
         try {
             writer = new OutputStreamWriter(buf, StandardCharsets.UTF_8);
-        } catch (Exception e) {
-            LOG.error("Error in encode <"+path+">", e);
+        } catch (Exception exception) {
+            LOG.log(Level.SEVERE, "Error in encode <" + path + ">", exception);
             writer = new OutputStreamWriter(buf);
         }
 

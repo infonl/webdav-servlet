@@ -27,6 +27,8 @@ import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import nl.info.webdav.exceptions.WebdavException;
 
@@ -37,9 +39,8 @@ import nl.info.webdav.exceptions.WebdavException;
  * @author re
  */
 public class LocalFileSystemStore implements IWebdavStore {
-    private final static org.slf4j.Logger LOG = org.slf4j.LoggerFactory
-            .getLogger(LocalFileSystemStore.class);
-    private final static int BUF_SIZE = 65536;
+    private static final Logger LOG = Logger.getLogger(LocalFileSystemStore.class.getName());
+    private static final int BUF_SIZE = 65536;
 
     private final File _root;
 
@@ -52,7 +53,7 @@ public class LocalFileSystemStore implements IWebdavStore {
     }
 
     public ITransaction begin(Principal principal) throws WebdavException {
-        LOG.trace("LocalFileSystemStore.begin()");
+        LOG.fine("LocalFileSystemStore.begin()");
         if (!_root.exists()) {
             if (!_root.mkdirs()) {
                 throw new WebdavException("root path: " + _root.getAbsolutePath() + " does not exist and could not be created");
@@ -63,40 +64,38 @@ public class LocalFileSystemStore implements IWebdavStore {
 
     public void checkAuthentication(ITransaction transaction)
                                                               throws SecurityException {
-        LOG.trace("LocalFileSystemStore.checkAuthentication()");
+        LOG.fine("LocalFileSystemStore.checkAuthentication()");
         // do nothing
 
     }
 
     public void commit(ITransaction transaction) throws WebdavException {
         // do nothing
-        LOG.trace("LocalFileSystemStore.commit()");
+        LOG.fine("LocalFileSystemStore.commit()");
     }
 
     public void rollback(ITransaction transaction) throws WebdavException {
         // do nothing
-        LOG.trace("LocalFileSystemStore.rollback()");
+        LOG.fine("LocalFileSystemStore.rollback()");
 
     }
 
     public void createFolder(ITransaction transaction, String uri)
                                                                    throws WebdavException {
-        LOG.trace("LocalFileSystemStore.createFolder(" + uri + ")");
+        LOG.fine("LocalFileSystemStore.createFolder(" + uri + ")");
         File file = new File(_root, uri);
         if (!file.mkdir())
             throw new WebdavException("cannot create folder: " + uri);
     }
 
-    public void createResource(ITransaction transaction, String uri)
-                                                                     throws WebdavException {
-        LOG.trace("LocalFileSystemStore.createResource(" + uri + ")");
+    public void createResource(ITransaction transaction, String uri) throws WebdavException {
+        LOG.fine("LocalFileSystemStore.createResource(" + uri + ")");
         File file = new File(_root, uri);
         try {
             if (!file.createNewFile())
                 throw new WebdavException("cannot create file: " + uri);
         } catch (IOException e) {
-            LOG
-                    .error("LocalFileSystemStore.createResource(" + uri + ") failed");
+            LOG.severe("LocalFileSystemStore.createResource(" + uri + ") failed");
             throw new WebdavException(e);
         }
     }
@@ -110,7 +109,7 @@ public class LocalFileSystemStore implements IWebdavStore {
     )
       throws WebdavException {
 
-        LOG.trace("LocalFileSystemStore.setResourceContent(" + uri + ")");
+        LOG.fine("LocalFileSystemStore.setResourceContent(" + uri + ")");
         File file = new File(_root, uri);
         try {
             OutputStream os = new BufferedOutputStream(new FileOutputStream(
@@ -130,7 +129,7 @@ public class LocalFileSystemStore implements IWebdavStore {
                 }
             }
         } catch (IOException e) {
-            LOG.error("LocalFileSystemStore.setResourceContent(" + uri + ") failed");
+            LOG.severe("LocalFileSystemStore.setResourceContent(" + uri + ") failed");
             throw new WebdavException(e);
         }
         long length = -1;
@@ -138,7 +137,11 @@ public class LocalFileSystemStore implements IWebdavStore {
         try {
             length = file.length();
         } catch (SecurityException e) {
-            LOG.error("LocalFileSystemStore.setResourceContent(" + uri + ") failed" + "\nCan't get file.length");
+            LOG.log(
+                    Level.SEVERE,
+                    "LocalFileSystemStore.setResourceContent(" + uri + ") failed" + "\nCan't get file.length",
+                    e
+            );
         }
 
         return length;
@@ -146,7 +149,7 @@ public class LocalFileSystemStore implements IWebdavStore {
 
     public String[] getChildrenNames(ITransaction transaction, String uri)
                                                                            throws WebdavException {
-        LOG.trace("LocalFileSystemStore.getChildrenNames(" + uri + ")");
+        LOG.fine("LocalFileSystemStore.getChildrenNames(" + uri + ")");
         File file = new File(_root, uri);
         String[] childrenNames = null;
         if (file.isDirectory()) {
@@ -156,7 +159,7 @@ public class LocalFileSystemStore implements IWebdavStore {
             for (int i = 0; i < children.length; i++) {
                 name = children[i].getName();
                 childList.add(name);
-                LOG.trace("Child " + i + ": " + name);
+                LOG.fine("Child " + i + ": " + name);
             }
             childrenNames = new String[childList.size()];
             childrenNames = (String[]) childList.toArray(childrenNames);
@@ -168,7 +171,7 @@ public class LocalFileSystemStore implements IWebdavStore {
                                                                    throws WebdavException {
         File file = new File(_root, uri);
         boolean success = file.delete();
-        LOG.trace("LocalFileSystemStore.removeObject(" + uri + ")=" + success);
+        LOG.fine("LocalFileSystemStore.removeObject(" + uri + ")=" + success);
         if (!success) {
             throw new WebdavException("cannot delete object: " + uri);
         }
@@ -177,14 +180,14 @@ public class LocalFileSystemStore implements IWebdavStore {
 
     public InputStream getResourceContent(ITransaction transaction, String uri)
                                                                                 throws WebdavException {
-        LOG.trace("LocalFileSystemStore.getResourceContent(" + uri + ")");
+        LOG.fine("LocalFileSystemStore.getResourceContent(" + uri + ")");
         File file = new File(_root, uri);
 
         InputStream in;
         try {
             in = new BufferedInputStream(new FileInputStream(file));
         } catch (IOException e) {
-            LOG.error("LocalFileSystemStore.getResourceContent(" + uri + ") failed");
+            LOG.severe("LocalFileSystemStore.getResourceContent(" + uri + ") failed");
             throw new WebdavException(e);
         }
         return in;
@@ -192,7 +195,7 @@ public class LocalFileSystemStore implements IWebdavStore {
 
     public long getResourceLength(ITransaction transaction, String uri)
                                                                         throws WebdavException {
-        LOG.trace("LocalFileSystemStore.getResourceLength(" + uri + ")");
+        LOG.fine("LocalFileSystemStore.getResourceLength(" + uri + ")");
         File file = new File(_root, uri);
         return file.length();
     }

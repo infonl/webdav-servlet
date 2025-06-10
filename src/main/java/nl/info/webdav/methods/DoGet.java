@@ -29,11 +29,14 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Locale;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 public class DoGet extends DoHead {
-    private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(DoGet.class);
+    private static final Logger LOG = Logger.getLogger(DoGet.class.getName());
 
     public DoGet(IWebdavStore store, String dftIndexFile, String insteadOf404,
             ResourceLocks resourceLocks, IMimeTyper mimeTyper,
@@ -62,22 +65,22 @@ public class DoGet extends DoHead {
                     out.write(copyBuffer, 0, read);
                 }
             } finally {
-                // flushing causes a IOE if a file is opened on the webserver
-                // client disconnected before server finished sending response
+                // flushing causes an IOException if a file is opened on the webserver
+                // client disconnected before the server finished sending response
                 try {
                     in.close();
-                } catch (IOException e) {
-                    LOG.warn("Closing InputStream causes Exception.", e);
+                } catch (IOException ioException) {
+                    LOG.log(Level.WARNING, "Failed to close InputStream", ioException);
                 }
                 try {
                     out.flush();
                     out.close();
-                } catch (IOException e) {
-                    LOG.warn("Flushing OutputStream causes Exception!", e);
+                } catch (IOException ioException) {
+                    LOG.log(Level.WARNING, "Failed to close OutputStream", ioException);
                 }
             }
-        } catch (Exception e) {
-            LOG.warn("Failed to copy buffer", e);
+        } catch (Exception exception) {
+            LOG.log(Level.WARNING, "Failed to copy buffer", exception);
         }
     }
 
@@ -134,10 +137,10 @@ public class DoGet extends DoHead {
                     childrenTemp.append("<td>");
                     childrenTemp.append("<a href=\"");
                     childrenTemp.append(child);
-                    StoredObject obj= _store.getStoredObject(transaction, path+"/"+child);
+                    StoredObject obj= _store.getStoredObject(transaction, path + "/" +child);
                     if (obj == null)
                     {
-                        LOG.error("Should not return null for "+path+"/"+child);
+                        LOG.severe(String.format("Should not return null for '%s/%s'", path, child));
                     }
                     if (obj != null && obj.isFolder())
                     {
@@ -243,8 +246,8 @@ public class DoGet extends DoHead {
                 retVal= out.toString();
             }
         }
-        catch (Exception ex) {
-            LOG.error("Error in reading webdav.css", ex);
+        catch (Exception exception) {
+            LOG.log(Level.SEVERE, "Error in reading webdav.css", exception);
         }
 
         return retVal;

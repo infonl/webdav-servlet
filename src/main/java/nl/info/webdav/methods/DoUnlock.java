@@ -1,6 +1,8 @@
 package nl.info.webdav.methods;
 
 import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -14,7 +16,7 @@ import nl.info.webdav.locking.IResourceLocks;
 import nl.info.webdav.locking.LockedObject;
 
 public class DoUnlock extends DeterminableMethod {
-    private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(DoUnlock.class);
+    private static final Logger LOG = Logger.getLogger(DoUnlock.class.getName());
 
     private final IWebdavStore _store;
     private final IResourceLocks _resourceLocks;
@@ -35,7 +37,7 @@ public class DoUnlock extends DeterminableMethod {
             HttpServletRequest req,
             HttpServletResponse resp
     ) throws IOException, LockFailedException {
-        LOG.trace("-- " + this.getClass().getName());
+        LOG.fine("-- " + this.getClass().getName());
 
         if (_readOnly) {
             resp.sendError(WebdavStatus.SC_FORBIDDEN);
@@ -76,7 +78,7 @@ public class DoUnlock extends DeterminableMethod {
 
                             resp.setStatus(WebdavStatus.SC_NO_CONTENT);
                         } else {
-                            LOG.trace("DoUnlock failure at " + lo.getPath());
+                            LOG.fine("DoUnlock failure at " + lo.getPath());
                             resp.sendError(WebdavStatus.SC_METHOD_FAILURE);
                         }
 
@@ -85,7 +87,7 @@ public class DoUnlock extends DeterminableMethod {
                     }
                 }
             } catch (LockFailedException e) {
-                LOG.error("Failed to unlock", e);
+                LOG.log(Level.SEVERE, "Failed to unlock", e);
             } finally {
                 _resourceLocks.unlockTemporaryLockedObjects(transaction, path,
                         tempLockOwner);

@@ -61,6 +61,10 @@ This is part of the GitHub pipeline and should normally only be done there.
 	</servlet-mapping>
 ```
 
+### Logging
+
+- The standard Java `java.util.logging` API is used for logging. No logging implementation is included in the library.
+
 ### Further configuration options
 
 - If you want to use the reference implementation (`LocalFileSystemStore`), set the parameter `rootpath` to where you want to store your files.

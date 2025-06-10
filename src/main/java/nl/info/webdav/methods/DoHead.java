@@ -28,11 +28,13 @@ import nl.info.webdav.exceptions.WebdavException;
 import nl.info.webdav.locking.ResourceLocks;
 
 import java.io.IOException;
+import java.util.logging.Logger;
+
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 public class DoHead extends AbstractMethod {
-    private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(DoHead.class);
+    private static final Logger LOG = Logger.getLogger(DoHead.class.getName());
 
     protected String _dftIndexFile;
     protected IWebdavStore _store;
@@ -60,7 +62,7 @@ public class DoHead extends AbstractMethod {
         boolean bUriExists = false;
 
         String path = getRelativePath(req);
-        LOG.trace("-- " + this.getClass().getName());
+        LOG.fine("-- " + this.getClass().getName());
 
         StoredObject so;
         try {

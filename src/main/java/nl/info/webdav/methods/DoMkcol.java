@@ -27,11 +27,13 @@ import nl.info.webdav.locking.LockedObject;
 
 import java.io.IOException;
 import java.util.Hashtable;
+import java.util.logging.Logger;
+
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 public class DoMkcol extends AbstractMethod {
-    private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(DoMkcol.class);
+    private static final Logger LOG = Logger.getLogger(DoMkcol.class.getName());
 
     private final IWebdavStore _store;
     private final IResourceLocks _resourceLocks;
@@ -46,7 +48,7 @@ public class DoMkcol extends AbstractMethod {
 
     public void execute(ITransaction transaction, HttpServletRequest req,
             HttpServletResponse resp) throws IOException, LockFailedException {
-        LOG.trace("-- " + this.getClass().getName());
+        LOG.fine("-- " + this.getClass().getName());
 
         if (!_readOnly) {
             String path = getRelativePath(req);

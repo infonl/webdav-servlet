@@ -20,6 +20,7 @@ import static java.text.MessageFormat.format;
 
 import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.logging.Logger;
 
 import nl.info.webdav.ITransaction;
 import nl.info.webdav.exceptions.LockFailedException;
@@ -30,7 +31,7 @@ import nl.info.webdav.exceptions.LockFailedException;
  * @author re
  */
 public class ResourceLocks implements IResourceLocks {
-    private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(ResourceLocks.class);
+    private static final Logger LOG = Logger.getLogger(ResourceLocks.class.getName());
 
     /**
      * after creating this much LockedObjects, a cleanup deletes unused
@@ -111,12 +112,12 @@ public class ResourceLocks implements IResourceLocks {
             if (lo.addLockedObjectOwner(owner)) {
                 return true;
             } else {
-                LOG.trace(format("Could not set owner {0} to resource at {1}", owner, path));
+                LOG.fine(format("Could not set owner {0} to resource at {1}", owner, path));
                 return false;
             }
         } else {
-            // can not lock
-            LOG.trace(
+            // cannot lock
+            LOG.fine(
                     format("Lock resource at {0} failed because a parent or child resource is currently locked", path)
             );
             return false;
@@ -136,7 +137,7 @@ public class ResourceLocks implements IResourceLocks {
             } else {
                 // there is no lock at that path. someone tried to unlock it
                 // anyway. could point to a problem
-                LOG.trace("Cannot unlock. No lock found for path: " + path);
+                LOG.fine("Cannot unlock. No lock found for path: " + path);
                 return false;
             }
 
@@ -158,7 +159,7 @@ public class ResourceLocks implements IResourceLocks {
         } else {
             // there is no lock at that path. someone tried to unlock it
             // anyway. could point to a problem
-            LOG.trace("Cannot unlock. No lock found for path: " + path);
+            LOG.fine("Cannot unlock. No lock found for path: " + path);
         }
 
         if (_cleanupCounter > _cleanupLimit) {

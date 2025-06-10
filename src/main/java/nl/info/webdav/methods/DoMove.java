@@ -25,11 +25,13 @@ import nl.info.webdav.locking.ResourceLocks;
 
 import java.io.IOException;
 import java.util.Hashtable;
+import java.util.logging.Logger;
+
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 public class DoMove extends AbstractMethod {
-    private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(DoMove.class);
+    private static final Logger LOG = Logger.getLogger(DoMove.class.getName());
 
     private final ResourceLocks _resourceLocks;
     private final DoDelete _doDelete;
@@ -48,7 +50,7 @@ public class DoMove extends AbstractMethod {
             HttpServletResponse resp) throws IOException, LockFailedException {
 
         if (!_readOnly) {
-            LOG.trace("-- " + this.getClass().getName());
+            LOG.fine("-- " + this.getClass().getName());
 
             String sourcePath = getRelativePath(req);
             Hashtable<String, Integer> errorList = new Hashtable<>();

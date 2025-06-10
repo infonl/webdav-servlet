@@ -1,9 +1,13 @@
 package nl.info.webdav;
 
+import static java.text.MessageFormat.format;
+
 import java.io.IOException;
 import java.security.Principal;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
@@ -27,7 +31,7 @@ import nl.info.webdav.methods.DoPut;
 import nl.info.webdav.methods.DoUnlock;
 
 public class WebDavServletBean extends HttpServlet {
-    private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(WebDavServletBean.class);
+    private static final Logger LOG = Logger.getLogger(WebDavServletBean.class.getName());
 
     private static final boolean READ_ONLY = false;
     private final HashMap<String, IMethodExecutor> _methodMap = new HashMap<>();
@@ -95,7 +99,7 @@ public class WebDavServletBean extends HttpServlet {
         ITransaction transaction = null;
         boolean needRollback = false;
 
-        if (LOG.isTraceEnabled())
+        if (LOG.isLoggable(Level.FINE))
             debugRequest(methodName, req);
 
         try {
@@ -119,16 +123,16 @@ public class WebDavServletBean extends HttpServlet {
                 // include current input. This occurs if the client
                 // sends a request with body to a resource that does not exist.
                 if (req.getContentLength() != 0 && !req.getInputStream().isFinished()) {
-                    LOG.trace("Skipping over unconsumed data from the input stream.");
+                    LOG.fine("Skipping over unconsumed data from the input stream.");
                     int bytesAvailable;
                     while ((bytesAvailable = req.getInputStream().available()) > 0) {
                         long bytesSkipped = req.getInputStream().skip(bytesAvailable);
-                        LOG.trace("Skipped over {} bytes from the input stream.", bytesSkipped);
+                        LOG.fine(String.format("Skipped over %d bytes from the input stream.", bytesSkipped));
                     }
                 }
                 needRollback = false;
             } catch (IOException ioException) {
-                LOG.error("Error occurred during handling of WebDAV method. Rolling back transaction.", ioException);
+                LOG.log(Level.SEVERE, "Error occurred during handling of WebDAV method. Rolling back transaction.", ioException);
                 if (!resp.isCommitted())
                     resp.sendError(WebdavStatus.SC_INTERNAL_SERVER_ERROR);
                 _store.rollback(transaction);
@@ -138,7 +142,7 @@ public class WebDavServletBean extends HttpServlet {
             if (!resp.isCommitted())
                 resp.sendError(WebdavStatus.SC_FORBIDDEN);
         } catch (Exception exception) {
-            LOG.error("Error occurred during handling of WebDAV method. Rolling back transaction.", exception);
+            LOG.log(Level.SEVERE, "Error occurred during handling of WebDAV method. Rolling back transaction.", exception);
             throw new ServletException(exception);
         } finally {
             if (needRollback)
@@ -158,25 +162,25 @@ public class WebDavServletBean extends HttpServlet {
     }
 
     private void debugRequest(String methodName, HttpServletRequest req) {
-        LOG.trace("-----------");
-        LOG.trace("WebdavServlet\n request: methodName = {}", methodName);
-        LOG.trace("time: {}", System.currentTimeMillis());
-        LOG.trace("path: {}", req.getRequestURI());
-        LOG.trace("-----------");
+        LOG.fine("-----------");
+        LOG.fine(format("WebdavServlet\n request: methodName = {0}", methodName));
+        LOG.fine(format("time: {0}", System.currentTimeMillis()));
+        LOG.fine(format("path: {0}", req.getRequestURI()));
+        LOG.fine("-----------");
         Enumeration<?> e = req.getHeaderNames();
         while (e.hasMoreElements()) {
             String s = (String) e.nextElement();
-            LOG.trace("header: {} {}", s, req.getHeader(s));
+            LOG.fine(format("header: {0} {1}", s, req.getHeader(s)));
         }
         e = req.getAttributeNames();
         while (e.hasMoreElements()) {
             String s = (String) e.nextElement();
-            LOG.trace("attribute: {} {}", s, req.getAttribute(s));
+            LOG.fine(format("attribute: {0} {1}", s, req.getAttribute(s)));
         }
         e = req.getParameterNames();
         while (e.hasMoreElements()) {
             String s = (String) e.nextElement();
-            LOG.trace("parameter: {} {}", s, req.getParameter(s));
+            LOG.fine(format("parameter: {0} {1}", s, req.getParameter(s)));
         }
     }
 }
