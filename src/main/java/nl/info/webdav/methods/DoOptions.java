@@ -25,11 +25,13 @@ import nl.info.webdav.exceptions.WebdavException;
 import nl.info.webdav.locking.ResourceLocks;
 
 import java.io.IOException;
+import java.util.logging.Logger;
+
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 public class DoOptions extends DeterminableMethod {
-    private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(DoOptions.class);
+    private static final Logger LOG = Logger.getLogger(DoOptions.class.getName());
 
     private final IWebdavStore _store;
     private final ResourceLocks _resourceLocks;
@@ -42,7 +44,7 @@ public class DoOptions extends DeterminableMethod {
     public void execute(ITransaction transaction, HttpServletRequest req,
             HttpServletResponse resp) throws IOException, LockFailedException {
 
-        LOG.trace("-- " + this.getClass().getName());
+        LOG.fine("-- " + this.getClass().getName());
 
         String tempLockOwner = "doOptions" + System.currentTimeMillis()
                 + req.toString();

@@ -27,11 +27,13 @@ import nl.info.webdav.locking.LockedObject;
 
 import java.io.IOException;
 import java.util.Hashtable;
+import java.util.logging.Logger;
+
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 public class DoPut extends AbstractMethod {
-    private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(DoPut.class);
+    private static final Logger LOG = Logger.getLogger(DoPut.class.getName());
 
     private final IWebdavStore _store;
     private final IResourceLocks _resourceLocks;
@@ -52,7 +54,7 @@ public class DoPut extends AbstractMethod {
         HttpServletRequest req,
         HttpServletResponse resp
     ) throws IOException, LockFailedException {
-        LOG.trace("-- " + this.getClass().getName());
+        LOG.fine("-- " + this.getClass().getName());
 
         if (!_readOnly) {
             String path = getRelativePath(req);
@@ -170,14 +172,12 @@ public class DoPut extends AbstractMethod {
     private void doUserAgentWorkaround(HttpServletResponse resp) {
         if (_userAgent != null && _userAgent.contains("WebDAVFS")
                 && !_userAgent.contains("Transmit")) {
-            LOG.trace("DoPut.execute() : do workaround for user agent '"
-                    + _userAgent + "'");
+            LOG.fine("DoPut.execute() : do workaround for user agent '" + _userAgent + "'");
             resp.setStatus(WebdavStatus.SC_CREATED);
         } else if (_userAgent != null && _userAgent.contains("Transmit")) {
             // Transmit also uses WEBDAVFS 1.x.x but crashes
             // with SC_CREATED response
-            LOG.trace("DoPut.execute() : do workaround for user agent '"
-                    + _userAgent + "'");
+            LOG.fine("DoPut.execute() : do workaround for user agent '" + _userAgent + "'");
             resp.setStatus(WebdavStatus.SC_NO_CONTENT);
         } else {
             resp.setStatus(WebdavStatus.SC_CREATED);

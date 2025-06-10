@@ -37,13 +37,15 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Vector;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.xml.parsers.DocumentBuilder;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 public class DoPropfind extends AbstractMethod {
-    private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(DoPropfind.class);
+    private static final Logger LOG = Logger.getLogger(DoPropfind.class.getName());
 
     /**
      * PROPFIND - Specify a property mask.
@@ -75,7 +77,7 @@ public class DoPropfind extends AbstractMethod {
 
     public void execute(ITransaction transaction, HttpServletRequest req,
             HttpServletResponse resp) throws IOException, LockFailedException {
-        LOG.trace("-- " + this.getClass().getName());
+        LOG.fine("-- " + this.getClass().getName());
 
         // Retrieve the resources
         String path = getCleanPath(getRelativePath(req));
@@ -152,7 +154,7 @@ public class DoPropfind extends AbstractMethod {
             } catch (AccessDeniedException e) {
                 resp.sendError(WebdavStatus.SC_FORBIDDEN);
             } catch (WebdavException | ServletException e) {
-                LOG.warn("Sending internal error!");
+                LOG.log(Level.WARNING, "Failed to find properties", e);
                 resp.sendError(WebdavStatus.SC_INTERNAL_SERVER_ERROR);
             } finally {
                 _resourceLocks.unlockTemporaryLockedObjects(transaction, path,

@@ -6,6 +6,7 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
+import java.util.logging.Logger;
 
 import javax.xml.parsers.DocumentBuilder;
 
@@ -30,9 +31,7 @@ import nl.info.webdav.locking.LockedObject;
 import nl.info.webdav.locking.ResourceLocks;
 
 public class DoProppatch extends AbstractMethod {
-
-    private static org.slf4j.Logger LOG = org.slf4j.LoggerFactory
-            .getLogger(DoProppatch.class);
+    private static final Logger LOG = Logger.getLogger(DoProppatch.class.getName());
 
     private boolean _readOnly;
     private IWebdavStore _store;
@@ -53,7 +52,7 @@ public class DoProppatch extends AbstractMethod {
             HttpServletRequest req,
             HttpServletResponse resp
     ) throws IOException, LockFailedException {
-        LOG.trace("-- " + this.getClass().getName());
+        LOG.fine("-- " + this.getClass().getName());
 
         if (_readOnly) {
             resp.sendError(WebdavStatus.SC_FORBIDDEN);

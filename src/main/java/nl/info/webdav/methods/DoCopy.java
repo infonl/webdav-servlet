@@ -29,11 +29,15 @@ import nl.info.webdav.locking.ResourceLocks;
 
 import java.io.IOException;
 import java.util.Hashtable;
+import java.util.logging.Logger;
+
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
+import static java.text.MessageFormat.format;
+
 public class DoCopy extends AbstractMethod {
-    private static org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(DoCopy.class);
+    private static final Logger LOG = Logger.getLogger(DoCopy.class.getName());
 
     private final IWebdavStore _store;
     private final ResourceLocks _resourceLocks;
@@ -50,7 +54,7 @@ public class DoCopy extends AbstractMethod {
 
     public void execute(ITransaction transaction, HttpServletRequest req,
             HttpServletResponse resp) throws IOException, LockFailedException {
-        LOG.trace("-- {}", this.getClass().getName());
+        LOG.fine(format("-- {0}", this.getClass().getName()));
 
         String path = getRelativePath(req);
         if (!_readOnly) {

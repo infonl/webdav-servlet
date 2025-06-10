@@ -28,11 +28,13 @@ import nl.info.webdav.locking.ResourceLocks;
 
 import java.io.IOException;
 import java.util.Hashtable;
+import java.util.logging.Logger;
+
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 public class DoDelete extends AbstractMethod {
-    private static org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(DoDelete.class);
+    private static Logger LOG = Logger.getLogger(DoDelete.class.getName());
 
     private final IWebdavStore _store;
     private final ResourceLocks _resourceLocks;
@@ -50,7 +52,7 @@ public class DoDelete extends AbstractMethod {
         HttpServletRequest req,
         HttpServletResponse resp
     ) throws IOException, LockFailedException {
-        LOG.trace("-- " + this.getClass().getName());
+        LOG.fine("-- " + this.getClass().getName());
 
         if (!_readOnly) {
             String path = getRelativePath(req);

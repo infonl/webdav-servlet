@@ -35,14 +35,11 @@ java {
 dependencies {
 	compileOnly(libs.jakarta.servlet.api)
 
-	implementation(libs.slf4j.api)
-
 	testImplementation(libs.jakarta.servlet.api)
 	testImplementation(libs.junit.jupiter.params)
 	testImplementation(libs.junit.jupiter.api)
 	testImplementation(libs.jmock)
-	testImplementation(libs.slf4j.simple)
-	
+
 	testRuntimeOnly(libs.junit.jupiter.engine)
 	testRuntimeOnly(libs.junit.platform)
 }

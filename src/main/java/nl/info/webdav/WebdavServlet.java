@@ -20,6 +20,9 @@ import nl.info.webdav.exceptions.WebdavException;
 
 import java.io.File;
 import java.lang.reflect.Constructor;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import jakarta.servlet.ServletException;
 
 /**
@@ -31,7 +34,7 @@ import jakarta.servlet.ServletException;
  * @author Remy Maucherat
  */
 public class WebdavServlet extends WebDavServletBean {
-    private static org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(WebdavServlet.class);
+    private static final Logger LOG = Logger.getLogger(WebdavServlet.class.getName());
     private static final String ROOT_PATH_PARAMETER = "rootpath";
 
     public void init() throws ServletException {
@@ -75,7 +78,7 @@ public class WebdavServlet extends WebDavServletBean {
             webdavStore = (IWebdavStore) ctor
                     .newInstance(new Object[] { root });
         } catch (Exception e) {
-            LOG.error("Failed to construct store", e);
+            LOG.log(Level.SEVERE, "Failed to construct store", e);
             throw new RuntimeException("Failed to construct store", e);
         }
         return webdavStore;

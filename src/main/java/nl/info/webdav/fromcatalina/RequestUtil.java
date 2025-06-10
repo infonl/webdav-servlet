@@ -21,6 +21,9 @@ import static java.text.MessageFormat.format;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import jakarta.servlet.http.Cookie;
 
 /**
@@ -31,7 +34,7 @@ import jakarta.servlet.http.Cookie;
  * @version $Revision: 1.2 $ $Date: 2008-08-05 07:38:45 $
  */
 public final class RequestUtil {
-    private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(RequestUtil.class);
+    private static final Logger LOG = Logger.getLogger(RequestUtil.class.getName());
 
     /**
      * Encode a cookie as per RFC 2109. The resulting string can be used as the
@@ -361,7 +364,7 @@ public final class RequestUtil {
             try {
                 return new String(bytes, 0, ox, enc);
             } catch (Exception e) {
-                LOG.error(format("Failed to decode URL byte array using encoding: {0}", enc), e);
+                LOG.log(Level.SEVERE, format("Failed to decode URL byte array using encoding: {0}", enc), e);
             }
         }
         return new String(bytes, 0, ox);
