@@ -111,14 +111,30 @@ publishing {
 						email = "edgar@info.nl"
 					}
 					developer {
-						id = "bas-info-nl"
-						name = "Bas de Wit"
-						email = "bas@info.nl"
+						id = "hsiliev"
+						name = "Hristo Iliev"
+						email = "hristo@info.nl"
 					}
 					developer {
-						id = "felixcicatt"
-						name = "Felix Cornelissen"
-						email = "felix@info.nl"
+						id = "ismailozgen"
+						name = "Ismail Ozgen"
+						email = "ismail@info.nl"
+					}
+					developer {
+						id = "xiduzo"
+						name = "Sander Boer"
+						email = "sander@info.nl"
+					}
+					developer {
+						id = "niorg"
+						name = "Cyril Roos"
+						email = "cyril@info.nl"
+					}
+				}
+				contributors {
+					contributor {
+						name = "Bas de Wit"
+						email = "bas@info.nl"
 					}
 				}
 				scm {
