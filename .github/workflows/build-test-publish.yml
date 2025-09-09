@@ -125,7 +125,7 @@ jobs:
          with:
            fetch-depth: 0
        - name: Create or update GitHub release
-         uses: ncipollo/release-action@bcfe5470707e8832e12347755757cec0eb3c22af # v1.18.0
+         uses: ncipollo/release-action@b7eabc95ff50cbeeedec83973935c8f306dfcd0b # v1.20.0
          with:
            token: ${{ secrets.GITHUB_TOKEN }}
            tag: ${{ env.NEXT_VERSION_TAG }}
