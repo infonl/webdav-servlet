@@ -18,5 +18,3 @@ Versioning or user management are not supported
 ## Installation & configuration
 
 Please see [INSTALL.md](./INSTALL.md).
-
-

@@ -60,7 +60,7 @@ the `SPDX-FileCopyrightText` identifier. E.g.:
 ## Conventional Commits
 
 We use [Conventional Commits](https://www.conventionalcommits.org) for our commit messages.
-Specifically we use the following format for our commit messages:
+Specifically, we use the following format for our commit messages:
 
 ```
 <type>[optional scope]: <description>
