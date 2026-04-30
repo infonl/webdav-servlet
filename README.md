@@ -19,4 +19,6 @@ Versioning or user management are not supported
 
 Please see [INSTALL.md](./INSTALL.md).
 
+## Claude and OpenSpec AI tooling
 
+The project supports specific instructions for [Claude](https://claude.ai/) and [OpenSpec](https://openspec.dev/) AI tooling.
