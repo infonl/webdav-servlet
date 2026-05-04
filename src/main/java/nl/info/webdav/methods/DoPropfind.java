@@ -125,7 +125,7 @@ public class DoPropfind extends AbstractMethod {
                     }
                 }
 
-                HashMap<String, String> namespaces = new HashMap<String, String>();
+                HashMap<String, String> namespaces = new HashMap<>();
                 namespaces.put("DAV:", "D");
 
                 if (propertyFindType == FIND_BY_PROPERTY) {
@@ -163,7 +163,7 @@ public class DoPropfind extends AbstractMethod {
         } else {
             Hashtable<String, Integer> errorList = new Hashtable<>();
             errorList.put(path, WebdavStatus.SC_LOCKED);
-            sendReport(req, resp, errorList);
+            sendReport(resp, errorList);
         }
     }
 
@@ -339,73 +339,94 @@ public class DoPropfind extends AbstractMethod {
 
                 String property = properties.nextElement();
 
-                if (property.equals("DAV::creationdate")) {
-                    generatedXML.writeProperty("DAV::creationdate",
-                            creationdate);
-                } else if (property.equals("DAV::displayname")) {
-                    generatedXML.writeElement("DAV::displayname",
-                            XMLWriter.OPENING);
-                    generatedXML.writeData(resourceName);
-                    generatedXML.writeElement("DAV::displayname",
-                            XMLWriter.CLOSING);
-                } else if (property.equals("DAV::getcontentlanguage")) {
-                    if (isFolder) {
-                        propertiesNotFound.addElement(property);
-                    } else {
-                        generatedXML.writeElement("DAV::getcontentlanguage",
-                                XMLWriter.NO_CONTENT);
+                switch (property) {
+                    case "DAV::creationdate" -> generatedXML.writeProperty(
+                            "DAV::creationdate",
+                            creationdate
+                    );
+                    case "DAV::displayname" -> {
+                        generatedXML.writeElement(
+                                "DAV::displayname",
+                                XMLWriter.OPENING
+                        );
+                        generatedXML.writeData(resourceName);
+                        generatedXML.writeElement(
+                                "DAV::displayname",
+                                XMLWriter.CLOSING
+                        );
                     }
-                } else if (property.equals("DAV::getcontentlength")) {
-                    if (isFolder) {
-                        propertiesNotFound.addElement(property);
-                    } else {
-                        generatedXML.writeProperty("DAV::getcontentlength",
-                                resourceLength);
+                    case "DAV::getcontentlanguage" -> {
+                        if (isFolder) {
+                            propertiesNotFound.addElement(property);
+                        } else {
+                            generatedXML.writeElement(
+                                    "DAV::getcontentlanguage",
+                                    XMLWriter.NO_CONTENT
+                            );
+                        }
                     }
-                } else if (property.equals("DAV::getcontenttype")) {
-                    if (isFolder) {
-                        propertiesNotFound.addElement(property);
-                    } else {
-                        generatedXML.writeProperty("DAV::getcontenttype",
-                                mimeType);
+                    case "DAV::getcontentlength" -> {
+                        if (isFolder) {
+                            propertiesNotFound.addElement(property);
+                        } else {
+                            generatedXML.writeProperty(
+                                    "DAV::getcontentlength",
+                                    resourceLength
+                            );
+                        }
                     }
-                } else if (property.equals("DAV::getetag")) {
-                    if (isFolder || so.isNullResource()) {
-                        propertiesNotFound.addElement(property);
-                    } else {
-                        generatedXML.writeProperty("DAV::getetag", getETag(so));
+                    case "DAV::getcontenttype" -> {
+                        if (isFolder) {
+                            propertiesNotFound.addElement(property);
+                        } else {
+                            generatedXML.writeProperty(
+                                    "DAV::getcontenttype",
+                                    mimeType
+                            );
+                        }
                     }
-                } else if (property.equals("DAV::getlastmodified")) {
-                    if (isFolder) {
-                        propertiesNotFound.addElement(property);
-                    } else {
-                        generatedXML.writeProperty("DAV::getlastmodified",
-                                lastModified);
+                    case "DAV::getetag" -> {
+                        if (isFolder || so.isNullResource()) {
+                            propertiesNotFound.addElement(property);
+                        } else {
+                            generatedXML.writeProperty("DAV::getetag", getETag(so));
+                        }
                     }
-                } else if (property.equals("DAV::resourcetype")) {
-                    if (isFolder) {
-                        generatedXML.writeElement("DAV::resourcetype",
-                                XMLWriter.OPENING);
-                        generatedXML.writeElement("DAV::collection",
-                                XMLWriter.NO_CONTENT);
-                        generatedXML.writeElement("DAV::resourcetype",
-                                XMLWriter.CLOSING);
-                    } else {
-                        generatedXML.writeElement("DAV::resourcetype",
-                                XMLWriter.NO_CONTENT);
+                    case "DAV::getlastmodified" -> {
+                        if (isFolder) {
+                            propertiesNotFound.addElement(property);
+                        } else {
+                            generatedXML.writeProperty(
+                                    "DAV::getlastmodified",
+                                    lastModified
+                            );
+                        }
                     }
-                } else if (property.equals("DAV::source")) {
-                    generatedXML.writeProperty("DAV::source", "");
-                } else if (property.equals("DAV::supportedlock")) {
-
-                    writeSupportedLockElements(transaction, generatedXML, path);
-
-                } else if (property.equals("DAV::lockdiscovery")) {
-
-                    writeLockDiscoveryElements(transaction, generatedXML, path);
-
-                } else {
-                    propertiesNotFound.addElement(property);
+                    case "DAV::resourcetype" -> {
+                        if (isFolder) {
+                            generatedXML.writeElement(
+                                    "DAV::resourcetype",
+                                    XMLWriter.OPENING
+                            );
+                            generatedXML.writeElement(
+                                    "DAV::collection",
+                                    XMLWriter.NO_CONTENT
+                            );
+                            generatedXML.writeElement(
+                                    "DAV::resourcetype",
+                                    XMLWriter.CLOSING
+                            );
+                        } else {
+                            generatedXML.writeElement(
+                                    "DAV::resourcetype",
+                                    XMLWriter.NO_CONTENT
+                            );
+                        }
+                    }
+                    case "DAV::source" -> generatedXML.writeProperty("DAV::source", "");
+                    case "DAV::supportedlock" -> writeSupportedLockElements(transaction, generatedXML, path);
+                    case "DAV::lockdiscovery" -> writeLockDiscoveryElements(transaction, generatedXML, path);
+                    default -> propertiesNotFound.addElement(property);
                 }
             }
 
@@ -428,8 +449,9 @@ public class DoPropfind extends AbstractMethod {
                 generatedXML.writeElement("DAV::prop", XMLWriter.OPENING);
 
                 while (propertiesNotFoundList.hasMoreElements()) {
-                    generatedXML.writeElement((String) propertiesNotFoundList
-                            .nextElement(), XMLWriter.NO_CONTENT);
+                    generatedXML.writeElement(
+                            propertiesNotFoundList
+                                    .nextElement(), XMLWriter.NO_CONTENT);
                 }
 
                 generatedXML.writeElement("DAV::prop", XMLWriter.CLOSING);
@@ -537,10 +559,10 @@ public class DoPropfind extends AbstractMethod {
 
             String[] owners = lo.getOwner();
             if (owners != null) {
-                for (int i = 0; i < owners.length; i++) {
+                for (String owner : owners) {
                     generatedXML.writeElement("DAV::owner", XMLWriter.OPENING);
                     generatedXML.writeElement("DAV::href", XMLWriter.OPENING);
-                    generatedXML.writeText(owners[i]);
+                    generatedXML.writeText(owner);
                     generatedXML.writeElement("DAV::href", XMLWriter.CLOSING);
                     generatedXML.writeElement("DAV::owner", XMLWriter.CLOSING);
                 }

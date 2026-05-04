@@ -2,12 +2,16 @@
 // SPDX-License-Identifier: EUPL-1.2+
 package nl.info.webdav.methods;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.ByteArrayInputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -16,6 +20,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.jmock.Expectations;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.xml.sax.SAXParseException;
 
 import nl.info.webdav.ITransaction;
 import nl.info.webdav.StoredObject;
@@ -198,6 +203,20 @@ public class AbstractMethodTest extends MockTest {
         });
         assertTrue(method.checkLocks(mockTransaction, mockReq, mockResourceLocks, "/shared"));
         _mockery.assertIsSatisfied();
+    }
+
+    @Test
+    public void testGetDocumentBuilderRejectsDoctypeDeclaration() {
+        String xmlWithDoctype = "<?xml version=\"1.0\"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM \"file:///etc/passwd\">]><foo>&xxe;</foo>";
+        ByteArrayInputStream input = new ByteArrayInputStream(xmlWithDoctype.getBytes(StandardCharsets.UTF_8));
+        assertThrows(SAXParseException.class, () -> method.getDocumentBuilder().parse(input));
+    }
+
+    @Test
+    public void testGetDocumentBuilderParsesWellFormedXml() {
+        String xml = "<?xml version=\"1.0\"?><propfind xmlns=\"DAV:\"><allprop/></propfind>";
+        ByteArrayInputStream input = new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8));
+        assertDoesNotThrow(() -> assertNotNull(method.getDocumentBuilder().parse(input)));
     }
 
     @Test

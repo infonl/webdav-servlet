@@ -60,8 +60,7 @@ public class DoMkcol extends AbstractMethod {
                 return;
             }
 
-            String tempLockOwner = "doMkcol" + System.currentTimeMillis()
-                    + req.toString();
+            String tempLockOwner = "doMkcol" + System.currentTimeMillis() + req;
 
             if (_resourceLocks.lock(transaction, path, tempLockOwner, false, 0,
                     TEMP_TIMEOUT, TEMPORARY)) {
@@ -119,7 +118,7 @@ public class DoMkcol extends AbstractMethod {
                                     }
                                 } else {
                                     errorList.put(path, WebdavStatus.SC_LOCKED);
-                                    sendReport(req, resp, errorList);
+                                    sendReport(resp, errorList);
                                 }
                             } else {
                                 String methodsAllowed = DeterminableMethod

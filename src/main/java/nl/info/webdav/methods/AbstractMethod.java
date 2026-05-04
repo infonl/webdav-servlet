@@ -34,6 +34,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.TimeZone;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -48,8 +49,7 @@ import jakarta.servlet.http.HttpServletResponse;
 public abstract class AbstractMethod implements IMethodExecutor {
     private static final ThreadLocal<DateFormat> thLastModifiedDateFormat = new ThreadLocal<>();
     private static final ThreadLocal<DateFormat> thCreationDateFormat = new ThreadLocal<>();
-    private static final ThreadLocal<DateFormat> thLocalDateFormat = new ThreadLocal<>();
-    
+
     /**
      * Array containing the safe characters set.
      */
@@ -71,11 +71,6 @@ public abstract class AbstractMethod implements IMethodExecutor {
      * 1123)
      */
     protected static final String LAST_MODIFIED_DATE_FORMAT = "EEE, dd MMM yyyy HH:mm:ss z";
-
-    /**
-     * Format for local date values.
-     */
-    protected static final String LOCAL_DATE_FORMAT = "dd/MM/yy' 'HH:mm:ss";
 
     static {
          // GMT timezone - all HTTP dates are on GMT
@@ -128,14 +123,6 @@ public abstract class AbstractMethod implements IMethodExecutor {
             df = new SimpleDateFormat(CREATION_DATE_FORMAT);
             df.setTimeZone(TimeZone.getTimeZone("GMT"));
             thCreationDateFormat.set( df );
-        }
-        return df.format(date);
-    }
-
-    public static String getLocalDateFormat(final Date date, final Locale loc) {
-        DateFormat df = thLocalDateFormat.get();
-        if( df == null ) {
-            df = new SimpleDateFormat(LOCAL_DATE_FORMAT, loc);
         }
         return df.format(date);
     }
@@ -198,7 +185,12 @@ public abstract class AbstractMethod implements IMethodExecutor {
     }
 
     /**
-     * Return JAXP document builder instance.
+     * Returns a JAXP document builder instance.
+     * <p>
+     * Configures the document builder factory using security best practices.
+     * Amongst others, we disable the use of DTD's (external entities).
+     * See, for example, <a href="https://cheatsheetseries.owasp.org/cheatsheets/XML_External_Entity_Prevention_Cheat_Sheet.html">XML External Entity Prevention Cheat Sheet¶</a>
+     * and: <a href="https://securecodingpractices.com/avoid-xxe-attacks-in-java-xml-parsers/">Avoid XXE Attacks in Java XML Parsers: Essential Security Measures</a>.
      *
      * @return the document builder
      * @throws ServletException when the builder could not be constructed
@@ -207,6 +199,12 @@ public abstract class AbstractMethod implements IMethodExecutor {
         try {
             DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
             documentBuilderFactory.setNamespaceAware(true);
+            documentBuilderFactory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+            documentBuilderFactory.setFeature("http://xml.org/sax/features/external-general-entities", false);
+            documentBuilderFactory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+            documentBuilderFactory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+            documentBuilderFactory.setXIncludeAware(false);
+            documentBuilderFactory.setExpandEntityReferences(false);
             return documentBuilderFactory.newDocumentBuilder();
         } catch (ParserConfigurationException e) {
             throw new ServletException("Failed to construct a JAXP document builder", e);
@@ -329,7 +327,7 @@ public abstract class AbstractMethod implements IMethodExecutor {
 
             // the resource is locked
             String[] lockTokens = getLockIdFromIfHeader(httpServletRequest);
-            String lockToken = null;
+            String lockToken;
             if (lockTokens != null)
                 lockToken = lockTokens[0];
             else {
@@ -342,9 +340,7 @@ public abstract class AbstractMethod implements IMethodExecutor {
                     // no locked resource to the given lockToken
                     return false;
                 }
-                if (!loByIf.equals(loByPath)) {
-                    return false;
-                }
+                return loByIf.equals(loByPath);
             }
 
         }
@@ -356,19 +352,17 @@ public abstract class AbstractMethod implements IMethodExecutor {
      * client. If the errorList contains only one error, send the error
      * directly without wrapping it in a multi-status message.
      * 
-     * @param req servlet request
      * @param resp servlet response
      * @param errorList list of error to be displayed
      * @throws IOException if an error occurs while sending the error report
      */
     protected void sendReport(
-            HttpServletRequest req,
             HttpServletResponse resp,
             Hashtable<String, Integer> errorList
     ) throws IOException {
         if (errorList.size() == 1) {
             int code = errorList.elements().nextElement();
-            if (WebdavStatus.getStatusText(code) != "") {
+            if (!Objects.equals(WebdavStatus.getStatusText(code), "")) {
                 resp.sendError(code, WebdavStatus.getStatusText(code));
             } else {
                 resp.sendError(code);
