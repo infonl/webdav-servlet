@@ -9,6 +9,7 @@ import java.util.Vector;
 import java.util.logging.Logger;
 
 import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -125,7 +126,14 @@ public class DoProppatch extends AbstractMethod {
 
                 if (req.getContentLength() != 0) {
                     try {
-                        DocumentBuilder documentBuilder = getDocumentBuilder();
+                        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+                        dbf.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+                        dbf.setFeature("http://xml.org/sax/features/external-general-entities", false);
+                        dbf.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+                        dbf.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+                        dbf.setXIncludeAware(false);
+                        dbf.setExpandEntityReferences(false);
+                        DocumentBuilder documentBuilder = dbf.newDocumentBuilder();
                         Document document = documentBuilder
                                 .parse(new InputSource(req.getInputStream()));
                         // Get the root element of the document
