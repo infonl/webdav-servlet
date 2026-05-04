@@ -8,7 +8,6 @@ import java.util.Vector;
 import java.util.logging.Logger;
 
 import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -109,7 +108,7 @@ public class DoProppatch extends AbstractMethod {
                     // Object on specified path is LOCKED
                     errorList = new Hashtable<>();
                     errorList.put(path, WebdavStatus.SC_LOCKED);
-                    sendReport(req, resp, errorList);
+                    sendReport(resp, errorList);
                     return;
                 }
 
@@ -125,17 +124,7 @@ public class DoProppatch extends AbstractMethod {
 
                 if (req.getContentLength() != 0) {
                     try {
-                        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-                        // disable DTD's (external entities).
-                        // see: https://cheatsheetseries.owasp.org/cheatsheets/XML_External_Entity_Prevention_Cheat_Sheet.html
-                        // and: https://securecodingpractices.com/avoid-xxe-attacks-in-java-xml-parsers/
-                        dbf.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
-                        dbf.setFeature("http://xml.org/sax/features/external-general-entities", false);
-                        dbf.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
-                        dbf.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
-                        dbf.setXIncludeAware(false);
-                        dbf.setExpandEntityReferences(false);
-                        DocumentBuilder documentBuilder = dbf.newDocumentBuilder();
+                        DocumentBuilder documentBuilder = getDocumentBuilder();
                         Document document = documentBuilder
                                 .parse(new InputSource(req.getInputStream()));
                         // Get the root element of the document

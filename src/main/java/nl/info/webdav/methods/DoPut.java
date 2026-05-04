@@ -77,7 +77,7 @@ public class DoPut extends AbstractMethod {
             String tempLockOwner = "doPut" + System.currentTimeMillis() + req;
             if (_resourceLocks.lock(transaction, path, tempLockOwner, false, 0,
                     TEMP_TIMEOUT, TEMPORARY)) {
-                StoredObject parentSo, so = null;
+                StoredObject parentSo, so;
                 try {
                     parentSo = _store.getStoredObject(transaction, parentPath);
                     if (parentPath != null && parentSo != null
@@ -88,9 +88,9 @@ public class DoPut extends AbstractMethod {
                     } else if (parentPath != null && parentSo == null && _lazyFolderCreationOnPut) {
                         _store.createFolder(transaction, parentPath);
 
-                    } else if (parentPath != null && parentSo == null && !_lazyFolderCreationOnPut) {
+                    } else if (parentPath != null && parentSo == null) {
                         errorList.put(parentPath, WebdavStatus.SC_NOT_FOUND);
-                        sendReport(req, resp, errorList);
+                        sendReport(resp, errorList);
                         return;
                     }
 
@@ -113,7 +113,7 @@ public class DoPut extends AbstractMethod {
                             String nullResourceLockToken = nullResourceLo
                                     .getID();
                             String[] lockTokens = getLockIdFromIfHeader(req);
-                            String lockToken = null;
+                            String lockToken;
                             if (lockTokens != null) {
                                 lockToken = lockTokens[0];
                             } else {
@@ -136,7 +136,7 @@ public class DoPut extends AbstractMethod {
                                 }
                             } else {
                                 errorList.put(path, WebdavStatus.SC_LOCKED);
-                                sendReport(req, resp, errorList);
+                                sendReport(resp, errorList);
                             }
                         }
                     }

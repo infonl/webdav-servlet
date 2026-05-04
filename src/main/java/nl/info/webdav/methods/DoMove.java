@@ -82,10 +82,9 @@ public class DoMove extends AbstractMethod {
                     if (_doCopy.copyResource(transaction, req, resp)) {
 
                         errorList = new Hashtable<>();
-                        _doDelete.deleteResource(transaction, sourcePath,
-                                errorList, req, resp);
+                        _doDelete.deleteResource(transaction, sourcePath, errorList, resp);
                         if (!errorList.isEmpty()) {
-                            sendReport(req, resp, errorList);
+                            sendReport(resp, errorList);
                         }
                     }
 
@@ -103,7 +102,7 @@ public class DoMove extends AbstractMethod {
             } else {
                 errorList.put(req.getHeader("Destination"),
                         WebdavStatus.SC_LOCKED);
-                sendReport(req, resp, errorList);
+                sendReport(resp, errorList);
             }
         } else {
             resp.sendError(WebdavStatus.SC_FORBIDDEN);

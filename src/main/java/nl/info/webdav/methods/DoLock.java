@@ -139,7 +139,7 @@ public class DoLock extends AbstractMethod {
                 _path);
         if (lo != null) {
             if (lo.isExclusive()) {
-                sendLockFailError(req, resp);
+                sendLockFailError(resp);
                 return;
             }
         }
@@ -150,7 +150,7 @@ public class DoLock extends AbstractMethod {
             resp.sendError(WebdavStatus.SC_INTERNAL_SERVER_ERROR);
             LOG.log(Level.WARNING, "Failed to excute lock", e);
         } catch (LockFailedException e) {
-            sendLockFailError(req, resp);
+            sendLockFailError(resp);
         }
     }
 
@@ -175,8 +175,8 @@ public class DoLock extends AbstractMethod {
                 // resource doesn't exist
                 _store.createResource(transaction, _path);
 
-                // Transmit expects 204 response-code, not 201
-                if (_userAgent != null && _userAgent.indexOf("Transmit") != -1) {
+                // Transmit expects 204 response code, not 201
+                if (_userAgent != null && _userAgent.contains("Transmit")) {
                     LOG.fine("DoLock.execute() : do workaround for user agent '" + _userAgent + "'");
                     resp.setStatus(WebdavStatus.SC_NO_CONTENT);
                 } else {
@@ -185,7 +185,7 @@ public class DoLock extends AbstractMethod {
 
             } else {
                 // resource already exists, could not execute null-resource lock
-                sendLockFailError(req, resp);
+                sendLockFailError(resp);
                 return;
             }
             nullSo = _store.getStoredObject(transaction, _path);
@@ -195,7 +195,7 @@ public class DoLock extends AbstractMethod {
             executeLock(transaction, req, resp);
 
         } catch (LockFailedException e) {
-            sendLockFailError(req, resp);
+            sendLockFailError(resp);
         } catch (WebdavException e) {
             resp.sendError(WebdavStatus.SC_INTERNAL_SERVER_ERROR);
             LOG.log(Level.SEVERE, "Webdav exception", e);
@@ -273,7 +273,7 @@ public class DoLock extends AbstractMethod {
                         resp.sendError(WebdavStatus.SC_INTERNAL_SERVER_ERROR);
                     }
                 } else {
-                    sendLockFailError(req, resp);
+                    sendLockFailError(resp);
 
                     throw new LockFailedException();
                 }
@@ -525,7 +525,7 @@ public class DoLock extends AbstractMethod {
         if (lockDuration < 0 || lockDuration > MAX_TIMEOUT)
             lockDuration = DEFAULT_TIMEOUT;
 
-        boolean lockSuccess = false;
+        boolean lockSuccess;
         lockSuccess = _resourceLocks.exclusiveLock(transaction, _path,
                 _lockOwner, depth, lockDuration);
 
@@ -539,17 +539,16 @@ public class DoLock extends AbstractMethod {
             }
         } else {
             // Locking was not successful
-            sendLockFailError(req, resp);
+            sendLockFailError(resp);
         }
     }
 
     /**
      * Sends an error report to the client
      */
-    private void sendLockFailError(HttpServletRequest req, HttpServletResponse resp)
-            throws IOException {
-        Hashtable<String, Integer> errorList = new Hashtable<String, Integer>();
+    private void sendLockFailError(HttpServletResponse resp) throws IOException {
+        Hashtable<String, Integer> errorList = new Hashtable<>();
         errorList.put(_path, WebdavStatus.SC_LOCKED);
-        sendReport(req, resp, errorList);
+        sendReport(resp, errorList);
     }
 }

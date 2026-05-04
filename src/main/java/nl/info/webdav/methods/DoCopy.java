@@ -183,8 +183,7 @@ public class DoCopy extends AbstractMethod {
 
                     // Delete destination resource, if it exists
                     if (destinationSo != null) {
-                        _doDelete.deleteResource(transaction, destinationPath,
-                                errorList, req, resp);
+                        _doDelete.deleteResource(transaction, destinationPath, errorList, resp);
 
                     } else {
                         resp.setStatus(WebdavStatus.SC_CREATED);
@@ -203,7 +202,7 @@ public class DoCopy extends AbstractMethod {
                 copy(transaction, path, destinationPath, errorList, req, resp);
 
                 if (!errorList.isEmpty()) {
-                    sendReport(req, resp, errorList);
+                    sendReport(resp, errorList);
                 }
 
             } finally {
