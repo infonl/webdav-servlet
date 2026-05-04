@@ -3,7 +3,6 @@ package nl.info.webdav.methods;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Hashtable;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
 import java.util.logging.Logger;
@@ -34,9 +33,9 @@ import nl.info.webdav.locking.ResourceLocks;
 public class DoProppatch extends AbstractMethod {
     private static final Logger LOG = Logger.getLogger(DoProppatch.class.getName());
 
-    private boolean _readOnly;
-    private IWebdavStore _store;
-    private ResourceLocks _resourceLocks;
+    private final boolean _readOnly;
+    private final IWebdavStore _store;
+    private final ResourceLocks _resourceLocks;
 
     public DoProppatch(
             IWebdavStore store,
@@ -127,6 +126,9 @@ public class DoProppatch extends AbstractMethod {
                 if (req.getContentLength() != 0) {
                     try {
                         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+                        // disable DTD's (external entities).
+                        // see: https://cheatsheetseries.owasp.org/cheatsheets/XML_External_Entity_Prevention_Cheat_Sheet.html
+                        // and: https://securecodingpractices.com/avoid-xxe-attacks-in-java-xml-parsers/
                         dbf.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
                         dbf.setFeature("http://xml.org/sax/features/external-general-entities", false);
                         dbf.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
@@ -194,10 +196,7 @@ public class DoProppatch extends AbstractMethod {
 
                 generatedXML.writeElement("DAV::href", XMLWriter.CLOSING);
 
-                for (Iterator<String> iter = tochange.iterator(); iter
-                        .hasNext();) {
-                    String property = iter.next();
-
+                for (String property : tochange) {
                     generatedXML.writeElement("DAV::propstat", XMLWriter.OPENING);
                     generatedXML.writeElement("DAV::prop", XMLWriter.OPENING);
                     generatedXML.writeElement(property, XMLWriter.NO_CONTENT);
