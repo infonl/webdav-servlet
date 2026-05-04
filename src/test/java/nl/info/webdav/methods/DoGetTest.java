@@ -161,7 +161,7 @@ public class DoGetTest extends MockTest {
                 oneOf(mockStore).getStoredObject(mockTransaction, "/foo/");
                 will(returnValue(fooSo));
 
-                exactly(2).of(mockReq).getLocale();
+                oneOf(mockReq).getLocale();
                 will(returnValue(Locale.GERMAN));
 
                 oneOf(mockRes).setContentType("text/html");
@@ -254,7 +254,7 @@ public class DoGetTest extends MockTest {
                         "/<script>alert(1)</script>/");
                 will(returnValue(folderSo));
 
-                exactly(2).of(mockReq).getLocale();
+                oneOf(mockReq).getLocale();
                 will(returnValue(Locale.ENGLISH));
 
                 oneOf(mockRes).setContentType("text/html");
@@ -306,7 +306,7 @@ public class DoGetTest extends MockTest {
                 oneOf(mockStore).getStoredObject(mockTransaction, "/safe/");
                 will(returnValue(folderSo));
 
-                exactly(2).of(mockReq).getLocale();
+                oneOf(mockReq).getLocale();
                 will(returnValue(Locale.ENGLISH));
 
                 oneOf(mockRes).setContentType("text/html");
