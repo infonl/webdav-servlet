@@ -2,6 +2,7 @@ package nl.info.webdav.methods;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.ByteArrayInputStream;
 import java.util.Locale;
@@ -30,7 +31,7 @@ public class DoGetTest extends MockTest {
     static HttpServletRequest mockReq;
     static HttpServletResponse mockRes;
     static ITransaction mockTransaction;
-    static TestingOutputStream tos = new TestingOutputStream();;
+    static TestingOutputStream tos = new TestingOutputStream();
     static byte[] resourceContent = new byte[]{'<', 'h', 'e', 'l', 'l', 'o',
                                                '/', '>'};
     static ByteArrayInputStream bais = new ByteArrayInputStream(resourceContent);
@@ -223,6 +224,115 @@ public class DoGetTest extends MockTest {
                 new ResourceLocks(), mockMimeTyper, 0);
 
         doGet.execute(mockTransaction, mockReq, mockRes);
+
+        _mockery.assertIsSatisfied();
+    }
+
+    @Test
+    public void testFolderBodyWithXssInPathIsEncoded() throws Exception {
+
+        final TestingOutputStream xssPathTos = new TestingOutputStream();
+
+        _mockery.checking(new Expectations() {
+            {
+                oneOf(mockReq).getAttribute("javax.servlet.include.request_uri");
+                will(returnValue(null));
+
+                oneOf(mockReq).getPathInfo();
+                will(returnValue("/<script>alert(1)</script>/"));
+
+                StoredObject folderSo = initFolderStoredObject();
+
+                oneOf(mockStore).getStoredObject(mockTransaction,
+                        "/<script>alert(1)</script>/");
+                will(returnValue(folderSo));
+
+                oneOf(mockReq).getHeader("If-None-Match");
+                will(returnValue(null));
+
+                oneOf(mockStore).getStoredObject(mockTransaction,
+                        "/<script>alert(1)</script>/");
+                will(returnValue(folderSo));
+
+                exactly(2).of(mockReq).getLocale();
+                will(returnValue(Locale.ENGLISH));
+
+                oneOf(mockRes).setContentType("text/html");
+                oneOf(mockRes).setCharacterEncoding("UTF8");
+
+                oneOf(mockRes).getOutputStream();
+                will(returnValue(xssPathTos));
+
+                oneOf(mockStore).getChildrenNames(mockTransaction,
+                        "/<script>alert(1)</script>/");
+                will(returnValue(new String[]{}));
+            }
+        });
+
+        DoGet doGet = new DoGet(mockStore, null, null, new ResourceLocks(),
+                mockMimeTyper, 0);
+
+        doGet.execute(mockTransaction, mockReq, mockRes);
+
+        String output = xssPathTos.toString();
+        assertTrue(output.contains("&lt;script&gt;"), "Path in title must be HTML-encoded");
+        assertFalse(output.contains("<script>"), "Raw <script> tag must not appear in output");
+
+        _mockery.assertIsSatisfied();
+    }
+
+    @Test
+    public void testFolderBodyWithXssInChildNameIsEncoded() throws Exception {
+
+        final TestingOutputStream xssChildTos = new TestingOutputStream();
+
+        _mockery.checking(new Expectations() {
+            {
+                oneOf(mockReq).getAttribute("javax.servlet.include.request_uri");
+                will(returnValue(null));
+
+                oneOf(mockReq).getPathInfo();
+                will(returnValue("/safe/"));
+
+                StoredObject folderSo = initFolderStoredObject();
+                StoredObject evilChild = initFileStoredObject(resourceContent);
+
+                oneOf(mockStore).getStoredObject(mockTransaction, "/safe/");
+                will(returnValue(folderSo));
+
+                oneOf(mockReq).getHeader("If-None-Match");
+                will(returnValue(null));
+
+                oneOf(mockStore).getStoredObject(mockTransaction, "/safe/");
+                will(returnValue(folderSo));
+
+                exactly(2).of(mockReq).getLocale();
+                will(returnValue(Locale.ENGLISH));
+
+                oneOf(mockRes).setContentType("text/html");
+                oneOf(mockRes).setCharacterEncoding("UTF8");
+
+                oneOf(mockRes).getOutputStream();
+                will(returnValue(xssChildTos));
+
+                oneOf(mockStore).getChildrenNames(mockTransaction, "/safe/");
+                will(returnValue(new String[]{"<script>evil</script>"}));
+
+                oneOf(mockStore).getStoredObject(mockTransaction,
+                        "/safe//<script>evil</script>");
+                will(returnValue(evilChild));
+            }
+        });
+
+        DoGet doGet = new DoGet(mockStore, null, null, new ResourceLocks(),
+                mockMimeTyper, 0);
+
+        doGet.execute(mockTransaction, mockReq, mockRes);
+
+        String output = xssChildTos.toString();
+        assertTrue(output.contains("&lt;script&gt;"),
+                "Child name in href and link text must be HTML-encoded");
+        assertFalse(output.contains("<script>"), "Raw <script> tag must not appear in output");
 
         _mockery.assertIsSatisfied();
     }

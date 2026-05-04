@@ -25,6 +25,7 @@ import nl.info.webdav.locking.ResourceLocks;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
@@ -105,7 +106,6 @@ public class DoGet extends DoHead {
             if (so.isFolder()) {
                 // TODO some folder response (for browsers, DAV tools
                 // use propfind) in html?
-                Locale locale = req.getLocale();
                 DateFormat shortDF= getDateTimeFormat(req.getLocale());
                 resp.setContentType("text/html");
                 resp.setCharacterEncoding("UTF8");
@@ -117,12 +117,12 @@ public class DoGet extends DoHead {
                 Arrays.sort(children);
                 StringBuilder childrenTemp = new StringBuilder();
                 childrenTemp.append("<html><head><title>Content of folder");
-                childrenTemp.append(path);
+                childrenTemp.append(escapeHtml(path));
                 childrenTemp.append("</title><style type=\"text/css\">");
                 childrenTemp.append(getCSS());
                 childrenTemp.append("</style></head>");
                 childrenTemp.append("<body>");
-                childrenTemp.append(getHeader(transaction, path, resp, req));
+                childrenTemp.append(getHeader(path));
                 childrenTemp.append("<table>");
                 childrenTemp.append("<tr><th>Name</th><th>Size</th><th>Created</th><th>Modified</th></tr>");
                 childrenTemp.append("<tr>");
@@ -136,7 +136,7 @@ public class DoGet extends DoHead {
                     childrenTemp.append("\">");
                     childrenTemp.append("<td>");
                     childrenTemp.append("<a href=\"");
-                    childrenTemp.append(child);
+                    childrenTemp.append(escapeHtml(child));
                     StoredObject obj= _store.getStoredObject(transaction, path + "/" +child);
                     if (obj == null)
                     {
@@ -147,7 +147,7 @@ public class DoGet extends DoHead {
                         childrenTemp.append("/");
                     }
                     childrenTemp.append("\">");
-                    childrenTemp.append(child);
+                    childrenTemp.append(escapeHtml(child));
                     childrenTemp.append("</a></td>");
                     if (obj != null && obj.isFolder())
                     {
@@ -189,9 +189,8 @@ public class DoGet extends DoHead {
                     childrenTemp.append("</tr>");
                 }
                 childrenTemp.append("</table>");
-                childrenTemp.append(getFooter(transaction, path, resp, req));
                 childrenTemp.append("</body></html>");
-                out.write(childrenTemp.toString().getBytes("UTF-8"));
+                out.write(childrenTemp.toString().getBytes(StandardCharsets.UTF_8));
             }
         }
     }
@@ -205,34 +204,36 @@ public class DoGet extends DoHead {
     protected String getCSS()
     {
         // The default styles to use
-       String retVal= "body {\n"+
-                "	font-family: Arial, Helvetica, sans-serif;\n"+
-                "}\n"+
-                "h1 {\n"+
-                "	font-size: 1.5em;\n"+
-                "}\n"+
-                "th {\n"+
-                "	background-color: #9DACBF;\n"+
-                "}\n"+
-                "table {\n"+
-                "	border-top-style: solid;\n"+
-                "	border-right-style: solid;\n"+
-                "	border-bottom-style: solid;\n"+
-                "	border-left-style: solid;\n"+
-                "}\n"+
-                "td {\n"+
-                "	margin: 0px;\n"+
-                "	padding-top: 2px;\n"+
-                "	padding-right: 5px;\n"+
-                "	padding-bottom: 2px;\n"+
-                "	padding-left: 5px;\n"+
-                "}\n"+
-                "tr.even {\n"+
-                "	background-color: #CCCCCC;\n"+
-                "}\n"+
-                "tr.odd {\n"+
-                "	background-color: #FFFFFF;\n"+
-                "}\n";
+       String retVal= """
+               body {
+               	font-family: Arial, Helvetica, sans-serif;
+               }
+               h1 {
+               	font-size: 1.5em;
+               }
+               th {
+               	background-color: #9DACBF;
+               }
+               table {
+               	border-top-style: solid;
+               	border-right-style: solid;
+               	border-bottom-style: solid;
+               	border-left-style: solid;
+               }
+               td {
+               	margin: 0px;
+               	padding-top: 2px;
+               	padding-right: 5px;
+               	padding-bottom: 2px;
+               	padding-left: 5px;
+               }
+               tr.even {
+               	background-color: #CCCCCC;
+               }
+               tr.odd {
+               	background-color: #FFFFFF;
+               }
+               """;
         // Try loading one via class loader and use that one instead
         ClassLoader cl = getClass().getClassLoader();
         try (InputStream iStream = cl.getResourceAsStream("webdav.css")) {
@@ -256,37 +257,23 @@ public class DoGet extends DoHead {
     /**
      * Return the header to be displayed in front of the folder content
      * 
-     * @param transaction the transaction
      * @param path the path
-     * @param resp the http response
-     * @param req the http request
      * @return the header
      */
-    protected String getHeader(
-        ITransaction transaction,
-        String path,
-        HttpServletResponse resp,
-        HttpServletRequest req
-    ) {
-        return "<h1>Content of folder "+path+"</h1>";
+    protected String getHeader(String path) {
+        return "<h1>Content of folder " + escapeHtml(path) + "</h1>";
     }
 
-    /**
-     * Return the footer to be displayed after the folder content
-     *
-     * @param transaction the transaction
-     * @param path the path
-     * @param resp the http response
-     * @param req the http request
-     * @return the footer
-     */
-    protected String getFooter(
-        ITransaction transaction,
-        String path,
-        HttpServletResponse resp,
-        HttpServletRequest req
-    ) {
-        return "";
+    private static String escapeHtml(String input) {
+        if (input == null) {
+            return "";
+        }
+        return input
+            .replace("&", "&amp;")
+            .replace("<", "&lt;")
+            .replace(">", "&gt;")
+            .replace("\"", "&quot;")
+            .replace("'", "&#x27;");
     }
 
     /**
