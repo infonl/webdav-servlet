@@ -128,10 +128,9 @@ public class DoProppatchTest extends MockTest {
     public void doProppatchWithXxeContentReturnsInternalServerError() throws Exception {
 
         final String path = "/testFile";
-        final byte[] xxeContent = ("<?xml version=\"1.0\"?>"
-                + "<!DOCTYPE foo [<!ENTITY xxe SYSTEM \"file:///etc/passwd\">]>"
-                + "<propertyupdate><set><prop><evil>&xxe;</evil></prop></set></propertyupdate>")
-                .getBytes(StandardCharsets.UTF_8);
+        final byte[] xxeContent = ("<?xml version=\"1.0\"?>" + "<!DOCTYPE foo [<!ENTITY xxe SYSTEM \"file:///etc/passwd\">]>" +
+                                   "<propertyupdate><set><prop><evil>&xxe;</evil></prop></set></propertyupdate>")
+                                           .getBytes(StandardCharsets.UTF_8);
         final DelegatingServletInputStream xxeDsis = new DelegatingServletInputStream(
                 new ByteArrayInputStream(xxeContent));
 
