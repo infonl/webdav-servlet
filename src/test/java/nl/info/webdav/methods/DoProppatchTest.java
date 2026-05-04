@@ -2,6 +2,7 @@ package nl.info.webdav.methods;
 
 import java.io.ByteArrayInputStream;
 import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -110,6 +111,92 @@ public class DoProppatchTest extends MockTest {
 
                 oneOf(mockReq).getHeader("If");
                 will(returnValue(null));
+
+                oneOf(mockRes).sendError(WebdavStatus.SC_INTERNAL_SERVER_ERROR);
+            }
+        });
+
+        DoProppatch doProppatch = new DoProppatch(mockStore,
+                new ResourceLocks(), !readOnly);
+
+        doProppatch.execute(mockTransaction, mockReq, mockRes);
+
+        _mockery.assertIsSatisfied();
+    }
+
+    @Test
+    public void doProppatchWithXxeContentReturnsInternalServerError() throws Exception {
+
+        final String path = "/testFile";
+        final byte[] xxeContent = ("<?xml version=\"1.0\"?>" + "<!DOCTYPE foo [<!ENTITY xxe SYSTEM \"file:///etc/passwd\">]>" +
+                                   "<propertyupdate><set><prop><evil>&xxe;</evil></prop></set></propertyupdate>")
+                                           .getBytes(StandardCharsets.UTF_8);
+        final DelegatingServletInputStream xxeDsis = new DelegatingServletInputStream(
+                new ByteArrayInputStream(xxeContent));
+
+        _mockery.checking(new Expectations() {
+            {
+                exactly(2).of(mockReq).getAttribute("javax.servlet.include.request_uri");
+                will(returnValue(null));
+
+                exactly(2).of(mockReq).getPathInfo();
+                will(returnValue(path));
+
+                StoredObject testFileSo = initFileStoredObject(resourceContent);
+
+                oneOf(mockStore).getStoredObject(mockTransaction, path);
+                will(returnValue(testFileSo));
+
+                oneOf(mockReq).getHeader("If");
+                will(returnValue(null));
+
+                oneOf(mockReq).getContentLength();
+                will(returnValue(xxeContent.length));
+
+                oneOf(mockReq).getInputStream();
+                will(returnValue(xxeDsis));
+
+                oneOf(mockRes).sendError(WebdavStatus.SC_INTERNAL_SERVER_ERROR);
+            }
+        });
+
+        DoProppatch doProppatch = new DoProppatch(mockStore,
+                new ResourceLocks(), !readOnly);
+
+        doProppatch.execute(mockTransaction, mockReq, mockRes);
+
+        _mockery.assertIsSatisfied();
+    }
+
+    @Test
+    public void doProppatchWithMalformedXmlReturnsInternalServerError() throws Exception {
+
+        final String path = "/testFile";
+        final byte[] malformedContent = "not valid xml <<>>".getBytes(StandardCharsets.UTF_8);
+        final DelegatingServletInputStream malformedDsis = new DelegatingServletInputStream(
+                new ByteArrayInputStream(malformedContent));
+
+        _mockery.checking(new Expectations() {
+            {
+                exactly(2).of(mockReq).getAttribute("javax.servlet.include.request_uri");
+                will(returnValue(null));
+
+                exactly(2).of(mockReq).getPathInfo();
+                will(returnValue(path));
+
+                StoredObject testFileSo = initFileStoredObject(resourceContent);
+
+                oneOf(mockStore).getStoredObject(mockTransaction, path);
+                will(returnValue(testFileSo));
+
+                oneOf(mockReq).getHeader("If");
+                will(returnValue(null));
+
+                oneOf(mockReq).getContentLength();
+                will(returnValue(malformedContent.length));
+
+                oneOf(mockReq).getInputStream();
+                will(returnValue(malformedDsis));
 
                 oneOf(mockRes).sendError(WebdavStatus.SC_INTERNAL_SERVER_ERROR);
             }
