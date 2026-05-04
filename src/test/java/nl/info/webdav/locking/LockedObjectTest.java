@@ -10,9 +10,10 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import nl.info.webdav.testutil.MockTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import nl.info.webdav.testutil.MockTest;
 
 public class LockedObjectTest extends MockTest {
 
@@ -32,7 +33,7 @@ public class LockedObjectTest extends MockTest {
         LockedObject lo = lockedObject("/foo");
         boolean result = lo.addLockedObjectOwner("alice");
         assertTrue(result);
-        assertArrayEquals(new String[] { "alice" }, lo.getOwner());
+        assertArrayEquals(new String[]{"alice"}, lo.getOwner());
     }
 
     @Test
@@ -67,7 +68,7 @@ public class LockedObjectTest extends MockTest {
         lo.addLockedObjectOwner("alice");
         lo.addLockedObjectOwner("bob");
         lo.removeLockedObjectOwner("alice");
-        assertArrayEquals(new String[] { "bob" }, lo.getOwner());
+        assertArrayEquals(new String[]{"bob"}, lo.getOwner());
     }
 
     @Test

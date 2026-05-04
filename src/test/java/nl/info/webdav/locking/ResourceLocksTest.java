@@ -10,9 +10,10 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import nl.info.webdav.testutil.MockTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import nl.info.webdav.testutil.MockTest;
 
 public class ResourceLocksTest extends MockTest {
 
@@ -29,7 +30,7 @@ public class ResourceLocksTest extends MockTest {
         assertTrue(result);
         LockedObject lo = resourceLocks.getLockedObjectByPath(null, "/foo");
         assertNotNull(lo);
-        assertArrayEquals(new String[] { "alice" }, lo.getOwner());
+        assertArrayEquals(new String[]{"alice"}, lo.getOwner());
     }
 
     @Test

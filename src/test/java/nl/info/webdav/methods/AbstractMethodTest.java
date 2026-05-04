@@ -4,8 +4,8 @@ package nl.info.webdav.methods;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Date;
@@ -30,7 +30,8 @@ public class AbstractMethodTest extends MockTest {
     private static class TestableMethod extends AbstractMethod {
         @Override
         public void execute(ITransaction transaction, HttpServletRequest req, HttpServletResponse resp)
-                throws LockFailedException {}
+                                                                                                        throws LockFailedException {
+        }
     }
 
     private final TestableMethod method = new TestableMethod();
