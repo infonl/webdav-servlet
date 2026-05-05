@@ -219,7 +219,7 @@ public class LocalFileSystemStore implements IWebdavStore {
             if (!candidateCanonical.equals(_rootCanonical) && !candidateCanonical.startsWith(_rootCanonical + File.separator)) {
                 throw new WebdavException("Path traversal attempt detected: " + uri);
             }
-            return candidate;
+            return new File(candidateCanonical);
         } catch (IOException e) {
             throw new WebdavException(e);
         }
