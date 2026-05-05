@@ -54,6 +54,7 @@ public class DoLock extends AbstractMethod {
         _readOnly = readOnly;
     }
 
+    @Override
     public void execute(
             ITransaction transaction,
             HttpServletRequest req,
