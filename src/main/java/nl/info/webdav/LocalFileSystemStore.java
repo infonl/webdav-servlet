@@ -1,17 +1,6 @@
 /*
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
+ * SPDX-FileCopyrightText: 2026 INFO.nl
+ * SPDX-License-Identifier: EUPL-1.2+
  */
 package nl.info.webdav;
 
@@ -34,7 +23,7 @@ import nl.info.webdav.exceptions.WebdavException;
 
 /**
  * Reference Implementation of WebdavStore
- * 
+ *
  * @author joa
  * @author re
  */
@@ -43,13 +32,15 @@ public class LocalFileSystemStore implements IWebdavStore {
     private static final int BUF_SIZE = 65536;
 
     private final File _root;
+    private final String _rootCanonical;
 
-    public LocalFileSystemStore(File root) {
+    public LocalFileSystemStore(File root) throws IOException {
         _root = root;
+        _rootCanonical = root.getCanonicalPath();
     }
 
     public void destroy() {
-        ;
+        // no-op
     }
 
     public ITransaction begin(Principal principal) throws WebdavException {
@@ -83,14 +74,14 @@ public class LocalFileSystemStore implements IWebdavStore {
     public void createFolder(ITransaction transaction, String uri)
                                                                    throws WebdavException {
         LOG.fine("LocalFileSystemStore.createFolder(" + uri + ")");
-        File file = new File(_root, uri);
+        File file = resolveFile(uri);
         if (!file.mkdir())
             throw new WebdavException("cannot create folder: " + uri);
     }
 
     public void createResource(ITransaction transaction, String uri) throws WebdavException {
         LOG.fine("LocalFileSystemStore.createResource(" + uri + ")");
-        File file = new File(_root, uri);
+        File file = resolveFile(uri);
         try {
             if (!file.createNewFile())
                 throw new WebdavException("cannot create file: " + uri);
@@ -110,7 +101,7 @@ public class LocalFileSystemStore implements IWebdavStore {
       throws WebdavException {
 
         LOG.fine("LocalFileSystemStore.setResourceContent(" + uri + ")");
-        File file = new File(_root, uri);
+        File file = resolveFile(uri);
         try {
             OutputStream os = new BufferedOutputStream(new FileOutputStream(
                     file), BUF_SIZE);
@@ -150,26 +141,26 @@ public class LocalFileSystemStore implements IWebdavStore {
     public String[] getChildrenNames(ITransaction transaction, String uri)
                                                                            throws WebdavException {
         LOG.fine("LocalFileSystemStore.getChildrenNames(" + uri + ")");
-        File file = new File(_root, uri);
+        File file = resolveFile(uri);
         String[] childrenNames = null;
         if (file.isDirectory()) {
             File[] children = file.listFiles();
-            List<String> childList = new ArrayList<String>();
-            String name = null;
+            List<String> childList = new ArrayList<>();
+            String name;
             for (int i = 0; i < children.length; i++) {
                 name = children[i].getName();
                 childList.add(name);
                 LOG.fine("Child " + i + ": " + name);
             }
             childrenNames = new String[childList.size()];
-            childrenNames = (String[]) childList.toArray(childrenNames);
+            childrenNames = childList.toArray(childrenNames);
         }
         return childrenNames;
     }
 
     public void removeObject(ITransaction transaction, String uri)
                                                                    throws WebdavException {
-        File file = new File(_root, uri);
+        File file = resolveFile(uri);
         boolean success = file.delete();
         LOG.fine("LocalFileSystemStore.removeObject(" + uri + ")=" + success);
         if (!success) {
@@ -181,7 +172,7 @@ public class LocalFileSystemStore implements IWebdavStore {
     public InputStream getResourceContent(ITransaction transaction, String uri)
                                                                                 throws WebdavException {
         LOG.fine("LocalFileSystemStore.getResourceContent(" + uri + ")");
-        File file = new File(_root, uri);
+        File file = resolveFile(uri);
 
         InputStream in;
         try {
@@ -196,14 +187,20 @@ public class LocalFileSystemStore implements IWebdavStore {
     public long getResourceLength(ITransaction transaction, String uri)
                                                                         throws WebdavException {
         LOG.fine("LocalFileSystemStore.getResourceLength(" + uri + ")");
-        File file = new File(_root, uri);
+        File file = resolveFile(uri);
         return file.length();
     }
 
     public StoredObject getStoredObject(ITransaction transaction, String uri) {
         StoredObject so = null;
 
-        File file = new File(_root, uri);
+        File file;
+        try {
+            file = resolveFile(uri);
+        } catch (WebdavException e) {
+            LOG.warning("LocalFileSystemStore.getStoredObject(" + uri + ") rejected: " + e.getMessage());
+            return null;
+        }
         if (file.exists()) {
             so = new StoredObject();
             so.setFolder(file.isDirectory());
@@ -213,5 +210,18 @@ public class LocalFileSystemStore implements IWebdavStore {
         }
 
         return so;
+    }
+
+    private File resolveFile(String uri) throws WebdavException {
+        try {
+            File candidate = new File(_root, uri);
+            String candidateCanonical = candidate.getCanonicalPath();
+            if (!candidateCanonical.equals(_rootCanonical) && !candidateCanonical.startsWith(_rootCanonical + File.separator)) {
+                throw new WebdavException("Path traversal attempt detected: " + uri);
+            }
+            return candidate;
+        } catch (IOException e) {
+            throw new WebdavException(e);
+        }
     }
 }

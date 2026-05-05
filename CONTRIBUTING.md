@@ -19,16 +19,18 @@ For most source code files (e.g. `.ts`, `.js` and `.java` files) please add the 
 
 ```
 /*
- * SPDX-FileCopyrightText: 2024 INFO.nl
+ * SPDX-FileCopyrightText: <YYYY> INFO.nl
  * SPDX-License-Identifier: EUPL-1.2+
  */
 ```
+
+Where `<YYYY>` is the current year. E.g. `2024`.
 
 For other file types (e.g. `.html` and `.xml` files) please add the following SPDX license identifier to the top of the file:
 
 ```
  <!--
-  ~ SPDX-FileCopyrightText: 2024 INFO.nl
+  ~ SPDX-FileCopyrightText: <YYYY> INFO.nl
   ~ SPDX-License-Identifier: EUPL-1.2+
   -->
 ```
@@ -37,7 +39,7 @@ Finally for e.g. `.sh` files please add:
 
 ```
 #
-# SPDX-FileCopyrightText: 2024 INFO.nl
+# SPDX-FileCopyrightText: <YYYY> INFO.nl
 # SPDX-License-Identifier: EUPL-1.2+
 #
 ```
@@ -47,7 +49,7 @@ For example, in IntelliJ IDEA please follow the instructions on https://www.jetb
 
 ### Modifying an existing source code file
 
-Please update the SPDX license identifier to the top of the file by adding a `, <YEAR> INFO.nl` to
+Please update the SPDX license identifier to the top of the file by adding a `, <YYYY> INFO.nl` to
 the `SPDX-FileCopyrightText` identifier. E.g.:
 
 ```
@@ -79,7 +81,7 @@ When you create a Pull Request (PR) please follow the following instructions to 
 
 For example:
 
-![conventional-commit-checker.png](./attachments/images/conventional-commit-checker.png)
+![conventional-commit-checker.png](./docs/development/attachments/images/conventional-commit-checker.png)
 
 We use the [Conventional Commits GitHub Action](https://github.com/agenthunt/conventional-commit-checker-action) to check
 if a new PR complies to our Conventional Commits guidelines described above.
