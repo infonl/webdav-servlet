@@ -47,6 +47,7 @@ public class DoHead extends AbstractMethod {
         _contentLength = contentLengthHeader;
     }
 
+    @Override
     public void execute(
             ITransaction transaction,
             HttpServletRequest req,
