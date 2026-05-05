@@ -11,8 +11,11 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.ByteArrayInputStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import java.util.Hashtable;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -43,12 +46,14 @@ public class AbstractMethodTest extends MockTest {
 
     static ITransaction mockTransaction;
     static HttpServletRequest mockReq;
+    static HttpServletResponse mockResp;
     static IResourceLocks mockResourceLocks;
 
     @BeforeAll
     public static void setUp() {
         mockTransaction = _mockery.mock(ITransaction.class);
         mockReq = _mockery.mock(HttpServletRequest.class);
+        mockResp = _mockery.mock(HttpServletResponse.class);
         mockResourceLocks = _mockery.mock(IResourceLocks.class);
     }
 
@@ -217,6 +222,52 @@ public class AbstractMethodTest extends MockTest {
         String xml = "<?xml version=\"1.0\"?><propfind xmlns=\"DAV:\"><allprop/></propfind>";
         ByteArrayInputStream input = new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8));
         assertDoesNotThrow(() -> assertNotNull(method.getDocumentBuilder().parse(input)));
+    }
+
+    @Test
+    public void testSendReportEscapesAmpersandInMultiStatusPath() throws Exception {
+        StringWriter sw = new StringWriter();
+        _mockery.checking(new Expectations() {
+            {
+                oneOf(mockResp).setStatus(207);
+                oneOf(mockResp).getWriter();
+                will(returnValue(new PrintWriter(sw)));
+            }
+        });
+        Hashtable<String, Integer> errors = new Hashtable<>();
+        errors.put("/path/with&ampersand", 423);
+        errors.put("/other/path", 423);
+        method.sendReport(mockResp, errors);
+        String output = sw.toString();
+        assertTrue(output.contains("&amp;"), "Expected &amp; in: " + output);
+        assertDoesNotThrow(
+                () -> method.getDocumentBuilder().parse(new ByteArrayInputStream(output.getBytes(StandardCharsets.UTF_8))),
+                "Response must be well-formed XML"
+        );
+        _mockery.assertIsSatisfied();
+    }
+
+    @Test
+    public void testSendReportEscapesLessThanInMultiStatusPath() throws Exception {
+        StringWriter sw = new StringWriter();
+        _mockery.checking(new Expectations() {
+            {
+                oneOf(mockResp).setStatus(207);
+                oneOf(mockResp).getWriter();
+                will(returnValue(new PrintWriter(sw)));
+            }
+        });
+        Hashtable<String, Integer> errors = new Hashtable<>();
+        errors.put("/path/with<tag>", 423);
+        errors.put("/other/path", 423);
+        method.sendReport(mockResp, errors);
+        String output = sw.toString();
+        assertTrue(output.contains("&lt;"), "Expected &lt; in: " + output);
+        assertDoesNotThrow(
+                () -> method.getDocumentBuilder().parse(new ByteArrayInputStream(output.getBytes(StandardCharsets.UTF_8))),
+                "Response must be well-formed XML"
+        );
+        _mockery.assertIsSatisfied();
     }
 
     @Test
