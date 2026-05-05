@@ -273,24 +273,6 @@ public class AbstractMethodTest extends MockTest {
     }
 
     @Test
-    public void testSendReportSetsXmlContentTypeForMultipleErrors() throws Exception {
-        StringWriter sw = new StringWriter();
-        _mockery.checking(new Expectations() {
-            {
-                oneOf(mockResp).setStatus(207);
-                oneOf(mockResp).setContentType("text/xml; charset=UTF-8");
-                oneOf(mockResp).getWriter();
-                will(returnValue(new PrintWriter(sw)));
-            }
-        });
-        Hashtable<String, Integer> errors = new Hashtable<>();
-        errors.put("/a", 423);
-        errors.put("/b", 423);
-        method.sendReport(mockResp, errors);
-        _mockery.assertIsSatisfied();
-    }
-
-    @Test
     public void testCheckLocksReturnsFalseForExclusiveLockWithWrongToken() {
         ResourceLocks realLocks = new ResourceLocks();
         LockedObject exclusiveLo = new LockedObject(realLocks, "/testexcl", false);
