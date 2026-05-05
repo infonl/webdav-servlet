@@ -18,7 +18,6 @@ package nl.info.webdav.fromcatalina;
 
 import java.io.IOException;
 import java.io.Writer;
-import java.util.Iterator;
 import java.util.Map;
 
 /**
@@ -105,7 +104,7 @@ public class XMLWriter {
      */
     public void writeProperty(String name, String value) {
         writeElement(name, OPENING);
-        _buffer.append(value);
+        _buffer.append(escapeXml(value));
         writeElement(name, CLOSING);
     }
 
@@ -130,12 +129,9 @@ public class XMLWriter {
     public void writeElement(String name, int type) {
         StringBuilder nsdecl = new StringBuilder();
         if (_isRootElement) {
-            for (Iterator<String> iter = _namespaces.keySet().iterator(); iter
-                    .hasNext();) {
-                String fullName = (String) iter.next();
-                String abbrev = (String) _namespaces.get(fullName);
-                nsdecl.append(" xmlns:").append(abbrev).append("=\"").append(
-                        fullName).append("\"");
+            for (String fullName : _namespaces.keySet()) {
+                String abbrev = _namespaces.get(fullName);
+                nsdecl.append(" xmlns:").append(abbrev).append("=\"").append(fullName).append("\"");
             }
             _isRootElement = false;
         }
@@ -174,17 +170,17 @@ public class XMLWriter {
 
     /**
      * Write text.
-     * 
+     *
      * @param text
      *      Text to append
      */
     public void writeText(String text) {
-        _buffer.append(text);
+        _buffer.append(escapeXml(text));
     }
 
     /**
      * Write data.
-     * 
+     *
      * @param data
      *      Data to append
      */
@@ -208,5 +204,25 @@ public class XMLWriter {
             _writer.flush();
             _buffer = new StringBuffer();
         }
+    }
+
+    private static String escapeXml(String text) {
+        if (text == null) {
+            return null;
+        }
+        StringBuilder result = new StringBuilder(text.length());
+        for (int i = 0; i < text.length(); i++) {
+            char c = text.charAt(i);
+            if (c == '&') {
+                result.append("&amp;");
+            } else if (c == '<') {
+                result.append("&lt;");
+            } else if (c == '>') {
+                result.append("&gt;");
+            } else {
+                result.append(c);
+            }
+        }
+        return result.toString();
     }
 }
