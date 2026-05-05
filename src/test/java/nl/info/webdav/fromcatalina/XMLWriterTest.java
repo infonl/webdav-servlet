@@ -3,7 +3,6 @@
 package nl.info.webdav.fromcatalina;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -25,39 +24,25 @@ public class XMLWriterTest {
     @Test
     public void testWriteTextEscapesAmpersand() {
         writer.writeText("foo&bar");
-        assertTrue(writer.toString().contains("foo&amp;bar"));
+        assertEquals("foo&amp;bar", writer.toString());
     }
 
     @Test
     public void testWriteTextEscapesLessThan() {
         writer.writeText("foo<bar");
-        assertTrue(writer.toString().contains("foo&lt;bar"));
+        assertEquals("foo&lt;bar", writer.toString());
     }
 
     @Test
     public void testWriteTextEscapesGreaterThan() {
         writer.writeText("foo>bar");
-        assertTrue(writer.toString().contains("foo&gt;bar"));
+        assertEquals("foo&gt;bar", writer.toString());
     }
 
     @Test
     public void testWriteTextNoSpecialCharactersUnchanged() {
         writer.writeText("normal text 123");
-        assertTrue(writer.toString().contains("normal text 123"));
-    }
-
-    @Test
-    public void testWritePropertyEscapesAmpersandInValue() {
-        writer.writeProperty("DAV::displayname", "foo&bar");
-        String output = writer.toString();
-        assertTrue(output.contains("foo&amp;bar"), "Expected &amp; in: " + output);
-    }
-
-    @Test
-    public void testWritePropertyEscapesLessThanInValue() {
-        writer.writeProperty("DAV::displayname", "foo<bar");
-        String output = writer.toString();
-        assertTrue(output.contains("foo&lt;bar"), "Expected &lt; in: " + output);
+        assertEquals("normal text 123", writer.toString());
     }
 
     @Test
@@ -67,9 +52,20 @@ public class XMLWriterTest {
     }
 
     @Test
+    public void testWritePropertyEscapesAmpersandInValue() {
+        writer.writeProperty("DAV::displayname", "foo&bar");
+        assertEquals("<D:displayname xmlns:D=\"DAV:\">foo&amp;bar</D:displayname>\n", writer.toString());
+    }
+
+    @Test
+    public void testWritePropertyEscapesLessThanInValue() {
+        writer.writeProperty("DAV::displayname", "foo<bar");
+        assertEquals("<D:displayname xmlns:D=\"DAV:\">foo&lt;bar</D:displayname>\n", writer.toString());
+    }
+
+    @Test
     public void testWritePropertyRendersElementWithEscapedValue() {
         writer.writeProperty("DAV::displayname", "a&b<c>d");
-        String output = writer.toString();
-        assertEquals("<D:displayname xmlns:D=\"DAV:\">a&amp;b&lt;c&gt;d</D:displayname>\n", output);
+        assertEquals("<D:displayname xmlns:D=\"DAV:\">a&amp;b&lt;c&gt;d</D:displayname>\n", writer.toString());
     }
 }
