@@ -83,6 +83,19 @@ public class XMLWriterTest {
     }
 
     @Test
+    public void testWriteDataEscapesMultipleCdataTerminators() throws Exception {
+        writer.writeElement("DAV::displayname", XMLWriter.OPENING);
+        writer.writeData("a]]>b]]>c");
+        writer.writeElement("DAV::displayname", XMLWriter.CLOSING);
+        String xml = "<?xml version=\"1.0\"?>" + writer.toString();
+        javax.xml.parsers.DocumentBuilderFactory dbf = javax.xml.parsers.DocumentBuilderFactory.newInstance();
+        dbf.setNamespaceAware(true);
+        org.w3c.dom.Document doc = dbf.newDocumentBuilder().parse(
+                new java.io.ByteArrayInputStream(xml.getBytes(java.nio.charset.StandardCharsets.UTF_8)));
+        assertEquals("a]]>b]]>c", doc.getElementsByTagNameNS("DAV:", "displayname").item(0).getTextContent());
+    }
+
+    @Test
     public void testWriteDataWithoutCdataTerminatorIsUnchanged() {
         writer.writeData("plain content");
         assertEquals("<![CDATA[plain content]]>", writer.toString());
