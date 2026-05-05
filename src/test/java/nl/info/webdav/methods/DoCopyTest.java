@@ -793,4 +793,56 @@ public class DoCopyTest extends MockTest {
 
         _mockery.assertIsSatisfied();
     }
+
+    @Test
+    public void testDestinationHeaderSingleParentSegmentIsRejected() throws Exception {
+        // normalize() would resolve /safe/../secret to /secret (not null),
+        // so this test proves assertSafePath runs before normalize()
+        _mockery.checking(new Expectations() {
+            {
+                oneOf(mockReq).getAttribute("javax.servlet.include.request_uri");
+                will(returnValue(null));
+                oneOf(mockReq).getPathInfo();
+                will(returnValue("/source"));
+
+                oneOf(mockReq).getHeader("Destination");
+                will(returnValue("http://localhost/safe/../secret"));
+
+                oneOf(mockRes).sendError(WebdavStatus.SC_BAD_REQUEST);
+            }
+        });
+
+        ResourceLocks resLocks = new ResourceLocks();
+        DoDelete doDelete = new DoDelete(mockStore, resLocks, !readOnly);
+        DoCopy doCopy = new DoCopy(mockStore, resLocks, doDelete, !readOnly);
+        doCopy.execute(mockTransaction, mockReq, mockRes);
+
+        _mockery.assertIsSatisfied();
+    }
+
+    @Test
+    public void testDestinationHeaderDotSegmentIsRejected() throws Exception {
+        // normalize() would resolve /foo/./bar to /foo/bar (not null),
+        // so this test proves assertSafePath runs before normalize()
+        _mockery.checking(new Expectations() {
+            {
+                oneOf(mockReq).getAttribute("javax.servlet.include.request_uri");
+                will(returnValue(null));
+                oneOf(mockReq).getPathInfo();
+                will(returnValue("/source"));
+
+                oneOf(mockReq).getHeader("Destination");
+                will(returnValue("http://localhost/foo/./bar"));
+
+                oneOf(mockRes).sendError(WebdavStatus.SC_BAD_REQUEST);
+            }
+        });
+
+        ResourceLocks resLocks = new ResourceLocks();
+        DoDelete doDelete = new DoDelete(mockStore, resLocks, !readOnly);
+        DoCopy doCopy = new DoCopy(mockStore, resLocks, doDelete, !readOnly);
+        doCopy.execute(mockTransaction, mockReq, mockRes);
+
+        _mockery.assertIsSatisfied();
+    }
 }
