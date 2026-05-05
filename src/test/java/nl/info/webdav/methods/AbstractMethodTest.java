@@ -240,6 +240,10 @@ public class AbstractMethodTest extends MockTest {
         method.sendReport(mockResp, errors);
         String output = sw.toString();
         assertTrue(output.contains("&amp;"), "Expected &amp; in: " + output);
+        assertDoesNotThrow(
+            () -> method.getDocumentBuilder().parse(new ByteArrayInputStream(output.getBytes(StandardCharsets.UTF_8))),
+            "Response must be well-formed XML"
+        );
         _mockery.assertIsSatisfied();
     }
 
@@ -259,6 +263,10 @@ public class AbstractMethodTest extends MockTest {
         method.sendReport(mockResp, errors);
         String output = sw.toString();
         assertTrue(output.contains("&lt;"), "Expected &lt; in: " + output);
+        assertDoesNotThrow(
+            () -> method.getDocumentBuilder().parse(new ByteArrayInputStream(output.getBytes(StandardCharsets.UTF_8))),
+            "Response must be well-formed XML"
+        );
         _mockery.assertIsSatisfied();
     }
 

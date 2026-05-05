@@ -206,9 +206,18 @@ public class XMLWriter {
         }
     }
 
+    /**
+     * Escape XML special characters.
+     * By design — " and ' only need escaping inside XML attribute values, not in text node content.
+     * escapeXml is only called to write text node content between tags, never inside attribute values.
+     * Escaping them there would produce unnecessarily verbose output (&quot;, &#x27;) without any security benefit.
+     *
+     * @param text the XML text to escape
+     * @return the escaped text
+     */
     private static String escapeXml(String text) {
         if (text == null) {
-            return null;
+            return "";
         }
         StringBuilder result = new StringBuilder(text.length());
         for (int i = 0; i < text.length(); i++) {

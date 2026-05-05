@@ -61,6 +61,12 @@ public class XMLWriterTest {
     }
 
     @Test
+    public void testWriteTextNullProducesEmptyOutput() {
+        writer.writeText(null);
+        assertEquals("", writer.toString());
+    }
+
+    @Test
     public void testWritePropertyRendersElementWithEscapedValue() {
         writer.writeProperty("DAV::displayname", "a&b<c>d");
         String output = writer.toString();
