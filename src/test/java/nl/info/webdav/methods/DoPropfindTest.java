@@ -1,5 +1,7 @@
 package nl.info.webdav.methods;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import java.io.PrintWriter;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -14,6 +16,7 @@ import nl.info.webdav.ITransaction;
 import nl.info.webdav.IWebdavStore;
 import nl.info.webdav.StoredObject;
 import nl.info.webdav.WebdavStatus;
+import nl.info.webdav.exceptions.PathTraversalException;
 import nl.info.webdav.locking.ResourceLocks;
 import nl.info.webdav.testutil.MockTest;
 
@@ -220,6 +223,22 @@ public class DoPropfindTest extends MockTest {
 
         doPropfind.execute(mockTransaction, mockReq, mockRes);
 
+        _mockery.assertIsSatisfied();
+    }
+
+    @Test
+    public void testPathTraversalIsRejected() {
+        _mockery.checking(new Expectations() {
+            {
+                oneOf(mockReq).getAttribute("javax.servlet.include.request_uri");
+                will(returnValue(null));
+                oneOf(mockReq).getPathInfo();
+                will(returnValue("/safe/../../etc/passwd"));
+            }
+        });
+
+        DoPropfind doPropfind = new DoPropfind(mockStore, new ResourceLocks(), mockMimeTyper);
+        assertThrows(PathTraversalException.class, () -> doPropfind.execute(mockTransaction, mockReq, mockRes));
         _mockery.assertIsSatisfied();
     }
 

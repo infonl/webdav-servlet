@@ -28,6 +28,7 @@ import org.xml.sax.SAXParseException;
 import nl.info.webdav.ITransaction;
 import nl.info.webdav.StoredObject;
 import nl.info.webdav.exceptions.LockFailedException;
+import nl.info.webdav.exceptions.PathTraversalException;
 import nl.info.webdav.locking.IResourceLocks;
 import nl.info.webdav.locking.LockedObject;
 import nl.info.webdav.locking.ResourceLocks;
@@ -269,6 +270,40 @@ public class AbstractMethodTest extends MockTest {
                 () -> method.getDocumentBuilder().parse(new ByteArrayInputStream(output.getBytes(StandardCharsets.UTF_8))),
                 "Response must be well-formed XML"
         );
+        _mockery.assertIsSatisfied();
+    }
+
+    @Test
+    public void testAssertSafePathRejectsParentTraversalSegment() {
+        assertThrows(PathTraversalException.class, () -> AbstractMethod.assertSafePath("/safe/../../etc/passwd"));
+    }
+
+    @Test
+    public void testAssertSafePathRejectsDotSegment() {
+        assertThrows(PathTraversalException.class, () -> AbstractMethod.assertSafePath("/foo/./bar"));
+    }
+
+    @Test
+    public void testAssertSafePathAcceptsNormalPath() {
+        assertDoesNotThrow(() -> AbstractMethod.assertSafePath("/files/documents/report.pdf"));
+    }
+
+    @Test
+    public void testAssertSafePathAcceptsRoot() {
+        assertDoesNotThrow(() -> AbstractMethod.assertSafePath("/"));
+    }
+
+    @Test
+    public void testGetRelativePathThrowsOnTraversal() {
+        _mockery.checking(new Expectations() {
+            {
+                oneOf(mockReq).getAttribute("javax.servlet.include.request_uri");
+                will(returnValue(null));
+                oneOf(mockReq).getPathInfo();
+                will(returnValue("/safe/../../etc/passwd"));
+            }
+        });
+        assertThrows(PathTraversalException.class, () -> method.getRelativePath(mockReq));
         _mockery.assertIsSatisfied();
     }
 
