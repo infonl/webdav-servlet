@@ -1,6 +1,9 @@
 ### BUILD ###
 build
 .gradle
+.classpath
+.project
+.settings
 
 ### INTELLIJ ###
 *.iml
