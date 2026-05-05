@@ -1,7 +1,10 @@
+/*
+ * SPDX-FileCopyrightText: 2026 INFO.nl
+ * SPDX-License-Identifier: EUPL-1.2+
+ */
 package nl.info.webdav.methods;
 
 import java.io.ByteArrayInputStream;
-import java.io.PrintWriter;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
