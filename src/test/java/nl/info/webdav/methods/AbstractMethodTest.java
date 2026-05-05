@@ -230,6 +230,7 @@ public class AbstractMethodTest extends MockTest {
         _mockery.checking(new Expectations() {
             {
                 oneOf(mockResp).setStatus(207);
+                oneOf(mockResp).setContentType("text/xml; charset=UTF-8");
                 oneOf(mockResp).getWriter();
                 will(returnValue(new PrintWriter(sw)));
             }
@@ -253,6 +254,7 @@ public class AbstractMethodTest extends MockTest {
         _mockery.checking(new Expectations() {
             {
                 oneOf(mockResp).setStatus(207);
+                oneOf(mockResp).setContentType("text/xml; charset=UTF-8");
                 oneOf(mockResp).getWriter();
                 will(returnValue(new PrintWriter(sw)));
             }
