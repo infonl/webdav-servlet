@@ -1,26 +1,8 @@
 /*
- * Copyright 1999,2004 The Apache Software Foundation.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * SPDX-FileCopyrightText: 2026 INFO.nl
+ * SPDX-License-Identifier: EUPL-1.2+
  */
 package nl.info.webdav.methods;
-
-import nl.info.webdav.IMimeTyper;
-import nl.info.webdav.ITransaction;
-import nl.info.webdav.IWebdavStore;
-import nl.info.webdav.StoredObject;
-import nl.info.webdav.WebdavStatus;
-import nl.info.webdav.locking.ResourceLocks;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -36,12 +18,24 @@ import java.util.logging.Logger;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
+import nl.info.webdav.IMimeTyper;
+import nl.info.webdav.ITransaction;
+import nl.info.webdav.IWebdavStore;
+import nl.info.webdav.StoredObject;
+import nl.info.webdav.WebdavStatus;
+import nl.info.webdav.locking.ResourceLocks;
+
 public class DoGet extends DoHead {
     private static final Logger LOG = Logger.getLogger(DoGet.class.getName());
 
-    public DoGet(IWebdavStore store, String dftIndexFile, String insteadOf404,
-            ResourceLocks resourceLocks, IMimeTyper mimeTyper,
-            int contentLengthHeader) {
+    public DoGet(
+            IWebdavStore store,
+            String dftIndexFile,
+            String insteadOf404,
+            ResourceLocks resourceLocks,
+            IMimeTyper mimeTyper,
+            int contentLengthHeader
+    ) {
         super(store, dftIndexFile, insteadOf404, resourceLocks, mimeTyper,
                 contentLengthHeader);
     }
@@ -85,9 +79,13 @@ public class DoGet extends DoHead {
         }
     }
 
-    protected void folderBody(ITransaction transaction, String path,
-            HttpServletResponse resp, HttpServletRequest req)
-            throws IOException {
+    protected void folderBody(
+            ITransaction transaction,
+            String path,
+            HttpServletResponse resp,
+            HttpServletRequest req
+    )
+      throws IOException {
 
         StoredObject so = _store.getStoredObject(transaction, path);
         if (so == null) {
@@ -106,13 +104,13 @@ public class DoGet extends DoHead {
             if (so.isFolder()) {
                 // TODO some folder response (for browsers, DAV tools
                 // use propfind) in html?
-                DateFormat shortDF= getDateTimeFormat(req.getLocale());
+                DateFormat shortDF = getDateTimeFormat(req.getLocale());
                 resp.setContentType("text/html");
                 resp.setCharacterEncoding("UTF8");
                 OutputStream out = resp.getOutputStream();
                 String[] children = _store.getChildrenNames(transaction, path);
                 // Make sure it's not null
-                children = children == null ? new String[] {} : children;
+                children = children == null ? new String[]{} : children;
                 // Sort by name
                 Arrays.sort(children);
                 StringBuilder childrenTemp = new StringBuilder();
@@ -127,63 +125,48 @@ public class DoGet extends DoHead {
                 childrenTemp.append("<tr><th>Name</th><th>Size</th><th>Created</th><th>Modified</th></tr>");
                 childrenTemp.append("<tr>");
                 childrenTemp.append("<td colspan=\"4\"><a href=\"../\">Parent</a></td></tr>");
-                boolean isEven= false;
-                for (String child : children)
-                {
-                    isEven= !isEven;
+                boolean isEven = false;
+                for (String child : children) {
+                    isEven = !isEven;
                     childrenTemp.append("<tr class=\"");
                     childrenTemp.append(isEven ? "even" : "odd");
                     childrenTemp.append("\">");
                     childrenTemp.append("<td>");
                     childrenTemp.append("<a href=\"");
                     childrenTemp.append(escapeHtml(child));
-                    StoredObject obj= _store.getStoredObject(transaction, path + "/" +child);
-                    if (obj == null)
-                    {
+                    StoredObject obj = _store.getStoredObject(transaction, path + "/" + child);
+                    if (obj == null) {
                         LOG.severe(String.format("Should not return null for '%s/%s'", path, child));
                     }
-                    if (obj != null && obj.isFolder())
-                    {
+                    if (obj != null && obj.isFolder()) {
                         childrenTemp.append("/");
                     }
                     childrenTemp.append("\">");
                     childrenTemp.append(escapeHtml(child));
                     childrenTemp.append("</a></td>");
-                    if (obj != null && obj.isFolder())
-                    {
+                    if (obj != null && obj.isFolder()) {
                         childrenTemp.append("<td>Folder</td>");
-                    }
-                    else
-                    {
+                    } else {
                         childrenTemp.append("<td>");
-                        if (obj != null )
-                        {
+                        if (obj != null) {
                             childrenTemp.append(obj.getResourceLength());
-                        }
-                        else
-                        {
+                        } else {
                             childrenTemp.append("Unknown");
                         }
                         childrenTemp.append(" Bytes</td>");
                     }
-                    if (obj != null && obj.getCreationDate() != null)
-                    {
+                    if (obj != null && obj.getCreationDate() != null) {
                         childrenTemp.append("<td>");
                         childrenTemp.append(shortDF.format(obj.getCreationDate()));
                         childrenTemp.append("</td>");
-                    }
-                    else
-                    {
+                    } else {
                         childrenTemp.append("<td></td>");
                     }
-                    if (obj != null  && obj.getLastModified() != null)
-                    {
+                    if (obj != null && obj.getLastModified() != null) {
                         childrenTemp.append("<td>");
                         childrenTemp.append(shortDF.format(obj.getLastModified()));
                         childrenTemp.append("</td>");
-                    }
-                    else
-                    {
+                    } else {
                         childrenTemp.append("<td></td>");
                     }
                     childrenTemp.append("</tr>");
@@ -201,39 +184,38 @@ public class DoGet extends DoHead {
      * 
      * @return the CSS styles
      */
-    protected String getCSS()
-    {
+    protected String getCSS() {
         // The default styles to use
-       String retVal= """
-               body {
-               	font-family: Arial, Helvetica, sans-serif;
-               }
-               h1 {
-               	font-size: 1.5em;
-               }
-               th {
-               	background-color: #9DACBF;
-               }
-               table {
-               	border-top-style: solid;
-               	border-right-style: solid;
-               	border-bottom-style: solid;
-               	border-left-style: solid;
-               }
-               td {
-               	margin: 0px;
-               	padding-top: 2px;
-               	padding-right: 5px;
-               	padding-bottom: 2px;
-               	padding-left: 5px;
-               }
-               tr.even {
-               	background-color: #CCCCCC;
-               }
-               tr.odd {
-               	background-color: #FFFFFF;
-               }
-               """;
+        String retVal = """
+                body {
+                	font-family: Arial, Helvetica, sans-serif;
+                }
+                h1 {
+                	font-size: 1.5em;
+                }
+                th {
+                	background-color: #9DACBF;
+                }
+                table {
+                	border-top-style: solid;
+                	border-right-style: solid;
+                	border-bottom-style: solid;
+                	border-left-style: solid;
+                }
+                td {
+                	margin: 0px;
+                	padding-top: 2px;
+                	padding-right: 5px;
+                	padding-bottom: 2px;
+                	padding-left: 5px;
+                }
+                tr.even {
+                	background-color: #CCCCCC;
+                }
+                tr.odd {
+                	background-color: #FFFFFF;
+                }
+                """;
         // Try loading one via class loader and use that one instead
         ClassLoader cl = getClass().getClassLoader();
         try (InputStream iStream = cl.getResourceAsStream("webdav.css")) {
@@ -244,10 +226,9 @@ public class DoGet extends DoHead {
                 for (int n; (n = iStream.read(b)) != -1;) {
                     out.append(new String(b, 0, n));
                 }
-                retVal= out.toString();
+                retVal = out.toString();
             }
-        }
-        catch (Exception exception) {
+        } catch (Exception exception) {
             LOG.log(Level.SEVERE, "Error in reading webdav.css", exception);
         }
 
@@ -269,11 +250,11 @@ public class DoGet extends DoHead {
             return "";
         }
         return input
-            .replace("&", "&amp;")
-            .replace("<", "&lt;")
-            .replace(">", "&gt;")
-            .replace("\"", "&quot;")
-            .replace("'", "&#x27;");
+                .replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace("\"", "&quot;")
+                .replace("'", "&#x27;");
     }
 
     /**
@@ -285,4 +266,4 @@ public class DoGet extends DoHead {
     protected DateFormat getDateTimeFormat(Locale browserLocale) {
         return SimpleDateFormat.getDateTimeInstance(SimpleDateFormat.SHORT, SimpleDateFormat.MEDIUM, browserLocale);
     }
- }
+}

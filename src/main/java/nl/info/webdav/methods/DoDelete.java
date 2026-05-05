@@ -1,19 +1,15 @@
 /*
- * Copyright 1999,2004 The Apache Software Foundation.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * SPDX-FileCopyrightText: 2026 INFO.nl
+ * SPDX-License-Identifier: EUPL-1.2+
  */
 package nl.info.webdav.methods;
+
+import java.io.IOException;
+import java.util.Hashtable;
+import java.util.logging.Logger;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import nl.info.webdav.ITransaction;
 import nl.info.webdav.IWebdavStore;
@@ -26,13 +22,6 @@ import nl.info.webdav.exceptions.ObjectNotFoundException;
 import nl.info.webdav.exceptions.WebdavException;
 import nl.info.webdav.locking.ResourceLocks;
 
-import java.io.IOException;
-import java.util.Hashtable;
-import java.util.logging.Logger;
-
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-
 public class DoDelete extends AbstractMethod {
     private static final Logger LOG = Logger.getLogger(DoDelete.class.getName());
 
@@ -40,17 +29,20 @@ public class DoDelete extends AbstractMethod {
     private final ResourceLocks _resourceLocks;
     private final boolean _readOnly;
 
-    public DoDelete(IWebdavStore store, ResourceLocks resourceLocks,
-            boolean readOnly) {
+    public DoDelete(
+            IWebdavStore store,
+            ResourceLocks resourceLocks,
+            boolean readOnly
+    ) {
         _store = store;
         _resourceLocks = resourceLocks;
         _readOnly = readOnly;
     }
 
     public void execute(
-        ITransaction transaction,
-        HttpServletRequest req,
-        HttpServletResponse resp
+            ITransaction transaction,
+            HttpServletRequest req,
+            HttpServletResponse resp
     ) throws IOException, LockFailedException {
         LOG.fine("-- " + this.getClass().getName());
 
@@ -102,21 +94,25 @@ public class DoDelete extends AbstractMethod {
      * deletes the recources at "path"
      * 
      * @param transaction
-     *      indicates that the method is within the scope of a WebDAV
-     *      transaction
+     *                    indicates that the method is within the scope of a WebDAV
+     *                    transaction
      * @param path
-     *      the folder to be deleted
+     *                    the folder to be deleted
      * @param errorList
-     *      all errors that occurred
+     *                    all errors that occurred
      * @param resp
-     *      HttpServletResponse
+     *                    HttpServletResponse
      * @throws WebdavException
-     *      if an error in the underlying store occurs
+     *                         if an error in the underlying store occurs
      * @throws IOException
-     *      when an error occurs while sending the response
+     *                         when an error occurs while sending the response
      */
-    public void deleteResource(ITransaction transaction, String path,
-            Hashtable<String, Integer> errorList, HttpServletResponse resp) throws IOException, WebdavException {
+    public void deleteResource(
+            ITransaction transaction,
+            String path,
+            Hashtable<String, Integer> errorList,
+            HttpServletResponse resp
+    ) throws IOException, WebdavException {
 
         resp.setStatus(WebdavStatus.SC_NO_CONTENT);
 
@@ -148,21 +144,22 @@ public class DoDelete extends AbstractMethod {
      * contents
      * 
      * @param transaction
-     *      indicates that the method is within the scope of a WebDAV
-     *      transaction
+     *                    indicates that the method is within the scope of a WebDAV
+     *                    transaction
      * @param path
-     *      the folder to be deleted
+     *                    the folder to be deleted
      * @param errorList
-     *      all errors that ocurred
+     *                    all errors that ocurred
      * @throws WebdavException
-     *      if an error in the underlying store occurs
+     *                         if an error in the underlying store occurs
      */
     private void deleteFolder(
-        ITransaction transaction, String path,
-        Hashtable<String, Integer> errorList
+            ITransaction transaction,
+            String path,
+            Hashtable<String, Integer> errorList
     ) throws WebdavException {
         String[] children = _store.getChildrenNames(transaction, path);
-        children = children == null ? new String[] {} : children;
+        children = children == null ? new String[]{} : children;
         for (int i = children.length - 1; i >= 0; i--) {
             children[i] = "/" + children[i];
             try {

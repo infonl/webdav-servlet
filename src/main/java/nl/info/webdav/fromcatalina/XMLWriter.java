@@ -1,17 +1,6 @@
 /*
- * Copyright 1999,2004 The Apache Software Foundation.
- * 
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * 
- *      http://www.apache.org/licenses/LICENSE-2.0
- * 
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * SPDX-FileCopyrightText: 2026 INFO.nl
+ * SPDX-License-Identifier: EUPL-1.2+
  */
 
 package nl.info.webdav.fromcatalina;
@@ -98,9 +87,9 @@ public class XMLWriter {
      * Write property to the XML.
      * 
      * @param name
-     *      Property name
+     *              Property name
      * @param value
-     *      Property value
+     *              Property value
      */
     public void writeProperty(String name, String value) {
         writeElement(name, OPENING);
@@ -112,7 +101,7 @@ public class XMLWriter {
      * Write property to the XML.
      * 
      * @param name
-     *      Property name
+     *             Property name
      */
     public void writeProperty(String name) {
         writeElement(name, NO_CONTENT);
@@ -122,9 +111,9 @@ public class XMLWriter {
      * Write an element.
      * 
      * @param name
-     *      Element name
+     *             Element name
      * @param type
-     *      Element type
+     *             Element type
      */
     public void writeElement(String name, int type) {
         StringBuilder nsdecl = new StringBuilder();
@@ -155,16 +144,16 @@ public class XMLWriter {
         }
 
         switch (type) {
-        case OPENING:
-            _buffer.append("<").append(name).append(nsdecl).append(">");
-            break;
-        case CLOSING:
-            _buffer.append("</").append(name).append(">\n");
-            break;
-        case NO_CONTENT:
-        default:
-            _buffer.append("<").append(name).append(nsdecl).append("/>");
-            break;
+            case OPENING:
+                _buffer.append("<").append(name).append(nsdecl).append(">");
+                break;
+            case CLOSING:
+                _buffer.append("</").append(name).append(">\n");
+                break;
+            case NO_CONTENT:
+            default:
+                _buffer.append("<").append(name).append(nsdecl).append("/>");
+                break;
         }
     }
 
@@ -172,7 +161,7 @@ public class XMLWriter {
      * Write text.
      *
      * @param text
-     *      Text to append
+     *             Text to append
      */
     public void writeText(String text) {
         _buffer.append(escapeXml(text));
@@ -182,7 +171,7 @@ public class XMLWriter {
      * Write data.
      *
      * @param data
-     *      Data to append
+     *             Data to append
      */
     public void writeData(String data) {
         if (data == null) {

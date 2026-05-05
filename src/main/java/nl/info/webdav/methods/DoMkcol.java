@@ -1,19 +1,15 @@
 /*
- * Copyright 1999,2004 The Apache Software Foundation.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * SPDX-FileCopyrightText: 2026 INFO.nl
+ * SPDX-License-Identifier: EUPL-1.2+
  */
 package nl.info.webdav.methods;
+
+import java.io.IOException;
+import java.util.Hashtable;
+import java.util.logging.Logger;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import nl.info.webdav.ITransaction;
 import nl.info.webdav.IWebdavStore;
@@ -25,13 +21,6 @@ import nl.info.webdav.exceptions.WebdavException;
 import nl.info.webdav.locking.IResourceLocks;
 import nl.info.webdav.locking.LockedObject;
 
-import java.io.IOException;
-import java.util.Hashtable;
-import java.util.logging.Logger;
-
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-
 public class DoMkcol extends AbstractMethod {
     private static final Logger LOG = Logger.getLogger(DoMkcol.class.getName());
 
@@ -39,15 +28,21 @@ public class DoMkcol extends AbstractMethod {
     private final IResourceLocks _resourceLocks;
     private final boolean _readOnly;
 
-    public DoMkcol(IWebdavStore store, IResourceLocks resourceLocks,
-            boolean readOnly) {
+    public DoMkcol(
+            IWebdavStore store,
+            IResourceLocks resourceLocks,
+            boolean readOnly
+    ) {
         _store = store;
         _resourceLocks = resourceLocks;
         _readOnly = readOnly;
     }
 
-    public void execute(ITransaction transaction, HttpServletRequest req,
-            HttpServletResponse resp) throws IOException, LockFailedException {
+    public void execute(
+            ITransaction transaction,
+            HttpServletRequest req,
+            HttpServletResponse resp
+    ) throws IOException, LockFailedException {
         LOG.fine("-- " + this.getClass().getName());
 
         if (!_readOnly) {
@@ -67,12 +62,12 @@ public class DoMkcol extends AbstractMethod {
                 StoredObject parentSo, so;
                 try {
                     parentSo = _store.getStoredObject(transaction, parentPath);
-					if (parentSo == null) {
-						// parent not exists
-						resp.sendError(WebdavStatus.SC_CONFLICT);
-						return;
-					}
-					if (parentPath != null && parentSo.isFolder()) {
+                    if (parentSo == null) {
+                        // parent not exists
+                        resp.sendError(WebdavStatus.SC_CONFLICT);
+                        return;
+                    }
+                    if (parentPath != null && parentSo.isFolder()) {
                         so = _store.getStoredObject(transaction, path);
                         if (so == null) {
                             _store.createFolder(transaction, path);
@@ -128,7 +123,7 @@ public class DoMkcol extends AbstractMethod {
                             }
                         }
 
-					} else if (parentPath != null && parentSo.isResource()) {
+                    } else if (parentPath != null && parentSo.isResource()) {
                         String methodsAllowed = DeterminableMethod
                                 .determineMethodsAllowed(parentSo);
                         resp.addHeader("Allow", methodsAllowed);

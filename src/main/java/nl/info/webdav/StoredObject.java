@@ -1,20 +1,6 @@
 /*
- * ====================================================================
- *
- * Copyright 2004 The Apache Software Foundation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
+ * SPDX-FileCopyrightText: 2026 INFO.nl
+ * SPDX-License-Identifier: EUPL-1.2+
  */
 
 package nl.info.webdav;
@@ -26,7 +12,7 @@ public class StoredObject {
     private Date lastModified;
     private Date creationDate;
     private long contentLength;
-    private String  mimeType;
+    private String mimeType;
     private boolean isNullResource;
 
     /**
@@ -51,7 +37,7 @@ public class StoredObject {
      * Sets a new StoredObject as a collection or resource
      * 
      * @param f
-     *      true - collection ; false - resource
+     *          true - collection ; false - resource
      */
     public void setFolder(boolean f) {
         this.isFolder = f;
@@ -70,7 +56,7 @@ public class StoredObject {
      * Sets the date of the last modification
      * 
      * @param d
-     *      date of the last modification
+     *          date of the last modification
      */
     public void setLastModified(Date d) {
         this.lastModified = d;
@@ -107,7 +93,7 @@ public class StoredObject {
      * Sets the length of the resource content
      * 
      * @param l
-     *      the length of the resource content
+     *          the length of the resource content
      */
     public void setResourceLength(long l) {
         this.contentLength = l;
@@ -126,7 +112,7 @@ public class StoredObject {
      * Sets a StoredObject as a lock-null resource
      * 
      * @param f
-     *      true to set the resource as lock-null resource
+     *          true to set the resource as lock-null resource
      */
     public void setNullResource(boolean f) {
         this.isNullResource = f;
@@ -135,7 +121,7 @@ public class StoredObject {
         this.lastModified = null;
         // this.content = null;
         this.contentLength = 0;
-        this.mimeType= null;
+        this.mimeType = null;
     }
 
     /**

@@ -1,19 +1,27 @@
 /*
- * Copyright 1999,2004 The Apache Software Foundation.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * SPDX-FileCopyrightText: 2026 INFO.nl
+ * SPDX-License-Identifier: EUPL-1.2+
  */
 package nl.info.webdav.methods;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Hashtable;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import javax.xml.parsers.DocumentBuilder;
+
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
+import org.w3c.dom.DOMException;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
 import nl.info.webdav.ITransaction;
 import nl.info.webdav.IWebdavStore;
@@ -24,22 +32,6 @@ import nl.info.webdav.exceptions.WebdavException;
 import nl.info.webdav.fromcatalina.XMLWriter;
 import nl.info.webdav.locking.IResourceLocks;
 import nl.info.webdav.locking.LockedObject;
-import org.w3c.dom.DOMException;
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
-
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Hashtable;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.xml.parsers.DocumentBuilder;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 
 public class DoLock extends AbstractMethod {
     private static final Logger LOG = Logger.getLogger(DoLock.class.getName());
@@ -62,8 +54,11 @@ public class DoLock extends AbstractMethod {
         _readOnly = readOnly;
     }
 
-    public void execute(ITransaction transaction, HttpServletRequest req,
-            HttpServletResponse resp) throws IOException, LockFailedException {
+    public void execute(
+            ITransaction transaction,
+            HttpServletRequest req,
+            HttpServletResponse resp
+    ) throws IOException, LockFailedException {
         LOG.fine("-- " + this.getClass().getName());
 
         if (_readOnly) {
@@ -113,8 +108,11 @@ public class DoLock extends AbstractMethod {
         }
     }
 
-    private void doLock(ITransaction transaction, HttpServletRequest req,
-            HttpServletResponse resp) throws IOException, LockFailedException {
+    private void doLock(
+            ITransaction transaction,
+            HttpServletRequest req,
+            HttpServletResponse resp
+    ) throws IOException, LockFailedException {
 
         StoredObject so = _store.getStoredObject(transaction, _path);
 
@@ -130,8 +128,11 @@ public class DoLock extends AbstractMethod {
         _lockOwner = null;
     }
 
-    private void doLocking(ITransaction transaction, HttpServletRequest req,
-            HttpServletResponse resp) throws IOException {
+    private void doLocking(
+            ITransaction transaction,
+            HttpServletRequest req,
+            HttpServletResponse resp
+    ) throws IOException {
 
         // Tests if LockObject on requested path exists, and if so, tests
         // exclusivity
@@ -155,9 +156,9 @@ public class DoLock extends AbstractMethod {
     }
 
     private void doNullResourceLock(
-        ITransaction transaction,
-        HttpServletRequest req,
-        HttpServletResponse resp
+            ITransaction transaction,
+            HttpServletRequest req,
+            HttpServletResponse resp
     ) throws IOException {
         StoredObject parentSo, nullSo;
 
@@ -206,9 +207,9 @@ public class DoLock extends AbstractMethod {
     }
 
     private void doRefreshLock(
-        ITransaction transaction,
-        HttpServletRequest req,
-        HttpServletResponse resp
+            ITransaction transaction,
+            HttpServletRequest req,
+            HttpServletResponse resp
     ) throws IOException, LockFailedException {
         String[] lockTokens = getLockIdFromIfHeader(req);
         String lockToken = null;
@@ -238,9 +239,9 @@ public class DoLock extends AbstractMethod {
      * Executes the LOCK
      */
     private void executeLock(
-        ITransaction transaction,
-        HttpServletRequest req,
-        HttpServletResponse resp
+            ITransaction transaction,
+            HttpServletRequest req,
+            HttpServletResponse resp
     ) throws LockFailedException, IOException, ServletException {
 
         // macOS lock request workaround
@@ -289,7 +290,7 @@ public class DoLock extends AbstractMethod {
      * Tries to get the LockInformation from LOCK request
      */
     private boolean getLockInformation(HttpServletRequest req, HttpServletResponse resp)
-            throws ServletException, IOException {
+                                                                                         throws ServletException, IOException {
 
         Node lockInfoNode;
         DocumentBuilder documentBuilder;
@@ -311,8 +312,7 @@ public class DoLock extends AbstractMethod {
                 for (int i = 0; i < childList.getLength(); i++) {
                     currentNode = childList.item(i);
 
-                    if (currentNode.getNodeType() == Node.ELEMENT_NODE
-                            || currentNode.getNodeType() == Node.TEXT_NODE) {
+                    if (currentNode.getNodeType() == Node.ELEMENT_NODE || currentNode.getNodeType() == Node.TEXT_NODE) {
 
                         nodeName = currentNode.getNodeName();
 
@@ -381,10 +381,9 @@ public class DoLock extends AbstractMethod {
                     for (int i = 0; i < childList.getLength(); i++) {
                         currentNode = childList.item(i);
 
-                        if (currentNode.getNodeType() == Node.ELEMENT_NODE
-							 || currentNode.getNodeType() == Node.TEXT_NODE) {
-							_lockOwner = currentNode.getFirstChild()
-									.getNodeValue();
+                        if (currentNode.getNodeType() == Node.ELEMENT_NODE || currentNode.getNodeType() == Node.TEXT_NODE) {
+                            _lockOwner = currentNode.getFirstChild()
+                                    .getNodeValue();
                         }
                     }
                 }
@@ -516,9 +515,12 @@ public class DoLock extends AbstractMethod {
     /**
      * Executes the lock for a macOS Finder client
      */
-    private void doMacLockRequestWorkaround(ITransaction transaction,
-            HttpServletRequest req, HttpServletResponse resp)
-            throws LockFailedException, IOException {
+    private void doMacLockRequestWorkaround(
+            ITransaction transaction,
+            HttpServletRequest req,
+            HttpServletResponse resp
+    )
+      throws LockFailedException, IOException {
         LockedObject lo;
         int depth = getDepth(req);
         int lockDuration = getTimeout(req);
