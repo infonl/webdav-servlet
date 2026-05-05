@@ -70,6 +70,7 @@ public class DoPropfind extends AbstractMethod {
         _mimeTyper = mimeTyper;
     }
 
+    @Override
     public void execute(
             ITransaction transaction,
             HttpServletRequest req,
