@@ -14,6 +14,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
+import nl.info.webdav.exceptions.PathTraversalException;
 import nl.info.webdav.exceptions.UnauthenticatedException;
 import nl.info.webdav.locking.ResourceLocks;
 import nl.info.webdav.methods.DoCopy;
@@ -141,6 +142,9 @@ public class WebDavServletBean extends HttpServlet {
         } catch (UnauthenticatedException exception) {
             if (!resp.isCommitted())
                 resp.sendError(WebdavStatus.SC_FORBIDDEN);
+        } catch (PathTraversalException exception) {
+            if (!resp.isCommitted())
+                resp.sendError(WebdavStatus.SC_BAD_REQUEST);
         } catch (Exception exception) {
             LOG.log(Level.SEVERE, "Error occurred during handling of WebDAV method. Rolling back transaction.", exception);
             throw new ServletException(exception);

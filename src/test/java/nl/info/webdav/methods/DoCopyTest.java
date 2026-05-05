@@ -767,4 +767,29 @@ public class DoCopyTest extends MockTest {
         _mockery.assertIsSatisfied();
 
     }
+
+    @Test
+    public void testDestinationHeaderTraversalIsRejected() throws Exception {
+        _mockery.checking(new Expectations() {
+            {
+                oneOf(mockReq).getAttribute("javax.servlet.include.request_uri");
+                will(returnValue(null));
+                oneOf(mockReq).getPathInfo();
+                will(returnValue("/source"));
+
+                // "/../secret" path component causes normalize() to return null (root escape)
+                oneOf(mockReq).getHeader("Destination");
+                will(returnValue("http://localhost/../secret"));
+
+                oneOf(mockRes).sendError(WebdavStatus.SC_BAD_REQUEST);
+            }
+        });
+
+        ResourceLocks resLocks = new ResourceLocks();
+        DoDelete doDelete = new DoDelete(mockStore, resLocks, !readOnly);
+        DoCopy doCopy = new DoCopy(mockStore, resLocks, doDelete, !readOnly);
+        doCopy.execute(mockTransaction, mockReq, mockRes);
+
+        _mockery.assertIsSatisfied();
+    }
 }

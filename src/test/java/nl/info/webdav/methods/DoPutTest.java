@@ -1,5 +1,7 @@
 package nl.info.webdav.methods;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import java.io.PrintWriter;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -13,6 +15,7 @@ import nl.info.webdav.ITransaction;
 import nl.info.webdav.IWebdavStore;
 import nl.info.webdav.StoredObject;
 import nl.info.webdav.WebdavStatus;
+import nl.info.webdav.exceptions.PathTraversalException;
 import nl.info.webdav.locking.IResourceLocks;
 import nl.info.webdav.locking.LockedObject;
 import nl.info.webdav.locking.ResourceLocks;
@@ -402,6 +405,22 @@ public class DoPutTest extends MockTest {
                 lazyFolderCreationOnPut);
         doPut.execute(mockTransaction, mockReq, mockRes);
 
+        _mockery.assertIsSatisfied();
+    }
+
+    @Test
+    public void testPathTraversalIsRejected() {
+        _mockery.checking(new Expectations() {
+            {
+                oneOf(mockReq).getAttribute("javax.servlet.include.request_uri");
+                will(returnValue(null));
+                oneOf(mockReq).getPathInfo();
+                will(returnValue("/safe/../../etc/cron.d/evil"));
+            }
+        });
+
+        DoPut doPut = new DoPut(mockStore, new ResourceLocks(), !readOnly, lazyFolderCreationOnPut);
+        assertThrows(PathTraversalException.class, () -> doPut.execute(mockTransaction, mockReq, mockRes));
         _mockery.assertIsSatisfied();
     }
 }

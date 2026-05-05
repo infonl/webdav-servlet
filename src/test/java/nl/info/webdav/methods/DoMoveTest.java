@@ -1,5 +1,7 @@
 package nl.info.webdav.methods;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import java.io.ByteArrayInputStream;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -14,6 +16,7 @@ import nl.info.webdav.ITransaction;
 import nl.info.webdav.IWebdavStore;
 import nl.info.webdav.StoredObject;
 import nl.info.webdav.WebdavStatus;
+import nl.info.webdav.exceptions.PathTraversalException;
 import nl.info.webdav.locking.ResourceLocks;
 import nl.info.webdav.testutil.DelegatingServletInputStream;
 import nl.info.webdav.testutil.MockTest;
@@ -698,6 +701,25 @@ public class DoMoveTest extends MockTest {
 
         doMove.execute(mockTransaction, mockReq, mockRes);
 
+        _mockery.assertIsSatisfied();
+    }
+
+    @Test
+    public void testPathTraversalIsRejected() {
+        _mockery.checking(new Expectations() {
+            {
+                oneOf(mockReq).getAttribute("javax.servlet.include.request_uri");
+                will(returnValue(null));
+                oneOf(mockReq).getPathInfo();
+                will(returnValue("/safe/../../etc/passwd"));
+            }
+        });
+
+        ResourceLocks resLocks = new ResourceLocks();
+        DoDelete doDelete = new DoDelete(mockStore, resLocks, !readOnly);
+        DoCopy doCopy = new DoCopy(mockStore, resLocks, doDelete, !readOnly);
+        DoMove doMove = new DoMove(resLocks, doDelete, doCopy, !readOnly);
+        assertThrows(PathTraversalException.class, () -> doMove.execute(mockTransaction, mockReq, mockRes));
         _mockery.assertIsSatisfied();
     }
 }

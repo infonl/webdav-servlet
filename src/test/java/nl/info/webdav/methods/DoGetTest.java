@@ -2,6 +2,7 @@ package nl.info.webdav.methods;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.ByteArrayInputStream;
@@ -19,6 +20,7 @@ import nl.info.webdav.ITransaction;
 import nl.info.webdav.IWebdavStore;
 import nl.info.webdav.StoredObject;
 import nl.info.webdav.WebdavStatus;
+import nl.info.webdav.exceptions.PathTraversalException;
 import nl.info.webdav.locking.ResourceLocks;
 import nl.info.webdav.testutil.DelegatingServletInputStream;
 import nl.info.webdav.testutil.MockTest;
@@ -397,6 +399,22 @@ public class DoGetTest extends MockTest {
 
         assertEquals("<hello/>", tos.toString());
 
+        _mockery.assertIsSatisfied();
+    }
+
+    @Test
+    public void testPathTraversalIsRejected() {
+        _mockery.checking(new Expectations() {
+            {
+                oneOf(mockReq).getAttribute("javax.servlet.include.request_uri");
+                will(returnValue(null));
+                oneOf(mockReq).getPathInfo();
+                will(returnValue("/safe/../../etc/passwd"));
+            }
+        });
+
+        DoGet doGet = new DoGet(mockStore, null, null, new ResourceLocks(), mockMimeTyper, 0);
+        assertThrows(PathTraversalException.class, () -> doGet.execute(mockTransaction, mockReq, mockRes));
         _mockery.assertIsSatisfied();
     }
 

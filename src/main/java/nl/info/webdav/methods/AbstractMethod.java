@@ -20,6 +20,7 @@ import nl.info.webdav.IMethodExecutor;
 import nl.info.webdav.ITransaction;
 import nl.info.webdav.StoredObject;
 import nl.info.webdav.WebdavStatus;
+import nl.info.webdav.exceptions.PathTraversalException;
 import nl.info.webdav.fromcatalina.URLEncoder;
 import nl.info.webdav.fromcatalina.XMLWriter;
 import nl.info.webdav.locking.IResourceLocks;
@@ -134,27 +135,36 @@ public abstract class AbstractMethod implements IMethodExecutor {
      * @return the relative servlet path
      */
     protected String getRelativePath(HttpServletRequest request) {
+        String result;
         // Are we being processed by a RequestDispatcher.include()?
         if (request.getAttribute("javax.servlet.include.request_uri") != null) {
-            String result = (String) request.getAttribute("javax.servlet.include.path_info");
+            result = (String) request.getAttribute("javax.servlet.include.path_info");
             // if (result == null)
             // result = (String) request
             // .getAttribute("javax.servlet.include.servlet_path");
             if ((result == null) || (result.isEmpty()))
                 result = "/";
-            return result;
+        } else {
+            // No, extract the desired path directly from the request
+            result = request.getPathInfo();
+            // if (result == null) {
+            // result = request.getServletPath();
+            // }
+            if ((result == null) || (result.isEmpty())) {
+                result = "/";
+            }
         }
-
-        // No, extract the desired path directly from the request
-        String result = request.getPathInfo();
-        // if (result == null) {
-        // result = request.getServletPath();
-        // }
-        if ((result == null) || (result.isEmpty())) {
-            result = "/";
-        }
+        assertSafePath(result);
         return result;
+    }
 
+    static void assertSafePath(String path) {
+        if (path == null) return;
+        for (String segment : path.split("/", -1)) {
+            if ("..".equals(segment) || ".".equals(segment)) {
+                throw new PathTraversalException("Path traversal attempt detected: " + path);
+            }
+        }
     }
 
     /**

@@ -23,6 +23,7 @@ import nl.info.webdav.exceptions.AccessDeniedException;
 import nl.info.webdav.exceptions.LockFailedException;
 import nl.info.webdav.exceptions.ObjectAlreadyExistsException;
 import nl.info.webdav.exceptions.ObjectNotFoundException;
+import nl.info.webdav.exceptions.PathTraversalException;
 import nl.info.webdav.exceptions.WebdavException;
 import nl.info.webdav.fromcatalina.RequestUtil;
 import nl.info.webdav.locking.ResourceLocks;
@@ -394,8 +395,20 @@ public class DoCopy extends AbstractMethod {
             }
         }
 
-        // Normalize destination path (remove '.' and' ..')
+        // Normalize destination path (remove '.' and '..')
         destinationPath = normalize(destinationPath);
+
+        if (destinationPath == null) {
+            resp.sendError(WebdavStatus.SC_BAD_REQUEST);
+            return null;
+        }
+
+        try {
+            assertSafePath(destinationPath);
+        } catch (PathTraversalException e) {
+            resp.sendError(WebdavStatus.SC_BAD_REQUEST);
+            return null;
+        }
 
         String contextPath = req.getContextPath();
         if ((contextPath != null) && (destinationPath.startsWith(contextPath))) {
