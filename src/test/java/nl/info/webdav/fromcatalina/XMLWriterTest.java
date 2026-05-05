@@ -68,4 +68,29 @@ public class XMLWriterTest {
         writer.writeProperty("DAV::displayname", "a&b<c>d");
         assertEquals("<D:displayname xmlns:D=\"DAV:\">a&amp;b&lt;c&gt;d</D:displayname>\n", writer.toString());
     }
+
+    @Test
+    public void testWriteDataEscapesCdataTerminatorAndProducesWellFormedXml() throws Exception {
+        writer.writeElement("DAV::displayname", XMLWriter.OPENING);
+        writer.writeData("foo]]>bar");
+        writer.writeElement("DAV::displayname", XMLWriter.CLOSING);
+        String xml = "<?xml version=\"1.0\"?>" + writer.toString();
+        javax.xml.parsers.DocumentBuilderFactory dbf = javax.xml.parsers.DocumentBuilderFactory.newInstance();
+        dbf.setNamespaceAware(true);
+        org.w3c.dom.Document doc = dbf.newDocumentBuilder().parse(
+                new java.io.ByteArrayInputStream(xml.getBytes(java.nio.charset.StandardCharsets.UTF_8)));
+        assertEquals("foo]]>bar", doc.getElementsByTagNameNS("DAV:", "displayname").item(0).getTextContent());
+    }
+
+    @Test
+    public void testWriteDataWithoutCdataTerminatorIsUnchanged() {
+        writer.writeData("plain content");
+        assertEquals("<![CDATA[plain content]]>", writer.toString());
+    }
+
+    @Test
+    public void testWriteDataNullProducesEmptyCdataSection() {
+        writer.writeData(null);
+        assertEquals("<![CDATA[]]>", writer.toString());
+    }
 }

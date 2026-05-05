@@ -185,7 +185,10 @@ public class XMLWriter {
      *      Data to append
      */
     public void writeData(String data) {
-        _buffer.append("<![CDATA[").append(data).append("]]>");
+        if (data == null) {
+            data = "";
+        }
+        _buffer.append("<![CDATA[").append(data.replace("]]>", "]]]]><![CDATA[>")).append("]]>");
     }
 
     /**

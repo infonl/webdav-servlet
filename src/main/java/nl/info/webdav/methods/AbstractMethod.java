@@ -370,6 +370,7 @@ public abstract class AbstractMethod implements IMethodExecutor {
         }
         else {
             resp.setStatus(WebdavStatus.SC_MULTI_STATUS);
+            resp.setContentType("text/xml; charset=UTF-8");
 
             HashMap<String, String> namespaces = new HashMap<>();
             namespaces.put("DAV:", "D");

@@ -230,6 +230,7 @@ public class AbstractMethodTest extends MockTest {
         _mockery.checking(new Expectations() {
             {
                 oneOf(mockResp).setStatus(207);
+                oneOf(mockResp).setContentType("text/xml; charset=UTF-8");
                 oneOf(mockResp).getWriter();
                 will(returnValue(new PrintWriter(sw)));
             }
@@ -253,6 +254,7 @@ public class AbstractMethodTest extends MockTest {
         _mockery.checking(new Expectations() {
             {
                 oneOf(mockResp).setStatus(207);
+                oneOf(mockResp).setContentType("text/xml; charset=UTF-8");
                 oneOf(mockResp).getWriter();
                 will(returnValue(new PrintWriter(sw)));
             }
@@ -267,6 +269,24 @@ public class AbstractMethodTest extends MockTest {
                 () -> method.getDocumentBuilder().parse(new ByteArrayInputStream(output.getBytes(StandardCharsets.UTF_8))),
                 "Response must be well-formed XML"
         );
+        _mockery.assertIsSatisfied();
+    }
+
+    @Test
+    public void testSendReportSetsXmlContentTypeForMultipleErrors() throws Exception {
+        StringWriter sw = new StringWriter();
+        _mockery.checking(new Expectations() {
+            {
+                oneOf(mockResp).setStatus(207);
+                oneOf(mockResp).setContentType("text/xml; charset=UTF-8");
+                oneOf(mockResp).getWriter();
+                will(returnValue(new PrintWriter(sw)));
+            }
+        });
+        Hashtable<String, Integer> errors = new Hashtable<>();
+        errors.put("/a", 423);
+        errors.put("/b", 423);
+        method.sendReport(mockResp, errors);
         _mockery.assertIsSatisfied();
     }
 
