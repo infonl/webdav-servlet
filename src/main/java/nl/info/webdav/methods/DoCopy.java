@@ -395,17 +395,17 @@ public class DoCopy extends AbstractMethod {
             }
         }
 
-        // Normalize destination path (remove '.' and '..')
-        destinationPath = normalize(destinationPath);
-
-        if (destinationPath == null) {
+        try {
+            assertSafePath(destinationPath);
+        } catch (PathTraversalException e) {
             resp.sendError(WebdavStatus.SC_BAD_REQUEST);
             return null;
         }
 
-        try {
-            assertSafePath(destinationPath);
-        } catch (PathTraversalException e) {
+        // Normalize destination path (remove '.' and '..')
+        destinationPath = normalize(destinationPath);
+
+        if (destinationPath == null) {
             resp.sendError(WebdavStatus.SC_BAD_REQUEST);
             return null;
         }

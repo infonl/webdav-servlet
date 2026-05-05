@@ -68,7 +68,7 @@ public class DoCopyTest extends MockTest {
         final String parentPath = "/lockedFolder";
         final String path = parentPath.concat("/nullFile");
 
-        String owner = new String("owner");
+        String owner = "owner";
         ResourceLocks resLocks = new ResourceLocks();
         resLocks.lock(mockTransaction, parentPath, owner, true, 1,
                 TEMP_TIMEOUT, !TEMPORARY);
@@ -137,8 +137,6 @@ public class DoCopyTest extends MockTest {
                 destCollectionPath);
         final String wrongLockToken = "(<opaquelocktoken:" + lo.getID() + "WRONG>)";
 
-        final PrintWriter pw = new PrintWriter("/tmp/XMLTestFile");
-
         _mockery.checking(new Expectations() {
             {
                 exactly(2).of(mockReq).getAttribute("javax.servlet.include.request_uri");
@@ -177,7 +175,7 @@ public class DoCopyTest extends MockTest {
     @Test
     public void testDoCopyIfParentIsLockedWithRightLockToken() throws Exception {
 
-        String owner = new String("owner");
+        String owner = "owner";
         ResourceLocks resLocks = new ResourceLocks();
 
         resLocks.lock(mockTransaction, destCollectionPath, owner, true, 1,
@@ -777,9 +775,9 @@ public class DoCopyTest extends MockTest {
                 oneOf(mockReq).getPathInfo();
                 will(returnValue("/source"));
 
-                // "/../secret" path component causes normalize() to return null (root escape)
+                // "/../" segment is caught by assertSafePath before normalize() runs
                 oneOf(mockReq).getHeader("Destination");
-                will(returnValue("http://localhost/../secret"));
+                will(returnValue("http://localhost/webdav/safe/../../../etc/passwd"));
 
                 oneOf(mockRes).sendError(WebdavStatus.SC_BAD_REQUEST);
             }
