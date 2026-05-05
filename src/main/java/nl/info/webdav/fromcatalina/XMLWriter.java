@@ -185,7 +185,11 @@ public class XMLWriter {
      *      Data to append
      */
     public void writeData(String data) {
-        _buffer.append("<![CDATA[").append(data).append("]]>");
+        String safeData = data == null ? "" : data;
+        // Prevent breaking out of CDATA by splitting any "]]>" into
+        // multiple adjacent CDATA sections while preserving exact content.
+        safeData = safeData.replace("]]>", "]]]]><![CDATA[>");
+        _buffer.append("<![CDATA[").append(safeData).append("]]>");
     }
 
     /**
