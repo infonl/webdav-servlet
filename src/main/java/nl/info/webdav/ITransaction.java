@@ -1,14 +1,12 @@
+/*
+ * SPDX-FileCopyrightText: 2026 INFO.nl
+ * SPDX-License-Identifier: EUPL-1.2+
+ */
 package nl.info.webdav;
-
-import java.security.Principal;
 
 /**
  * Definition of a basic webdav transaction.
  */
 public interface ITransaction {
 
-    /**
-     * @return the security principal associated with this transaction
-     */
-    Principal getPrincipal();
 }

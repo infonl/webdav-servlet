@@ -1,0 +1,35 @@
+#
+# SPDX-FileCopyrightText: 2026 INFO.nl
+# SPDX-License-Identifier: EUPL-1.2+
+
+#
+# Configuration file for https://github.com/apache/skywalking-eyes
+# to perform checks (and optionally fixes) on SPDX copyright headers in source files
+header:
+  license:
+    content: |      
+       SPDX-FileCopyrightText: 2026 INFO.nl
+       SPDX-License-Identifier: EUPL-1.2+
+    pattern: |
+       SPDX-FileCopyrightText: .*
+       SPDX-License-Identifier: EUPL-1\.2\+
+  paths:
+    - '**'
+  paths-ignore:
+    - 'build'
+    - 'config'
+    - 'docs'
+    - 'gradle'
+    - 'target'
+    - 'openspec'
+    - '**/*.md'
+    # SPDX license headers cannot be added to JSON files so we ignore them
+    # there are ways to link licensing information to JSON files however; see e.g. https://reuse.software/faq/
+    - '**/**.json'
+    - '**/**.txt'
+    - '**/dist'
+    - 'gradlew'
+    - 'gradlew.bat'
+    - '.github/CODEOWNERS'
+    - 'src/main/java/nl/info/webdav/fromcatalina'
+  comment: on-failure
