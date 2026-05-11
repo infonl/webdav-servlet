@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.ByteArrayInputStream;
 import java.io.PrintWriter;
+import java.io.StringWriter;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -190,7 +191,7 @@ public class DoLockTest extends MockTest {
         final String wordForMacUserAgent = "Microsoft Office/16.69 (Microsoft Word/16.69; Mac OS X 12.6; Darwin/21.6.0; x86_64)";
 
         ResourceLocks resLocks = new ResourceLocks();
-        final PrintWriter pw = new PrintWriter("/tmp/XMLTestFile");
+        final PrintWriter pw = new PrintWriter(new StringWriter());
 
         final ByteArrayInputStream baisExclusive = new ByteArrayInputStream(
                 exclusiveLockRequestByteArray);
