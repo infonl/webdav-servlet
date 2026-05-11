@@ -37,9 +37,7 @@ jobs:
         uses: dorny/paths-filter@fbd0ab8f3e69293af611ebaee6363fc25e6d187d # v4.0.1
         id: paths-filter
         with:
-          # the field below incorrectly results in a schema validation. see: https://github.com/dorny/paths-filter/issues/225
           predicate-quantifier: 'every'
-          # Please keep this list in sync with the one in the 'build-test-deploy.yml' workflow
           filters: |
             changes-requiring-build:
                 - '**'
