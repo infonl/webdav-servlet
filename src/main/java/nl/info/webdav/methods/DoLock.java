@@ -78,11 +78,11 @@ public class DoLock extends AbstractMethod {
                 return; // parent is locked
             }
 
-            // Mac OS Finder (whether 10.4.x or 10.5) can't store files
-            // because executing a LOCK without lock information causes a
-            // SC_BAD_REQUEST
+            // macOS Finder sends LOCK without a body, which causes SC_BAD_REQUEST
+            // in getLockInformation(). Apply workaround only for Finder/WebDAVFS,
+            // not for Microsoft Office for Mac which sends a proper LOCK body.
             _userAgent = req.getHeader("User-Agent");
-            if (_userAgent != null && _userAgent.contains("Darwin")) {
+            if (_userAgent != null && _userAgent.contains("Darwin") && !_userAgent.contains("Microsoft")) {
                 _macLockRequest = true;
 
                 String timeString = String.valueOf(System.currentTimeMillis());
@@ -382,14 +382,21 @@ public class DoLock extends AbstractMethod {
                     for (int i = 0; i < childList.getLength(); i++) {
                         currentNode = childList.item(i);
 
-                        if (currentNode.getNodeType() == Node.ELEMENT_NODE || currentNode.getNodeType() == Node.TEXT_NODE) {
-                            _lockOwner = currentNode.getFirstChild()
-                                    .getNodeValue();
+                        if (currentNode.getNodeType() == Node.ELEMENT_NODE) {
+                            Node firstChild = currentNode.getFirstChild();
+                            if (firstChild != null) {
+                                _lockOwner = firstChild.getNodeValue();
+                            }
+                        } else if (currentNode.getNodeType() == Node.TEXT_NODE) {
+                            String text = currentNode.getNodeValue();
+                            if (text != null && !text.isBlank()) {
+                                _lockOwner = text;
+                            }
                         }
                     }
                 }
                 if (_lockOwner == null) {
-                    return false;
+                    _lockOwner = "";
                 }
             } else {
                 return false;
@@ -522,6 +529,7 @@ public class DoLock extends AbstractMethod {
             HttpServletResponse resp
     )
       throws LockFailedException, IOException {
+        _type = "write";
         LockedObject lo;
         int depth = getDepth(req);
         int lockDuration = getTimeout(req);

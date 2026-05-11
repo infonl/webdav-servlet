@@ -184,6 +184,66 @@ public class DoLockTest extends MockTest {
     }
 
     @Test
+    public void testDoExclusiveLockOnResourceWithMicrosoftWordForMacUserAgent() throws Exception {
+
+        final String lockPath = "/aFileToLock";
+        final String wordForMacUserAgent = "Microsoft Office/16.69 (Microsoft Word/16.69; Mac OS X 12.6; Darwin/21.6.0; x86_64)";
+
+        ResourceLocks resLocks = new ResourceLocks();
+        final PrintWriter pw = new PrintWriter("/tmp/XMLTestFile");
+
+        final ByteArrayInputStream baisExclusive = new ByteArrayInputStream(
+                exclusiveLockRequestByteArray);
+        final DelegatingServletInputStream dsisExclusive = new DelegatingServletInputStream(
+                baisExclusive);
+
+        _mockery.checking(new Expectations() {
+            {
+                oneOf(mockReq).getAttribute("javax.servlet.include.request_uri");
+                will(returnValue(null));
+
+                oneOf(mockReq).getPathInfo();
+                will(returnValue(lockPath));
+
+                oneOf(mockReq).getHeader("User-Agent");
+                will(returnValue(wordForMacUserAgent));
+
+                oneOf(mockReq).getHeader("If");
+                will(returnValue(null));
+
+                StoredObject so = initFileStoredObject(resourceContent);
+
+                oneOf(mockStore).getStoredObject(mockTransaction, lockPath);
+                will(returnValue(so));
+
+                oneOf(mockReq).getInputStream();
+                will(returnValue(dsisExclusive));
+
+                oneOf(mockReq).getHeader("Depth");
+                will(returnValue(depthString));
+
+                oneOf(mockReq).getHeader("Timeout");
+                will(returnValue(timeoutString));
+
+                oneOf(mockRes).setStatus(WebdavStatus.SC_OK);
+
+                oneOf(mockRes).setContentType("text/xml; charset=UTF-8");
+
+                oneOf(mockRes).getWriter();
+                will(returnValue(pw));
+
+                oneOf(mockRes).addHeader(with(any(String.class)),
+                        with(any(String.class)));
+            }
+        });
+
+        DoLock doLock = new DoLock(mockStore, resLocks, !readOnly);
+        doLock.execute(mockTransaction, mockReq, mockRes);
+
+        _mockery.assertIsSatisfied();
+    }
+
+    @Test
     public void testDoSharedLockOnResource() throws Exception {
 
         final String lockPath = "/aFileToLock";
@@ -442,7 +502,7 @@ public class DoLockTest extends MockTest {
                 oneOf(mockReq).getHeader("Timeout");
                 will(returnValue("Infinite"));
 
-                ResourceLocks resLocks = ResourceLocks.class.newInstance();
+                ResourceLocks resLocks = ResourceLocks.class.getDeclaredConstructor().newInstance();
 
                 oneOf(mockResourceLocks).exclusiveLock(mockTransaction, lockPath,
                         "I'am the Lock Owner", 0, 604800);
@@ -462,11 +522,7 @@ public class DoLockTest extends MockTest {
                 oneOf(mockRes).getWriter();
                 will(returnValue(pw));
 
-                String loId = null;
-                if (lockNullResourceLo != null) {
-                    loId = lockNullResourceLo.getID();
-                }
-                final String lockToken = "<opaquelocktoken:" + loId + ">";
+                final String lockToken = "<opaquelocktoken:" + lockNullResourceLo.getID() + ">";
 
                 oneOf(mockRes).addHeader("Lock-Token", lockToken);
 
