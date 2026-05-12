@@ -5,55 +5,156 @@
 name: "CodeQL"
 
 on:
-  push:
-    branches: [main]
   pull_request:
     branches: [main]
   merge_group:
+  push:
+    branches:
+      - main
   schedule:
     - cron: "21 11 * * 0"
 
+permissions:
+  contents: read
+
 env:
-  JAVA_VERSION: "21"
+  JAVA_VERSION: "21.0.11"
+
+# Only allow a single concurrent run per branch. Cancel in-progress runs on multiple pushes when not on main branch.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
+  paths-filter:
+    runs-on: ubuntu-24.04
+    outputs:
+      changes-requiring-build: ${{ steps.paths-filter.outputs.changes-requiring-build }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Skip job when only certain files or file types are changed which do not require a pull request build
+        uses: dorny/paths-filter@fbd0ab8f3e69293af611ebaee6363fc25e6d187d # v4.0.1
+        id: paths-filter
+        with:
+          predicate-quantifier: 'every'
+          filters: |
+            changes-requiring-build:
+                - '**'
+                - '!*.sh'
+                - '!.github/CODEOWNERS'
+                - '!**/*.md'
+                - '!**/*.pdf'
+                - '!**/*.png'
+                - '!docs/**'
+                - '!openspec/**'
+
   analyze:
     name: Analyze
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    needs: paths-filter
+    if: ${{ needs.paths-filter.outputs.changes-requiring-build == 'true' }}
     permissions:
       actions: read
       contents: read
       security-events: write
-
     strategy:
       fail-fast: false
       matrix:
-        language: ["java"]
-
+        language: ["java", "actions"]
     steps:
       - name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Setup JDK
+        if: matrix.language == 'java'
         uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
         with:
           java-version: ${{ env.JAVA_VERSION }}
           distribution: "temurin"
 
       - name: Setup Gradle
+        if: matrix.language == 'java'
         uses: gradle/actions/setup-gradle@50e97c2cd7a37755bbfafc9c5b7cafaece252f6e # v6.1.0
-
-      - name: Validate Gradle wrapper
-        uses: gradle/actions/wrapper-validation@50e97c2cd7a37755bbfafc9c5b7cafaece252f6e # v6.1.0
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@68bde559dea0fdcac2102bfdf6230c5f70eb485e # v4.35.4
         with:
           languages: ${{ matrix.language }}
-
-      # Unit tests fail at the moment so skip them for now
-      - name: Gradle build
-        run: ./gradlew build -x test
+          build-mode: ${{ matrix.language == 'java' && 'autobuild' || 'none' }}
+          trap-caching: false
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@68bde559dea0fdcac2102bfdf6230c5f70eb485e # v4.35.4
+        with:
+          category: "/language:${{matrix.language}}"
+
+  check_codeql_status:
+    name: Check CodeQL Status
+    needs:
+      - analyze
+      - paths-filter
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      checks: read
+      pull-requests: read
+    if: ${{ needs.paths-filter.outputs.changes-requiring-build == 'true' && github.event_name == 'pull_request' }}
+    steps:
+      - name: Check CodeQL Status
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Check the conclusion of CodeQL check runs on the last commit of this PR.
+          # Replaces the abandoned eldrick19/code-scanning-status-checker action.
+          MAX_ATTEMPTS=10
+          SLEEP_SECONDS=10
+
+          for ATTEMPT in $(seq 1 $MAX_ATTEMPTS); do
+            CONCLUSIONS=$(gh api graphql -f query='{
+              repository(owner: "${{ github.repository_owner }}", name: "${{ github.event.repository.name }}") {
+                pullRequest(number: ${{ github.event.pull_request.number }}) {
+                  commits(last: 1) {
+                    nodes {
+                      commit {
+                        checkSuites(first: 100, filterBy: {checkName: "CodeQL"}) {
+                          nodes {
+                            checkRuns(first: 100) {
+                              nodes {
+                                name
+                                conclusion
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }' --jq '[.data.repository.pullRequest.commits.nodes[0].commit.checkSuites.nodes[].checkRuns.nodes[]]')
+
+            TOTAL=$(echo "$CONCLUSIONS" | jq 'length')
+            PENDING=$(echo "$CONCLUSIONS" | jq '[.[] | select(.conclusion == null)] | length')
+
+            if [ "$TOTAL" -gt 0 ] && [ "$PENDING" -eq 0 ]; then
+              break
+            fi
+
+            if [ "$ATTEMPT" -eq "$MAX_ATTEMPTS" ]; then
+              echo "::warning::CodeQL check runs not ready after $((MAX_ATTEMPTS * SLEEP_SECONDS))s (found: ${TOTAL}, pending: ${PENDING}). Skipping."
+              exit 78
+            fi
+
+            echo "Attempt ${ATTEMPT}/${MAX_ATTEMPTS}: CodeQL check runs not ready yet (found: ${TOTAL}, pending: ${PENDING}). Retrying in ${SLEEP_SECONDS}s..."
+            sleep $SLEEP_SECONDS
+          done
+
+          FAILED=$(echo "$CONCLUSIONS" | jq '[.[] | select(.conclusion != "SUCCESS" and .conclusion != "NEUTRAL")] | length')
+          if [ "$FAILED" -gt 0 ]; then
+            echo "::error::${FAILED} of ${TOTAL} CodeQL check run(s) did not succeed:"
+            echo "$CONCLUSIONS" | jq -r '.[] | select(.conclusion != "SUCCESS" and .conclusion != "NEUTRAL") | "  \(.name): \(.conclusion)"'
+            exit 1
+          fi
+
+          echo "All ${TOTAL} CodeQL check run(s) passed"
