@@ -4,11 +4,16 @@
  */
 package nl.info.webdav;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.security.Principal;
 
+import jakarta.servlet.ReadListener;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletInputStream;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -248,6 +253,256 @@ public class WebDavServletBeanTest extends MockTest {
 
         new TestBean(mockStore, mockExecutor).callService(mockReq, mockRes);
         _mockery.assertIsSatisfied();
+    }
+
+    @Test
+    public void testServiceWithUnconsumedInputStreamDrainsBytes() throws Exception {
+        ServletInputStream stream = new ServletInputStream() {
+            private final ByteArrayInputStream bais = new ByteArrayInputStream(new byte[]{1, 2, 3, 4, 5});
+
+            @Override
+            public boolean isFinished() {
+                return bais.available() == 0;
+            }
+
+            @Override
+            public boolean isReady() {
+                return true;
+            }
+
+            @Override
+            public void setReadListener(ReadListener readListener) {
+            }
+
+            @Override
+            public int read() {
+                return bais.read();
+            }
+
+            @Override
+            public int available() {
+                return bais.available();
+            }
+
+            @Override
+            public long skip(long n) {
+                return bais.skip(n);
+            }
+        };
+
+        _mockery.checking(new Expectations() {
+            {
+                oneOf(mockReq).getMethod();
+                will(returnValue("GET"));
+
+                oneOf(mockReq).getUserPrincipal();
+                will(returnValue(null));
+
+                oneOf(mockStore).begin(null);
+                will(returnValue(mockTransaction));
+
+                oneOf(mockStore).checkAuthentication(mockTransaction);
+
+                oneOf(mockRes).setStatus(WebdavStatus.SC_OK);
+
+                oneOf(mockExecutor).execute(mockTransaction, mockReq, mockRes);
+
+                oneOf(mockStore).commit(mockTransaction);
+
+                oneOf(mockReq).getContentLength();
+                will(returnValue(100));
+
+                exactly(4).of(mockReq).getInputStream();
+                will(returnValue(stream));
+
+                never(mockStore).rollback(mockTransaction);
+            }
+        });
+
+        new TestBean(mockStore, mockExecutor).callService(mockReq, mockRes);
+        _mockery.assertIsSatisfied();
+    }
+
+    @Test
+    public void testServiceContentLengthNonZeroButStreamFinishedSkipsDrain() throws Exception {
+        ServletInputStream finishedStream = new ServletInputStream() {
+            private final ByteArrayInputStream bais = new ByteArrayInputStream(new byte[0]);
+
+            @Override
+            public boolean isFinished() {
+                return bais.available() == 0;
+            }
+
+            @Override
+            public boolean isReady() {
+                return true;
+            }
+
+            @Override
+            public void setReadListener(ReadListener readListener) {
+            }
+
+            @Override
+            public int read() {
+                return bais.read();
+            }
+
+            @Override
+            public int available() {
+                return bais.available();
+            }
+        };
+
+        _mockery.checking(new Expectations() {
+            {
+                oneOf(mockReq).getMethod();
+                will(returnValue("GET"));
+
+                oneOf(mockReq).getUserPrincipal();
+                will(returnValue(null));
+
+                oneOf(mockStore).begin(null);
+                will(returnValue(mockTransaction));
+
+                oneOf(mockStore).checkAuthentication(mockTransaction);
+
+                oneOf(mockRes).setStatus(WebdavStatus.SC_OK);
+
+                oneOf(mockExecutor).execute(mockTransaction, mockReq, mockRes);
+
+                oneOf(mockStore).commit(mockTransaction);
+
+                oneOf(mockReq).getContentLength();
+                will(returnValue(100));
+
+                oneOf(mockReq).getInputStream();
+                will(returnValue(finishedStream));
+
+                never(mockStore).rollback(mockTransaction);
+            }
+        });
+
+        new TestBean(mockStore, mockExecutor).callService(mockReq, mockRes);
+        _mockery.assertIsSatisfied();
+    }
+
+    @Test
+    public void testServiceIOExceptionAlreadyCommittedSkipsSendError() throws Exception {
+        _mockery.checking(new Expectations() {
+            {
+                oneOf(mockReq).getMethod();
+                will(returnValue("GET"));
+
+                oneOf(mockReq).getUserPrincipal();
+                will(returnValue(null));
+
+                oneOf(mockStore).begin(null);
+                will(returnValue(mockTransaction));
+
+                oneOf(mockStore).checkAuthentication(mockTransaction);
+
+                oneOf(mockRes).setStatus(WebdavStatus.SC_OK);
+
+                oneOf(mockExecutor).execute(mockTransaction, mockReq, mockRes);
+                will(throwException(new IOException("disk error")));
+
+                oneOf(mockRes).isCommitted();
+                will(returnValue(true));
+
+                never(mockRes).sendError(with(any(Integer.class)));
+
+                // IOException handler calls rollback, then finally block calls it again
+                // because needRollback is still true (the ServletException re-throw
+                // is caught by the outer catch(Exception) block)
+                exactly(2).of(mockStore).rollback(mockTransaction);
+            }
+        });
+
+        assertThrows(
+                ServletException.class,
+                () -> new TestBean(mockStore, mockExecutor).callService(mockReq, mockRes)
+        );
+        _mockery.assertIsSatisfied();
+    }
+
+    @Test
+    public void testServiceUnauthenticatedAlreadyCommittedSkipsSendError() throws Exception {
+        _mockery.checking(new Expectations() {
+            {
+                oneOf(mockReq).getMethod();
+                will(returnValue("GET"));
+
+                oneOf(mockReq).getUserPrincipal();
+                will(returnValue(null));
+
+                oneOf(mockStore).begin(null);
+                will(returnValue(mockTransaction));
+
+                oneOf(mockStore).checkAuthentication(mockTransaction);
+                will(throwException(new UnauthenticatedException()));
+
+                oneOf(mockRes).isCommitted();
+                will(returnValue(true));
+
+                never(mockRes).sendError(with(any(Integer.class)));
+
+                oneOf(mockStore).rollback(mockTransaction);
+            }
+        });
+
+        new TestBean(mockStore, mockExecutor).callService(mockReq, mockRes);
+        _mockery.assertIsSatisfied();
+    }
+
+    @Test
+    public void testServicePassesPrincipalToStoreBegin() throws Exception {
+        Principal principal = _mockery.mock(Principal.class);
+
+        _mockery.checking(new Expectations() {
+            {
+                oneOf(mockReq).getMethod();
+                will(returnValue("GET"));
+
+                oneOf(mockReq).getUserPrincipal();
+                will(returnValue(principal));
+
+                oneOf(mockStore).begin(principal);
+                will(returnValue(mockTransaction));
+
+                oneOf(mockStore).checkAuthentication(mockTransaction);
+
+                oneOf(mockRes).setStatus(WebdavStatus.SC_OK);
+
+                oneOf(mockExecutor).execute(mockTransaction, mockReq, mockRes);
+
+                oneOf(mockStore).commit(mockTransaction);
+
+                oneOf(mockReq).getContentLength();
+                will(returnValue(0));
+
+                never(mockStore).rollback(mockTransaction);
+            }
+        });
+
+        new TestBean(mockStore, mockExecutor).callService(mockReq, mockRes);
+        _mockery.assertIsSatisfied();
+    }
+
+    @Test
+    public void testDestroyCallsStoreDestroy() {
+        _mockery.checking(new Expectations() {
+            {
+                oneOf(mockStore).destroy();
+            }
+        });
+
+        new TestBean(mockStore, mockExecutor).destroy();
+        _mockery.assertIsSatisfied();
+    }
+
+    @Test
+    public void testDestroyWithNullStoreDoesNotThrow() {
+        assertDoesNotThrow(() -> new WebDavServletBean().destroy());
     }
 
     @Test
