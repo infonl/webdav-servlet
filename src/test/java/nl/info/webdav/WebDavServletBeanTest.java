@@ -7,9 +7,9 @@ package nl.info.webdav;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.security.Principal;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import jakarta.servlet.ReadListener;
 import jakarta.servlet.ServletException;
@@ -257,20 +257,37 @@ public class WebDavServletBeanTest extends MockTest {
 
     @Test
     public void testServiceWithUnconsumedInputStreamDrainsBytes() throws Exception {
-        AtomicInteger availableCallCount = new AtomicInteger(0);
         ServletInputStream stream = new ServletInputStream() {
+            private final ByteArrayInputStream bais = new ByteArrayInputStream(new byte[]{1, 2, 3, 4, 5});
+
             @Override
-            public boolean isFinished() { return false; }
+            public boolean isFinished() {
+                return bais.available() == 0;
+            }
+
             @Override
-            public boolean isReady() { return true; }
+            public boolean isReady() {
+                return true;
+            }
+
             @Override
-            public void setReadListener(ReadListener readListener) {}
+            public void setReadListener(ReadListener readListener) {
+            }
+
             @Override
-            public int read() { return -1; }
+            public int read() {
+                return bais.read();
+            }
+
             @Override
-            public int available() { return availableCallCount.getAndIncrement() == 0 ? 5 : 0; }
+            public int available() {
+                return bais.available();
+            }
+
             @Override
-            public long skip(long n) { return n; }
+            public long skip(long n) {
+                return bais.skip(n);
+            }
         };
 
         _mockery.checking(new Expectations() {
@@ -309,14 +326,31 @@ public class WebDavServletBeanTest extends MockTest {
     @Test
     public void testServiceContentLengthNonZeroButStreamFinishedSkipsDrain() throws Exception {
         ServletInputStream finishedStream = new ServletInputStream() {
+            private final ByteArrayInputStream bais = new ByteArrayInputStream(new byte[0]);
+
             @Override
-            public boolean isFinished() { return true; }
+            public boolean isFinished() {
+                return bais.available() == 0;
+            }
+
             @Override
-            public boolean isReady() { return true; }
+            public boolean isReady() {
+                return true;
+            }
+
             @Override
-            public void setReadListener(ReadListener readListener) {}
+            public void setReadListener(ReadListener readListener) {
+            }
+
             @Override
-            public int read() { return -1; }
+            public int read() {
+                return bais.read();
+            }
+
+            @Override
+            public int available() {
+                return bais.available();
+            }
         };
 
         _mockery.checking(new Expectations() {
