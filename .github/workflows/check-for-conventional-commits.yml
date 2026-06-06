@@ -11,6 +11,9 @@ on:
 jobs:
   check-for-conventional-commits:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
     steps:
       - name: check-for-cc
         id: check-for-cc
