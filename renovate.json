@@ -18,6 +18,13 @@
   "prConcurrentLimit": 5,
   "packageRules": [
     {
+      "matchUpdateTypes": [
+        "patch"
+      ],
+      "automerge": true,
+      "description": "Automerge all patch-level updates. The renovate-approve GitHub app provides the required approving review"
+    },
+    {
       "matchDatasources": [
         "docker"
       ],
