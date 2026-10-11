@@ -4,6 +4,11 @@
  */
 package nl.info.webdav.methods;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import java.io.ByteArrayInputStream;
 import java.io.PrintWriter;
 
@@ -11,7 +16,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import org.jmock.Expectations;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import nl.info.webdav.ITransaction;
@@ -34,8 +39,10 @@ public class DoUnlockTest extends MockTest {
 
     static boolean exclusive = true;
 
-    @BeforeAll
-    public static void setUp() throws Exception {
+    @BeforeEach
+    public void setUp() {
+        // fresh Mockery and mocks per test, so 'allowing' expectations do not leak between tests
+        setUpBeforeClass();
         mockStore = _mockery.mock(IWebdavStore.class);
         mockReq = _mockery.mock(HttpServletRequest.class);
         mockRes = _mockery.mock(HttpServletResponse.class);
@@ -331,5 +338,203 @@ public class DoUnlockTest extends MockTest {
 
             _mockery.assertIsSatisfied();
         }
+    }
+
+    @Test
+    public void testDoUnlockWithoutLockTokenHeaderSendsBadRequest() throws Exception {
+        final String lockPath = "/lockedResource";
+        ResourceLocks resLocks = new ResourceLocks();
+        resLocks.lock(mockTransaction, lockPath, "theOwner", exclusive, 0, 600, !TEMPORARY);
+
+        expectRequest(lockPath, null);
+        _mockery.checking(new Expectations() {
+            {
+                oneOf(mockRes).sendError(WebdavStatus.SC_BAD_REQUEST);
+            }
+        });
+
+        new DoUnlock(mockStore, resLocks, !readOnly).execute(mockTransaction, mockReq, mockRes);
+
+        _mockery.assertIsSatisfied();
+        assertNotNull(resLocks.getLockedObjectByPath(mockTransaction, lockPath));
+    }
+
+    @Test
+    public void testDoUnlockWithUnknownLockTokenSendsBadRequestAndKeepsLock() throws Exception {
+        final String lockPath = "/lockedResource";
+        ResourceLocks resLocks = new ResourceLocks();
+        resLocks.lock(mockTransaction, lockPath, "theOwner", exclusive, 0, 600, !TEMPORARY);
+
+        expectRequest(lockPath, "<opaquelocktoken:unknown-token>");
+        _mockery.checking(new Expectations() {
+            {
+                oneOf(mockRes).sendError(WebdavStatus.SC_BAD_REQUEST);
+            }
+        });
+
+        new DoUnlock(mockStore, resLocks, !readOnly).execute(mockTransaction, mockReq, mockRes);
+
+        _mockery.assertIsSatisfied();
+        assertNotNull(resLocks.getLockedObjectByPath(mockTransaction, lockPath));
+    }
+
+    @Test
+    public void testDoUnlockIgnoresRequestOwnerAndRemovesLockOfOtherOwner() throws Exception {
+        // characterization: DoUnlock never compares a requesting owner with the lock owner; it unlocks with the
+        // lock's own owner, so a valid token always removes the lock (no 423 Locked for an owner mismatch)
+        final String lockPath = "/lockedResource";
+        ResourceLocks resLocks = new ResourceLocks();
+        resLocks.lock(mockTransaction, lockPath, "someoneElse", exclusive, 0, 600, !TEMPORARY);
+        final String loId = resLocks.getLockedObjectByPath(mockTransaction, lockPath).getID();
+
+        expectRequest(lockPath, "<opaquelocktoken:" + loId + ">");
+        _mockery.checking(new Expectations() {
+            {
+                oneOf(mockStore).getStoredObject(mockTransaction, lockPath);
+                will(returnValue(initFileStoredObject(resourceContent)));
+                oneOf(mockRes).setStatus(WebdavStatus.SC_NO_CONTENT);
+            }
+        });
+
+        new DoUnlock(mockStore, resLocks, !readOnly).execute(mockTransaction, mockReq, mockRes);
+
+        _mockery.assertIsSatisfied();
+        assertNull(resLocks.getLockedObjectByPath(mockTransaction, lockPath));
+        assertNull(resLocks.getLockedObjectByID(mockTransaction, loId));
+    }
+
+    @Test
+    public void testDoUnlockSharedLockRemovesAllOwners() throws Exception {
+        final String lockPath = "/sharedLockedResource";
+        ResourceLocks resLocks = new ResourceLocks();
+        resLocks.sharedLock(mockTransaction, lockPath, "ownerA", 0, 600);
+        resLocks.sharedLock(mockTransaction, lockPath, "ownerB", 0, 600);
+        final LockedObject lo = resLocks.getLockedObjectByPath(mockTransaction, lockPath);
+        assertArrayEquals(new String[]{"ownerA", "ownerB"}, lo.getOwner());
+
+        expectRequest(lockPath, "<opaquelocktoken:" + lo.getID() + ">");
+        _mockery.checking(new Expectations() {
+            {
+                oneOf(mockStore).getStoredObject(mockTransaction, lockPath);
+                will(returnValue(initFileStoredObject(resourceContent)));
+                oneOf(mockRes).setStatus(WebdavStatus.SC_NO_CONTENT);
+            }
+        });
+
+        new DoUnlock(mockStore, resLocks, !readOnly).execute(mockTransaction, mockReq, mockRes);
+
+        _mockery.assertIsSatisfied();
+        assertNull(lo.getOwner());
+        assertNull(resLocks.getLockedObjectByPath(mockTransaction, lockPath));
+    }
+
+    @Test
+    public void testDoUnlockOfNullResourceRemovesItFromStore() throws Exception {
+        final String lockPath = "/parentCollection/aNullResource";
+        ResourceLocks resLocks = new ResourceLocks();
+        resLocks.exclusiveLock(mockTransaction, lockPath, "theOwner", 0, 600);
+        final String loId = resLocks.getLockedObjectByPath(mockTransaction, lockPath).getID();
+
+        expectRequest(lockPath, "<opaquelocktoken:" + loId + ">");
+        _mockery.checking(new Expectations() {
+            {
+                oneOf(mockStore).getStoredObject(mockTransaction, lockPath);
+                will(returnValue(initLockNullStoredObject()));
+                oneOf(mockStore).removeObject(mockTransaction, lockPath);
+                oneOf(mockRes).setStatus(WebdavStatus.SC_NO_CONTENT);
+            }
+        });
+
+        new DoUnlock(mockStore, resLocks, !readOnly).execute(mockTransaction, mockReq, mockRes);
+
+        _mockery.assertIsSatisfied();
+        assertNull(resLocks.getLockedObjectByPath(mockTransaction, lockPath));
+    }
+
+    @Test
+    public void testDoUnlockWhenUnlockFailsSendsMethodFailure() throws Exception {
+        final String lockPath = "/lockedResource";
+        ResourceLocks resLocks = new ResourceLocks();
+        resLocks.lock(mockTransaction, lockPath, "theOwner", exclusive, 0, 600, !TEMPORARY);
+        final LockedObject lo = resLocks.getLockedObjectByPath(mockTransaction, lockPath);
+
+        expectRequest(lockPath, "<opaquelocktoken:" + lo.getID() + ">");
+        _mockery.checking(new Expectations() {
+            {
+                oneOf(mockResourceLocks).lock(with(any(ITransaction.class)), with(lockPath),
+                        with(any(String.class)), with(false), with(0), with(any(int.class)), with(true));
+                will(returnValue(true));
+                oneOf(mockResourceLocks).getLockedObjectByID(mockTransaction, lo.getID());
+                will(returnValue(lo));
+                oneOf(mockResourceLocks).unlock(mockTransaction, lo.getID(), "theOwner");
+                will(returnValue(false));
+                oneOf(mockResourceLocks).unlockTemporaryLockedObjects(with(any(ITransaction.class)),
+                        with(lockPath), with(any(String.class)));
+
+                oneOf(mockRes).sendError(WebdavStatus.SC_METHOD_FAILURE);
+            }
+        });
+
+        new DoUnlock(mockStore, mockResourceLocks, !readOnly).execute(mockTransaction, mockReq, mockRes);
+
+        _mockery.assertIsSatisfied();
+    }
+
+    @Test
+    public void testDoUnlockWhenTemporaryLockCannotBeAcquiredDoesNothing() throws Exception {
+        final String lockPath = "/lockedResource";
+
+        expectRequest(lockPath, "<opaquelocktoken:some-token>");
+        _mockery.checking(new Expectations() {
+            {
+                oneOf(mockResourceLocks).lock(with(any(ITransaction.class)), with(lockPath),
+                        with(any(String.class)), with(false), with(0), with(any(int.class)), with(true));
+                will(returnValue(false));
+                oneOf(mockResourceLocks).unlockTemporaryLockedObjects(with(any(ITransaction.class)),
+                        with(lockPath), with(any(String.class)));
+                // no store or response interaction expected
+            }
+        });
+
+        new DoUnlock(mockStore, mockResourceLocks, !readOnly).execute(mockTransaction, mockReq, mockRes);
+
+        _mockery.assertIsSatisfied();
+    }
+
+    @Test
+    public void testDoUnlockWhenStoredObjectIsMissingThrowsNullPointerException() throws Exception {
+        // characterization: DoUnlock dereferences the stored object without a null check
+        final String lockPath = "/lockedButDeletedResource";
+        ResourceLocks resLocks = new ResourceLocks();
+        resLocks.lock(mockTransaction, lockPath, "theOwner", exclusive, 0, 600, !TEMPORARY);
+        final String loId = resLocks.getLockedObjectByPath(mockTransaction, lockPath).getID();
+
+        expectRequest(lockPath, "<opaquelocktoken:" + loId + ">");
+        _mockery.checking(new Expectations() {
+            {
+                oneOf(mockStore).getStoredObject(mockTransaction, lockPath);
+                will(returnValue(null));
+            }
+        });
+
+        DoUnlock doUnlock = new DoUnlock(mockStore, resLocks, !readOnly);
+        assertThrows(NullPointerException.class, () -> doUnlock.execute(mockTransaction, mockReq, mockRes));
+
+        _mockery.assertIsSatisfied();
+        // the lock itself was already removed before the failure
+        assertNull(resLocks.getLockedObjectByPath(mockTransaction, lockPath));
+    }
+
+    private void expectRequest(final String path, final String lockTokenHeader) {
+        _mockery.checking(new Expectations() {
+            {
+                allowing(mockReq).getAttribute("javax.servlet.include.request_uri");
+                will(returnValue(null));
+                allowing(mockReq).getPathInfo();
+                will(returnValue(path));
+                allowing(mockReq).getHeader("Lock-Token");
+                will(returnValue(lockTokenHeader));
+            }
+        });
     }
 }

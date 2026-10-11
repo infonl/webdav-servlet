@@ -1,0 +1,15 @@
+#
+# SPDX-FileCopyrightText: 2026 INFO.nl
+# SPDX-License-Identifier: EUPL-1.2+
+#
+# Coverage targets are reported as non-blocking PR statuses (codecov/project and codecov/patch).
+# They must not be configured as required checks, so PRs below target can still be merged.
+coverage:
+  status:
+    project:
+      default:
+        target: 87%
+        threshold: 1%
+    patch:
+      default:
+        target: 80%

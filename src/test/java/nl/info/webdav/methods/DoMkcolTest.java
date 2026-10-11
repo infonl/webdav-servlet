@@ -4,8 +4,14 @@
  */
 package nl.info.webdav.methods;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.io.ByteArrayInputStream;
 import java.io.PrintWriter;
+import java.util.stream.Stream;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -13,11 +19,16 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.jmock.Expectations;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import nl.info.webdav.ITransaction;
 import nl.info.webdav.IWebdavStore;
 import nl.info.webdav.StoredObject;
 import nl.info.webdav.WebdavStatus;
+import nl.info.webdav.exceptions.AccessDeniedException;
+import nl.info.webdav.exceptions.WebdavException;
 import nl.info.webdav.locking.IResourceLocks;
 import nl.info.webdav.locking.LockedObject;
 import nl.info.webdav.locking.ResourceLocks;
@@ -403,6 +414,280 @@ public class DoMkcolTest extends MockTest {
         doLock.execute(mockTransaction, mockReq, mockRes);
 
         DoMkcol doMkcol = new DoMkcol(mockStore, mockResourceLocks, !readOnly);
+        doMkcol.execute(mockTransaction, mockReq, mockRes);
+
+        _mockery.assertIsSatisfied();
+    }
+
+    @Test
+    public void testMkcolIfParentDoesNotExistResultsIn409() throws Exception {
+
+        _mockery.checking(new Expectations() {
+            {
+                oneOf(mockReq).getAttribute("javax.servlet.include.request_uri");
+                will(returnValue(null));
+
+                oneOf(mockReq).getPathInfo();
+                will(returnValue(mkcolPath));
+
+                oneOf(mockStore).getStoredObject(mockTransaction, parentPath);
+                will(returnValue(null));
+
+                oneOf(mockRes).sendError(WebdavStatus.SC_CONFLICT);
+
+                never(mockStore).createFolder(mockTransaction, mkcolPath);
+            }
+        });
+
+        DoMkcol doMkcol = new DoMkcol(mockStore, new ResourceLocks(), !readOnly);
+        doMkcol.execute(mockTransaction, mockReq, mockRes);
+
+        _mockery.assertIsSatisfied();
+    }
+
+    @Test
+    public void testMkcolIfResourceAlreadyExistsResultsIn405WithAllowHeader() throws Exception {
+
+        final StoredObject existingSo = initFileStoredObject(resourceContent);
+
+        _mockery.checking(new Expectations() {
+            {
+                oneOf(mockReq).getAttribute("javax.servlet.include.request_uri");
+                will(returnValue(null));
+
+                oneOf(mockReq).getPathInfo();
+                will(returnValue(mkcolPath));
+
+                StoredObject parentSo = initFolderStoredObject();
+
+                oneOf(mockStore).getStoredObject(mockTransaction, parentPath);
+                will(returnValue(parentSo));
+
+                oneOf(mockStore).getStoredObject(mockTransaction, mkcolPath);
+                will(returnValue(existingSo));
+
+                oneOf(mockRes).addHeader("Allow", DeterminableMethod.determineMethodsAllowed(existingSo));
+
+                oneOf(mockRes).sendError(WebdavStatus.SC_METHOD_NOT_ALLOWED);
+            }
+        });
+
+        DoMkcol doMkcol = new DoMkcol(mockStore, new ResourceLocks(), !readOnly);
+        doMkcol.execute(mockTransaction, mockReq, mockRes);
+
+        _mockery.assertIsSatisfied();
+    }
+
+    @Test
+    public void testMkcolReplacesOwnedLockNullResourceWithFolder() throws Exception {
+
+        final ResourceLocks resLocks = new ResourceLocks();
+        resLocks.lock(mockTransaction, mkcolPath, owner, true, 0, 200, false);
+        final LockedObject lo = resLocks.getLockedObjectByPath(mockTransaction, mkcolPath);
+        final String lockToken = "(<opaquelocktoken:" + lo.getID() + ">)";
+        final StoredObject lockNullSo = initLockNullStoredObject();
+
+        _mockery.checking(new Expectations() {
+            {
+                oneOf(mockReq).getAttribute("javax.servlet.include.request_uri");
+                will(returnValue(null));
+
+                oneOf(mockReq).getPathInfo();
+                will(returnValue(mkcolPath));
+
+                StoredObject parentSo = initFolderStoredObject();
+
+                oneOf(mockStore).getStoredObject(mockTransaction, parentPath);
+                will(returnValue(parentSo));
+
+                oneOf(mockStore).getStoredObject(mockTransaction, mkcolPath);
+                will(returnValue(lockNullSo));
+
+                oneOf(mockReq).getHeader("If");
+                will(returnValue(lockToken));
+
+                oneOf(mockRes).setStatus(WebdavStatus.SC_CREATED);
+
+                never(mockStore).createFolder(mockTransaction, mkcolPath);
+            }
+        });
+
+        DoMkcol doMkcol = new DoMkcol(mockStore, resLocks, !readOnly);
+        doMkcol.execute(mockTransaction, mockReq, mockRes);
+
+        assertTrue(lockNullSo.isFolder());
+        assertFalse(lockNullSo.isNullResource());
+        assertNull(resLocks.getLockedObjectByPath(mockTransaction, mkcolPath));
+
+        _mockery.assertIsSatisfied();
+    }
+
+    @Test
+    public void testMkcolOnLockNullResourceWithWrongLockTokenResultsIn423() throws Exception {
+
+        final ResourceLocks resLocks = new ResourceLocks();
+        resLocks.lock(mockTransaction, mkcolPath, owner, true, 0, 200, false);
+        final StoredObject lockNullSo = initLockNullStoredObject();
+
+        _mockery.checking(new Expectations() {
+            {
+                oneOf(mockReq).getAttribute("javax.servlet.include.request_uri");
+                will(returnValue(null));
+
+                oneOf(mockReq).getPathInfo();
+                will(returnValue(mkcolPath));
+
+                StoredObject parentSo = initFolderStoredObject();
+
+                oneOf(mockStore).getStoredObject(mockTransaction, parentPath);
+                will(returnValue(parentSo));
+
+                oneOf(mockStore).getStoredObject(mockTransaction, mkcolPath);
+                will(returnValue(lockNullSo));
+
+                oneOf(mockReq).getHeader("If");
+                will(returnValue("(<opaquelocktoken:aWrongLockToken>)"));
+
+                oneOf(mockRes).sendError(WebdavStatus.SC_LOCKED, WebdavStatus.getStatusText(WebdavStatus.SC_LOCKED));
+            }
+        });
+
+        DoMkcol doMkcol = new DoMkcol(mockStore, resLocks, !readOnly);
+        doMkcol.execute(mockTransaction, mockReq, mockRes);
+
+        assertTrue(lockNullSo.isNullResource());
+        assertNotNull(resLocks.getLockedObjectByPath(mockTransaction, mkcolPath));
+
+        _mockery.assertIsSatisfied();
+    }
+
+    @Test
+    public void testMkcolOnLockNullResourceWithoutIfHeaderResultsIn400() throws Exception {
+
+        final ResourceLocks resLocks = new ResourceLocks();
+        resLocks.lock(mockTransaction, mkcolPath, owner, true, 0, 200, false);
+
+        _mockery.checking(new Expectations() {
+            {
+                oneOf(mockReq).getAttribute("javax.servlet.include.request_uri");
+                will(returnValue(null));
+
+                oneOf(mockReq).getPathInfo();
+                will(returnValue(mkcolPath));
+
+                StoredObject parentSo = initFolderStoredObject();
+
+                oneOf(mockStore).getStoredObject(mockTransaction, parentPath);
+                will(returnValue(parentSo));
+
+                StoredObject lockNullSo = initLockNullStoredObject();
+
+                oneOf(mockStore).getStoredObject(mockTransaction, mkcolPath);
+                will(returnValue(lockNullSo));
+
+                oneOf(mockReq).getHeader("If");
+                will(returnValue(null));
+
+                oneOf(mockRes).sendError(WebdavStatus.SC_BAD_REQUEST);
+            }
+        });
+
+        DoMkcol doMkcol = new DoMkcol(mockStore, resLocks, !readOnly);
+        doMkcol.execute(mockTransaction, mockReq, mockRes);
+
+        _mockery.assertIsSatisfied();
+    }
+
+    @Test
+    public void testMkcolOnLockNullResourceWithoutLockResultsIn500() throws Exception {
+
+        _mockery.checking(new Expectations() {
+            {
+                oneOf(mockReq).getAttribute("javax.servlet.include.request_uri");
+                will(returnValue(null));
+
+                oneOf(mockReq).getPathInfo();
+                will(returnValue(mkcolPath));
+
+                StoredObject parentSo = initFolderStoredObject();
+
+                oneOf(mockStore).getStoredObject(mockTransaction, parentPath);
+                will(returnValue(parentSo));
+
+                StoredObject lockNullSo = initLockNullStoredObject();
+
+                oneOf(mockStore).getStoredObject(mockTransaction, mkcolPath);
+                will(returnValue(lockNullSo));
+
+                oneOf(mockRes).sendError(WebdavStatus.SC_INTERNAL_SERVER_ERROR);
+            }
+        });
+
+        DoMkcol doMkcol = new DoMkcol(mockStore, new ResourceLocks(), !readOnly);
+        doMkcol.execute(mockTransaction, mockReq, mockRes);
+
+        _mockery.assertIsSatisfied();
+    }
+
+    static Stream<Arguments> storeExceptions() {
+        return Stream.of(
+                Arguments.of(new AccessDeniedException(null), WebdavStatus.SC_FORBIDDEN),
+                Arguments.of(new WebdavException("store failure"), WebdavStatus.SC_INTERNAL_SERVER_ERROR));
+    }
+
+    @ParameterizedTest
+    @MethodSource("storeExceptions")
+    public void testMkcolStoreExceptionIsMappedToStatus(WebdavException exception, int expectedStatus)
+                                                                                                       throws Exception {
+
+        _mockery.checking(new Expectations() {
+            {
+                oneOf(mockReq).getAttribute("javax.servlet.include.request_uri");
+                will(returnValue(null));
+
+                oneOf(mockReq).getPathInfo();
+                will(returnValue(mkcolPath));
+
+                StoredObject parentSo = initFolderStoredObject();
+
+                oneOf(mockStore).getStoredObject(mockTransaction, parentPath);
+                will(returnValue(parentSo));
+
+                oneOf(mockStore).getStoredObject(mockTransaction, mkcolPath);
+                will(returnValue(null));
+
+                oneOf(mockStore).createFolder(mockTransaction, mkcolPath);
+                will(throwException(exception));
+
+                oneOf(mockRes).sendError(expectedStatus);
+            }
+        });
+
+        DoMkcol doMkcol = new DoMkcol(mockStore, new ResourceLocks(), !readOnly);
+        doMkcol.execute(mockTransaction, mockReq, mockRes);
+
+        _mockery.assertIsSatisfied();
+    }
+
+    @Test
+    public void testMkcolTemporaryLockFailureResultsIn500() throws Exception {
+
+        final ResourceLocks resLocks = new ResourceLocks();
+        resLocks.lock(mockTransaction, mkcolPath, "someone else", true, 0, 200, true);
+
+        _mockery.checking(new Expectations() {
+            {
+                oneOf(mockReq).getAttribute("javax.servlet.include.request_uri");
+                will(returnValue(null));
+
+                oneOf(mockReq).getPathInfo();
+                will(returnValue(mkcolPath));
+
+                oneOf(mockRes).sendError(WebdavStatus.SC_INTERNAL_SERVER_ERROR);
+            }
+        });
+
+        DoMkcol doMkcol = new DoMkcol(mockStore, resLocks, !readOnly);
         doMkcol.execute(mockTransaction, mockReq, mockRes);
 
         _mockery.assertIsSatisfied();

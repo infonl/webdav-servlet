@@ -6,9 +6,12 @@ package nl.info.webdav;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -169,5 +172,124 @@ class LocalFileSystemStoreTest {
         Path link = tempDir.toPath().resolve("escape");
         Files.createSymbolicLink(link, outside.toPath());
         assertThrows(WebdavException.class, () -> store.createResource(null, "/escape/file.txt"));
+    }
+
+    // --- begin(): root handling ---
+
+    @Test
+    void begin_existingRoot_returnsNullTransaction() {
+        assertNull(store.begin(null));
+    }
+
+    @Test
+    void begin_missingRoot_createsRootDirectory() throws IOException {
+        File root = new File(tempDir, "missing/nested/root");
+        assertFalse(root.exists());
+        LocalFileSystemStore missingRootStore = new LocalFileSystemStore(root);
+
+        assertDoesNotThrow(() -> missingRootStore.begin(null));
+
+        assertTrue(root.isDirectory());
+    }
+
+    @Test
+    void begin_rootNotCreatable_throwsWebdavException() throws IOException {
+        File blocker = new File(tempDir, "blocker");
+        assertTrue(blocker.createNewFile());
+        LocalFileSystemStore blockedStore = new LocalFileSystemStore(new File(blocker, "root"));
+
+        WebdavException exception = assertThrows(WebdavException.class, () -> blockedStore.begin(null));
+
+        assertTrue(exception.getMessage().contains("does not exist and could not be created"));
+    }
+
+    // --- I/O failure paths ---
+
+    @Test
+    void createResource_missingParent_throwsWebdavExceptionWrappingIOException() {
+        WebdavException exception = assertThrows(WebdavException.class, () -> store.createResource(null, "/no-such-dir/file.txt"));
+
+        assertInstanceOf(IOException.class, exception.getCause());
+    }
+
+    @Test
+    void createResource_alreadyExists_throwsWebdavException() {
+        store.createResource(null, "/exists.txt");
+
+        WebdavException exception = assertThrows(WebdavException.class, () -> store.createResource(null, "/exists.txt"));
+
+        assertEquals("cannot create file: /exists.txt", exception.getMessage());
+    }
+
+    @Test
+    void setResourceContent_targetIsDirectory_throwsWebdavExceptionWrappingIOException() {
+        store.createFolder(null, "/folder");
+
+        WebdavException exception = assertThrows(WebdavException.class, () -> store.setResourceContent(null, "/folder",
+                new ByteArrayInputStream("x".getBytes()), null, null));
+
+        assertInstanceOf(IOException.class, exception.getCause());
+    }
+
+    @Test
+    void setResourceContent_missingParent_throwsWebdavException() {
+        assertThrows(WebdavException.class, () -> store.setResourceContent(null, "/no-such-dir/file.txt",
+                new ByteArrayInputStream("x".getBytes()), null, null));
+    }
+
+    @Test
+    void setResourceContent_inputStreamFails_throwsWebdavException() {
+        store.createResource(null, "/broken.txt");
+        InputStream failing = new InputStream() {
+            @Override
+            public int read() throws IOException {
+                throw new IOException("read failure");
+            }
+
+            @Override
+            public int read(byte[] b, int off, int len) throws IOException {
+                throw new IOException("read failure");
+            }
+        };
+
+        WebdavException exception = assertThrows(WebdavException.class, () -> store.setResourceContent(null, "/broken.txt", failing,
+                null, null));
+
+        assertEquals("read failure", exception.getCause().getMessage());
+    }
+
+    @Test
+    void getResourceContent_missingFile_throwsWebdavExceptionWrappingIOException() {
+        WebdavException exception = assertThrows(WebdavException.class, () -> store.getResourceContent(null, "/missing.txt"));
+
+        assertInstanceOf(IOException.class, exception.getCause());
+    }
+
+    @Test
+    void createFolder_alreadyExists_throwsWebdavException() {
+        store.createFolder(null, "/dup");
+
+        WebdavException exception = assertThrows(WebdavException.class, () -> store.createFolder(null, "/dup"));
+
+        assertEquals("cannot create folder: /dup", exception.getMessage());
+    }
+
+    @Test
+    void removeObject_missing_throwsWebdavException() {
+        WebdavException exception = assertThrows(WebdavException.class, () -> store.removeObject(null, "/missing.txt"));
+
+        assertEquals("cannot delete object: /missing.txt", exception.getMessage());
+    }
+
+    @Test
+    void getChildrenNames_onFile_returnsNull() {
+        store.createResource(null, "/plain.txt");
+
+        assertNull(store.getChildrenNames(null, "/plain.txt"));
+    }
+
+    @Test
+    void getStoredObject_missing_returnsNull() {
+        assertNull(store.getStoredObject(null, "/missing.txt"));
     }
 }

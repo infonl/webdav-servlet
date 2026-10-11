@@ -5,6 +5,8 @@
 package nl.info.webdav;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.ByteArrayInputStream;
@@ -535,6 +537,147 @@ public class WebDavServletBeanTest extends MockTest {
 
         new TestBean(mockStore, "*NO*IMPL*", noImplExecutor).callService(mockReq, mockRes);
 
+        _mockery.assertIsSatisfied();
+    }
+
+    @Test
+    public void testServiceUnknownMethodOnInitializedBeanSends501() throws Exception {
+        _mockery.checking(new Expectations() {
+            {
+                // read once by service() and once by DoNotImplemented for logging
+                exactly(2).of(mockReq).getMethod();
+                will(returnValue("SEARCH"));
+
+                oneOf(mockReq).getUserPrincipal();
+                will(returnValue(null));
+
+                oneOf(mockStore).begin(null);
+                will(returnValue(mockTransaction));
+
+                oneOf(mockStore).checkAuthentication(mockTransaction);
+
+                oneOf(mockRes).setStatus(WebdavStatus.SC_OK);
+
+                oneOf(mockRes).sendError(WebdavStatus.SC_NOT_IMPLEMENTED);
+
+                oneOf(mockStore).commit(mockTransaction);
+
+                oneOf(mockReq).getContentLength();
+                will(returnValue(0));
+
+                never(mockStore).rollback(mockTransaction);
+            }
+        });
+
+        WebDavServletBean bean = new WebDavServletBean();
+        bean.init(mockStore, null, null, -1, false);
+        bean.service(mockReq, mockRes);
+
+        _mockery.assertIsSatisfied();
+    }
+
+    @Test
+    public void testServiceRuntimeExceptionIsWrappedAsCauseOfServletException() throws Exception {
+        RuntimeException failure = new IllegalStateException("unexpected");
+
+        _mockery.checking(new Expectations() {
+            {
+                oneOf(mockReq).getMethod();
+                will(returnValue("GET"));
+
+                oneOf(mockReq).getUserPrincipal();
+                will(returnValue(null));
+
+                oneOf(mockStore).begin(null);
+                will(returnValue(mockTransaction));
+
+                oneOf(mockStore).checkAuthentication(mockTransaction);
+
+                oneOf(mockRes).setStatus(WebdavStatus.SC_OK);
+
+                oneOf(mockExecutor).execute(mockTransaction, mockReq, mockRes);
+                will(throwException(failure));
+
+                never(mockStore).commit(mockTransaction);
+
+                oneOf(mockStore).rollback(mockTransaction);
+            }
+        });
+
+        ServletException exception = assertThrows(
+                ServletException.class,
+                () -> new TestBean(mockStore, mockExecutor).callService(mockReq, mockRes)
+        );
+        assertSame(failure, exception.getCause());
+        _mockery.assertIsSatisfied();
+    }
+
+    @Test
+    public void testServiceIOExceptionIsDoubleWrappedInServletException() throws Exception {
+        IOException failure = new IOException("disk error");
+
+        _mockery.checking(new Expectations() {
+            {
+                oneOf(mockReq).getMethod();
+                will(returnValue("GET"));
+
+                oneOf(mockReq).getUserPrincipal();
+                will(returnValue(null));
+
+                oneOf(mockStore).begin(null);
+                will(returnValue(mockTransaction));
+
+                oneOf(mockStore).checkAuthentication(mockTransaction);
+
+                oneOf(mockRes).setStatus(WebdavStatus.SC_OK);
+
+                oneOf(mockExecutor).execute(mockTransaction, mockReq, mockRes);
+                will(throwException(failure));
+
+                oneOf(mockRes).isCommitted();
+                will(returnValue(false));
+
+                oneOf(mockRes).sendError(WebdavStatus.SC_INTERNAL_SERVER_ERROR);
+
+                exactly(2).of(mockStore).rollback(mockTransaction);
+            }
+        });
+
+        ServletException exception = assertThrows(
+                ServletException.class,
+                () -> new TestBean(mockStore, mockExecutor).callService(mockReq, mockRes)
+        );
+        // characterization: the ServletException thrown from the inner IOException handler
+        // is caught by the outer catch(Exception) block and wrapped a second time
+        ServletException inner = assertInstanceOf(ServletException.class, exception.getCause());
+        assertSame(failure, inner.getCause());
+        _mockery.assertIsSatisfied();
+    }
+
+    @Test
+    public void testServiceStoreBeginFailureDoesNotRollBack() throws Exception {
+        RuntimeException failure = new RuntimeException("cannot begin");
+
+        _mockery.checking(new Expectations() {
+            {
+                oneOf(mockReq).getMethod();
+                will(returnValue("GET"));
+
+                oneOf(mockReq).getUserPrincipal();
+                will(returnValue(null));
+
+                oneOf(mockStore).begin(null);
+                will(throwException(failure));
+
+                never(mockStore).rollback(with(any(ITransaction.class)));
+            }
+        });
+
+        ServletException exception = assertThrows(
+                ServletException.class,
+                () -> new TestBean(mockStore, mockExecutor).callService(mockReq, mockRes)
+        );
+        assertSame(failure, exception.getCause());
         _mockery.assertIsSatisfied();
     }
 }
