@@ -70,7 +70,7 @@
 - [x] 9.1 Re-run `./gradlew test jacocoTestReport`; record final line/branch coverage
 - [x] 9.2 Add `codecov.yml` (with SPDX header) at repo root: `project` target = Codecov-reported coverage rounded down (83%; Codecov counts partially covered lines as misses, so it reads lower than JaCoCo line coverage) with `threshold: 1%`, `patch` target 80%
 - [x] 9.3 Validate `codecov.yml` (`curl --data-binary @codecov.yml https://codecov.io/validate`) and confirm `build.gradle.kts` has no coverage verification wired into `check`
-- [ ] 9.4 After opening the PR, confirm `codecov/project` and `codecov/patch` statuses appear and are not required checks in branch protection
+- [x] 9.4 After opening the PR, confirm `codecov/project` and `codecov/patch` statuses appear and are not required checks in branch protection
 - [x] 9.5 Update spec scenarios that differ from actual behavior; list candidate bugs in the PR description
 
 ## 10. Finalize
