@@ -284,6 +284,12 @@ public class AbstractMethodTest extends MockTest {
     }
 
     @Test
+    public void testAssertSafePathRejectsBackslashSeparatedTraversalSegments() {
+        assertThrows(PathTraversalException.class, () -> AbstractMethod.assertSafePath("/a\\..\\.."));
+        assertThrows(PathTraversalException.class, () -> AbstractMethod.assertSafePath("/a\\.\\b"));
+    }
+
+    @Test
     public void testAssertSafePathAcceptsNormalPath() {
         assertDoesNotThrow(() -> AbstractMethod.assertSafePath("/files/documents/report.pdf"));
     }

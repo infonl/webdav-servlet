@@ -26,6 +26,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import nl.info.webdav.ITransaction;
 import nl.info.webdav.IWebdavStore;
@@ -1057,24 +1058,27 @@ public class DoCopyTest extends MockTest {
     }
 
     @Test
-    public void testNormalizeDoesNotResolveTrailingParentSegment() {
-        // Characterization (candidate bug): normalize() only resolves "/../" when followed by a slash,
-        // so a trailing "/.." is kept. Via the Destination header this is reachable with backslashes
-        // (e.g. "/a%5C..%5C.."), because assertSafePath() only splits on '/'.
+    public void testNormalizeResolvesTrailingDotSegments() {
         DoCopy doCopy = new DoCopy(null, new ResourceLocks(), null, false);
-        assertEquals("/a/..", doCopy.normalize("/a\\.."));
-        assertEquals("/..", doCopy.normalize("/a\\..\\.."));
+        assertEquals("/", doCopy.normalize("/a\\.."));
+        assertEquals("/a/", doCopy.normalize("/a/b/.."));
+        assertEquals("/a/", doCopy.normalize("/a/."));
+        assertNull(doCopy.normalize("/a\\..\\.."));
+        assertNull(doCopy.normalize("/.."));
     }
 
-    @Test
-    public void testBackslashEncodedTraversalInDestinationReachesStoreAsParentPath() throws Exception {
-        // Characterization (candidate security bug, see findings.md #1): "%5C" decodes to '\', which
-        // assertSafePath() does not treat as a separator. normalize() then turns '\' into '/' and keeps
-        // the trailing "/..", so the store receives "/..". When the fix lands this test must expect
-        // 400 Bad Request and no store interaction for the destination instead.
+    @ParameterizedTest
+    @ValueSource(strings = {"/a%5C..%5C..", "/a%5C..", "/a%5C.%5Cb", "/a/b%5C.."})
+    public void testBackslashEncodedTraversalInDestinationIsBadRequest(String destination) throws Exception {
+        // "%5C" decodes to '\', which normalize() turns into '/', so it must be treated as a separator
+        // by assertSafePath(). The store must not be called for the destination.
         Fixture f = new Fixture();
-        f.allowRequest(SOURCE, "/a%5C..%5C..");
-        f.expectFileCopyToNewDestination(SOURCE, "/..");
+        f.allowRequest(SOURCE, destination);
+        f.context.checking(new Expectations() {
+            {
+                oneOf(f.resp).sendError(WebdavStatus.SC_BAD_REQUEST);
+            }
+        });
 
         f.doCopy(false).execute(f.tx, f.req, f.resp);
 
