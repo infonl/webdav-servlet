@@ -1005,19 +1005,19 @@ public class DoLockTest extends MockTest {
         assertNull(resLocks.getLockedObjectByPath(mockTransaction, lockPath));
     }
 
-    @ParameterizedTest(name = "{0}")
+    @ParameterizedTest(name = "[{index}] incomplete lock info")
     @CsvSource(
             delimiter = '|', value = {
-                                      "missing locktype|<D:lockscope><D:exclusive/></D:lockscope><D:owner><D:href>o</D:href></D:owner>",
-                                      "empty locktype|<D:lockscope><D:exclusive/></D:lockscope><D:locktype/><D:owner><D:href>o</D:href></D:owner>",
-                                      "missing lockscope|<D:locktype><D:write/></D:locktype><D:owner><D:href>o</D:href></D:owner>",
-                                      "empty lockscope|<D:lockscope/><D:locktype><D:write/></D:locktype><D:owner><D:href>o</D:href></D:owner>",
-                                      "missing owner|<D:lockscope><D:exclusive/></D:lockscope><D:locktype><D:write/></D:locktype>",
-                                      "comment child|<!-- c --><D:lockscope><D:exclusive/></D:lockscope><D:locktype><D:write/></D:locktype>"
+                                      "<D:lockscope><D:exclusive/></D:lockscope><D:owner><D:href>o</D:href></D:owner>",
+                                      "<D:lockscope><D:exclusive/></D:lockscope><D:locktype/><D:owner><D:href>o</D:href></D:owner>",
+                                      "<D:locktype><D:write/></D:locktype><D:owner><D:href>o</D:href></D:owner>",
+                                      "<D:lockscope/><D:locktype><D:write/></D:locktype><D:owner><D:href>o</D:href></D:owner>",
+                                      "<D:lockscope><D:exclusive/></D:lockscope><D:locktype><D:write/></D:locktype>",
+                                      "<!-- c --><D:lockscope><D:exclusive/></D:lockscope><D:locktype><D:write/></D:locktype>"
             }
     )
-    public void testDoLockWithIncompleteLockInfoSendsBadRequest(String description, String lockInfoContent)
-                                                                                                            throws Exception {
+    public void testDoLockWithIncompleteLockInfoSendsBadRequest(String lockInfoContent)
+                                                                                        throws Exception {
         final String lockPath = "/aFileToLock";
         ResourceLocks resLocks = new ResourceLocks();
 

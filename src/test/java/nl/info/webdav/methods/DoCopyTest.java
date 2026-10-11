@@ -1066,6 +1066,21 @@ public class DoCopyTest extends MockTest {
         assertEquals("/..", doCopy.normalize("/a\\..\\.."));
     }
 
+    @Test
+    public void testBackslashEncodedTraversalInDestinationReachesStoreAsParentPath() throws Exception {
+        // Characterization (candidate security bug, see findings.md #1): "%5C" decodes to '\', which
+        // assertSafePath() does not treat as a separator. normalize() then turns '\' into '/' and keeps
+        // the trailing "/..", so the store receives "/..". When the fix lands this test must expect
+        // 400 Bad Request and no store interaction for the destination instead.
+        Fixture f = new Fixture();
+        f.allowRequest(SOURCE, "/a%5C..%5C..");
+        f.expectFileCopyToNewDestination(SOURCE, "/..");
+
+        f.doCopy(false).execute(f.tx, f.req, f.resp);
+
+        f.context.assertIsSatisfied();
+    }
+
     @ParameterizedTest
     @CsvSource({
                 "http://host/source",

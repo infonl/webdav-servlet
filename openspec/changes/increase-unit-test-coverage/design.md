@@ -55,7 +55,7 @@ coverage:
   status:
     project:
       default:
-        target: 80%      # set to achieved line coverage, rounded down
+        target: 83%      # Codecov-reported coverage at merge, rounded down
         threshold: 1%    # tolerate small fluctuations
     patch:
       default:

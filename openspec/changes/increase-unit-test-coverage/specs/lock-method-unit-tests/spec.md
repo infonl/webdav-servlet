@@ -36,7 +36,7 @@ The test suite SHALL verify `doNullResourceLock` branches.
 
 #### Scenario: Transmit client workaround
 - **WHEN** the `User-Agent` contains `Transmit`
-- **THEN** the null-resource lock is answered with `204 No Content` instead of `201`
+- **THEN** `setStatus(204)` is called instead of `201`, but `generateXMLReport` overwrites it, so the final status is `200` (see findings.md #14)
 
 ### Requirement: LOCK refresh
 The test suite SHALL verify refreshing an existing lock.

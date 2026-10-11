@@ -6,7 +6,7 @@ Tests assert the current behavior. Each item below is a candidate for a follow-u
 
 ## Security
 
-1. **Path traversal check bypassed with backslashes in `Destination`.** `DoCopy.parseDestinationHeader` runs `assertSafePath` (which splits on `/` only) *before* `normalize`. `normalize` then converts `\` to `/` and leaves a trailing `/..` unresolved (`methods/DoCopy.java:400,452-482`). Example: `Destination: /a%5C..%5C..` passes the check and becomes `/..`. `LocalFileSystemStore.resolveFile` still blocks it with a canonical root check, but custom `IWebdavStore` implementations receive the unsafe path. Pinned at the `normalize()` level only (`DoCopyTest.testNormalizeDoesNotResolveTrailingParentSegment`).
+1. **Path traversal check bypassed with backslashes in `Destination`.** `DoCopy.parseDestinationHeader` runs `assertSafePath` (which splits on `/` only) *before* `normalize`. `normalize` then converts `\` to `/` and leaves a trailing `/..` unresolved (`methods/DoCopy.java:400,452-482`). Example: `Destination: /a%5C..%5C..` passes the check and becomes `/..`. `LocalFileSystemStore.resolveFile` still blocks it with a canonical root check, but custom `IWebdavStore` implementations receive the unsafe path. Pinned end to end by `DoCopyTest.testBackslashEncodedTraversalInDestinationReachesStoreAsParentPath` (the store receives `/..`) and at the `normalize()` level by `testNormalizeDoesNotResolveTrailingParentSegment`.
 
 ## Data loss / correctness
 

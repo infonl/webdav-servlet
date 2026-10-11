@@ -108,6 +108,41 @@ public class DoMkcolTest extends MockTest {
     }
 
     @Test
+    public void testMkcolIgnoresRequestBody() throws Exception {
+        // Characterization (candidate bug, see findings.md #25): RFC 4918 expects 415 for an MKCOL
+        // request with a body, but DoMkcol never inspects the body. No expectations are set on
+        // getInputStream(), getContentLength() or getContentType(), so any attempt to read the body
+        // fails this test; the folder is created with 201 as if no body was sent.
+        _mockery.checking(new Expectations() {
+            {
+                oneOf(mockReq).getAttribute("javax.servlet.include.request_uri");
+                will(returnValue(null));
+
+                oneOf(mockReq).getPathInfo();
+                will(returnValue(mkcolPath));
+
+                StoredObject parentSo = initFolderStoredObject();
+
+                oneOf(mockStore).getStoredObject(mockTransaction, parentPath);
+                will(returnValue(parentSo));
+
+                oneOf(mockStore).getStoredObject(mockTransaction, mkcolPath);
+                will(returnValue(null));
+
+                oneOf(mockStore).createFolder(mockTransaction, mkcolPath);
+
+                oneOf(mockRes).setStatus(WebdavStatus.SC_CREATED);
+                never(mockRes).sendError(WebdavStatus.SC_UNSUPPORTED_MEDIA_TYPE);
+            }
+        });
+
+        DoMkcol doMkcol = new DoMkcol(mockStore, new ResourceLocks(), !readOnly);
+        doMkcol.execute(mockTransaction, mockReq, mockRes);
+
+        _mockery.assertIsSatisfied();
+    }
+
+    @Test
     public void testMkcolIfParentPathIsNoFolder() throws Exception {
 
         _mockery.checking(new Expectations() {

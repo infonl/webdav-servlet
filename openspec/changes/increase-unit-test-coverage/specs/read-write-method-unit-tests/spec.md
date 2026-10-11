@@ -28,8 +28,8 @@ The test suite SHALL verify the remaining `DoHead.execute` and `DoGet` branches.
 - **THEN** `403 Forbidden` is sent
 
 #### Scenario: HEAD on folder
-- **WHEN** HEAD targets a folder
-- **THEN** headers are written and no body is produced
+- **WHEN** HEAD targets a folder without a default index file
+- **THEN** no status, entity headers or body are written; only `If-None-Match` is read
 
 #### Scenario: Directory listing CSS
 - **WHEN** GET renders a folder listing

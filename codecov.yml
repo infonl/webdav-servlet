@@ -4,11 +4,12 @@
 #
 # Coverage targets are reported as non-blocking PR statuses (codecov/project and codecov/patch).
 # They must not be configured as required checks, so PRs below target can still be merged.
+# Codecov counts partially covered lines as misses, so its figure is lower than JaCoCo line coverage.
 coverage:
   status:
     project:
       default:
-        target: 87%
+        target: 83%
         threshold: 1%
     patch:
       default:

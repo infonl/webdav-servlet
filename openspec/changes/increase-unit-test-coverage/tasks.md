@@ -11,18 +11,18 @@
 - [x] 2.4 `DoPropfindTest`: `<propname/>` and `<allprop/>` with `Depth: 1` on folder with children
 - [x] 2.5 `DoPropfindTest`: `lockdiscovery` for exclusive and shared locks (scope, depth, owner, timeout, token)
 - [x] 2.6 `DoPropfindTest`: not found (404), `AccessDeniedException` (403), malformed body (500)
-- [x] 2.7 `DoProppatchTest`: combined `<set>`/`<remove>` produces multistatus and calls `setCustomProperties`
+- [x] 2.7 `DoProppatchTest`: combined `<set>`/`<remove>` produces a 207 multistatus with 200 per property and no store mutation (nothing is persisted; findings #3)
 - [x] 2.8 `DoProppatchTest`: read-only (403), locked (423), not found (404), malformed body (500)
 
 ## 3. LOCK / UNLOCK (`lock-method-unit-tests`)
 
 - [x] 3.1 `DoLockTest`: `Timeout` parsing — missing, `Second-N`, above max, `Infinite`, malformed (parameterized)
-- [x] 3.2 `DoLockTest`: null-resource lock success (201) and missing parent (409)
-- [x] 3.3 `DoLockTest`: Transmit user-agent workaround on null-resource lock
+- [x] 3.2 `DoLockTest`: null-resource lock success (final status 200, the 201 is overwritten; findings #14) and missing parent (parent folder is created; findings #15)
+- [x] 3.3 `DoLockTest`: Transmit user-agent workaround on null-resource lock (204 is also overwritten by 200)
 - [x] 3.4 `DoLockTest`: lock refresh with valid `If` token and with unknown token (412)
-- [x] 3.5 `DoLockTest`: Darwin user-agent lock success and conflict (207 with 423)
+- [x] 3.5 `DoLockTest`: Darwin user-agent lock success and conflict (plain `sendError(423)`, not a 207; findings #19)
 - [x] 3.6 `DoLockTest`: body parsing — shared scope, owner `<href>`, missing locktype (400), malformed XML; read-only (403)
-- [x] 3.7 `DoUnlockTest`: missing `Lock-Token` (400), unknown token (400), owner mismatch (423), null-resource removal on last unlock
+- [x] 3.7 `DoUnlockTest`: missing `Lock-Token` (400), unknown token (400), token from another owner (lock removed, 204; findings #6), null-resource removal on last unlock
 
 ## 4. COPY / MOVE / DELETE (`copy-move-delete-unit-tests`)
 
@@ -47,7 +47,7 @@
 - [x] 6.1 `DoGetTest`/`DoHeadTest`: default index file, `instead-of-404` fallback, plain 404, `If-None-Match` (304)
 - [x] 6.2 `DoGetTest`/`DoHeadTest`: content-length suppression, `AccessDeniedException` (403), HEAD on folder, listing CSS
 - [x] 6.3 `DoPutTest`: read-only, missing parent with/without lazy creation, locked, overwrite (204), PUT on folder
-- [x] 6.4 `DoMkcolTest`: body present (415), missing parent (409), exists (405 + `Allow`), null resource replaced, store exceptions
+- [x] 6.4 `DoMkcolTest`: body present (ignored, 201; no 415 — findings #25), missing parent (409), exists (405 + `Allow`), null resource replaced, store exceptions
 - [x] 6.5 `DoOptionsTest`: store exception→status
 
 ## 7. Locking (`resource-locks-unit-tests`, `locked-object-unit-tests`)
@@ -68,7 +68,7 @@
 ## 9. Coverage reporting (`coverage-threshold-reporting`)
 
 - [x] 9.1 Re-run `./gradlew test jacocoTestReport`; record final line/branch coverage
-- [x] 9.2 Add `codecov.yml` (with SPDX header) at repo root: `project` target = achieved line coverage rounded down (aim ≥ 80%) with `threshold: 1%`, `patch` target 80%
+- [x] 9.2 Add `codecov.yml` (with SPDX header) at repo root: `project` target = Codecov-reported coverage rounded down (83%; Codecov counts partially covered lines as misses, so it reads lower than JaCoCo line coverage) with `threshold: 1%`, `patch` target 80%
 - [x] 9.3 Validate `codecov.yml` (`curl --data-binary @codecov.yml https://codecov.io/validate`) and confirm `build.gradle.kts` has no coverage verification wired into `check`
 - [ ] 9.4 After opening the PR, confirm `codecov/project` and `codecov/patch` statuses appear and are not required checks in branch protection
 - [x] 9.5 Update spec scenarios that differ from actual behavior; list candidate bugs in the PR description
