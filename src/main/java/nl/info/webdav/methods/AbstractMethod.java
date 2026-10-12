@@ -151,7 +151,8 @@ public abstract class AbstractMethod implements IMethodExecutor {
     static void assertSafePath(String path) {
         if (path == null)
             return;
-        for (String segment : path.split("/", -1)) {
+        // Treat '\' as a separator too: DoCopy.normalize() converts it to '/' later on
+        for (String segment : path.split("[/\\\\]", -1)) {
             if ("..".equals(segment) || ".".equals(segment)) {
                 throw new PathTraversalException("Path traversal attempt detected: " + path);
             }

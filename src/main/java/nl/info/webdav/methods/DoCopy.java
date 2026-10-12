@@ -454,6 +454,10 @@ public class DoCopy extends AbstractMethod {
         if (!normalized.startsWith("/"))
             normalized = "/" + normalized;
 
+        // Add a trailing slash so that a trailing "/." or "/.." is resolved below
+        if (normalized.endsWith("/.") || normalized.endsWith("/.."))
+            normalized = normalized + "/";
+
         // Resolve occurrences of "//" in the normalized path
         while (true) {
             int index = normalized.indexOf("//");
