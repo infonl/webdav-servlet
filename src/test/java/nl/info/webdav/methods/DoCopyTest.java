@@ -4,19 +4,37 @@
  */
 package nl.info.webdav.methods;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.io.ByteArrayInputStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import org.jmock.Expectations;
+import org.jmock.Mockery;
+import org.jmock.lib.concurrent.Synchroniser;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import nl.info.webdav.ITransaction;
 import nl.info.webdav.IWebdavStore;
 import nl.info.webdav.StoredObject;
 import nl.info.webdav.WebdavStatus;
+import nl.info.webdav.exceptions.AccessDeniedException;
+import nl.info.webdav.exceptions.ObjectAlreadyExistsException;
+import nl.info.webdav.exceptions.ObjectNotFoundException;
+import nl.info.webdav.exceptions.WebdavException;
 import nl.info.webdav.locking.LockedObject;
 import nl.info.webdav.locking.ResourceLocks;
 import nl.info.webdav.testutil.DelegatingServletInputStream;
@@ -844,5 +862,593 @@ public class DoCopyTest extends MockTest {
         doCopy.execute(mockTransaction, mockReq, mockRes);
 
         _mockery.assertIsSatisfied();
+    }
+
+    // ---------------------------------------------------------------------
+    // The tests below use a fresh Mockery per test (see Fixture) so that
+    // 'allowing' expectations on request getters do not leak into other tests.
+    // ---------------------------------------------------------------------
+
+    private static final String SOURCE = "/source";
+
+    private static final class Fixture {
+        final Mockery context = new Mockery();
+        final IWebdavStore store;
+        final HttpServletRequest req;
+        final HttpServletResponse resp;
+        final ITransaction tx;
+        final ResourceLocks locks = new ResourceLocks();
+
+        Fixture() {
+            context.setThreadingPolicy(new Synchroniser());
+            store = context.mock(IWebdavStore.class);
+            req = context.mock(HttpServletRequest.class);
+            resp = context.mock(HttpServletResponse.class);
+            tx = context.mock(ITransaction.class);
+        }
+
+        DoCopy doCopy(boolean readOnly) {
+            return new DoCopy(store, locks, new DoDelete(store, locks, readOnly), readOnly);
+        }
+
+        /**
+         * Allows all request getters used by DoCopy.
+         */
+        void allowRequest(
+                String sourcePath,
+                String destinationHeader,
+                String contextPath,
+                String servletPath,
+                String overwrite,
+                String depth
+        ) {
+            context.checking(new Expectations() {
+                {
+                    allowing(req).getAttribute("javax.servlet.include.request_uri");
+                    will(returnValue(null));
+                    allowing(req).getPathInfo();
+                    will(returnValue(sourcePath));
+                    allowing(req).getHeader("Destination");
+                    will(returnValue(destinationHeader));
+                    allowing(req).getServerName();
+                    will(returnValue("myServer"));
+                    allowing(req).getContextPath();
+                    will(returnValue(contextPath));
+                    allowing(req).getServletPath();
+                    will(returnValue(servletPath));
+                    allowing(req).getHeader("If");
+                    will(returnValue(null));
+                    allowing(req).getHeader("Overwrite");
+                    will(returnValue(overwrite));
+                    allowing(req).getHeader("Depth");
+                    will(returnValue(depth));
+                    allowing(req).getRequestURI();
+                    will(returnValue("/requestUri"));
+                }
+            });
+        }
+
+        void allowRequest(String sourcePath, String destinationHeader) {
+            allowRequest(sourcePath, destinationHeader, "", "", null, null);
+        }
+
+        /**
+         * Expects a file at sourcePath to be copied to a not yet existing expectedDestination.
+         */
+        void expectFileCopyToNewDestination(String sourcePath, String expectedDestination) {
+            StoredObject sourceSo = initFileStoredObject(resourceContent);
+            context.checking(new Expectations() {
+                {
+                    allowing(store).getStoredObject(tx, sourcePath);
+                    will(returnValue(sourceSo));
+                    oneOf(store).getStoredObject(tx, expectedDestination);
+                    will(returnValue(null));
+                    oneOf(resp).setStatus(WebdavStatus.SC_CREATED);
+                    oneOf(store).createResource(tx, expectedDestination);
+                    allowing(store).getResourceContent(tx, sourcePath);
+                    will(returnValue(dsis));
+                    oneOf(store).setResourceContent(tx, expectedDestination, dsis, null, null);
+                    will(returnValue(-1L));
+                }
+            });
+        }
+    }
+
+    @Test
+    public void testAbsoluteUrlDestinationIsStrippedToRelativePath() throws Exception {
+        Fixture f = new Fixture();
+        f.allowRequest(SOURCE, "http://host:8080/context/servlet/target", "/context", "/servlet", null, null);
+        f.expectFileCopyToNewDestination(SOURCE, "/target");
+
+        f.doCopy(false).execute(f.tx, f.req, f.resp);
+
+        f.context.assertIsSatisfied();
+    }
+
+    @Test
+    public void testAbsoluteUrlDestinationWithoutPathResolvesToRoot() throws Exception {
+        Fixture f = new Fixture();
+        f.allowRequest(SOURCE, "http://host:8080");
+        f.expectFileCopyToNewDestination(SOURCE, "/");
+
+        f.doCopy(false).execute(f.tx, f.req, f.resp);
+
+        f.context.assertIsSatisfied();
+    }
+
+    @Test
+    public void testHostNameAndPortWithoutSchemeAreStripped() throws Exception {
+        Fixture f = new Fixture();
+        f.allowRequest(SOURCE, "myServer:8080/target");
+        f.expectFileCopyToNewDestination(SOURCE, "/target");
+
+        f.doCopy(false).execute(f.tx, f.req, f.resp);
+
+        f.context.assertIsSatisfied();
+    }
+
+    @Test
+    public void testPortWithoutPathResolvesToRoot() throws Exception {
+        Fixture f = new Fixture();
+        f.allowRequest(SOURCE, "myServer:8080");
+        f.expectFileCopyToNewDestination(SOURCE, "/");
+
+        f.doCopy(false).execute(f.tx, f.req, f.resp);
+
+        f.context.assertIsSatisfied();
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+                "/dest%20file, /dest file",
+                "/caf%C3%A9, /café",
+                "http://host/a%2Fb, /a/b"
+    })
+    public void testPercentEncodedDestinationIsDecoded(String header, String expected) throws Exception {
+        Fixture f = new Fixture();
+        f.allowRequest(SOURCE, header);
+        f.expectFileCopyToNewDestination(SOURCE, expected);
+
+        f.doCopy(false).execute(f.tx, f.req, f.resp);
+
+        f.context.assertIsSatisfied();
+    }
+
+    @Test
+    public void testDestinationWithDoubleSlashesIsNormalized() throws Exception {
+        Fixture f = new Fixture();
+        f.allowRequest(SOURCE, "http://host//a//b");
+        f.expectFileCopyToNewDestination(SOURCE, "/a/b");
+
+        f.doCopy(false).execute(f.tx, f.req, f.resp);
+
+        f.context.assertIsSatisfied();
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+                "/., /",
+                "a/b, /a/b",
+                "/a//b, /a/b",
+                "/a/./b, /a/b",
+                "/a/b/../c, /a/c",
+                "/a/b/./../c, /a/c",
+                "\\a\\b, /a/b"
+    })
+    public void testNormalizeResolvesDotSegmentsInsideRoot(String path, String expected) {
+        DoCopy doCopy = new DoCopy(null, new ResourceLocks(), null, false);
+        assertEquals(expected, doCopy.normalize(path));
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+                "/../a",
+                "/a/../../b"
+    })
+    public void testNormalizeReturnsNullWhenLeavingRoot(String path) {
+        DoCopy doCopy = new DoCopy(null, new ResourceLocks(), null, false);
+        assertNull(doCopy.normalize(path));
+    }
+
+    @Test
+    public void testNormalizeOfNullIsNull() {
+        DoCopy doCopy = new DoCopy(null, new ResourceLocks(), null, false);
+        assertNull(doCopy.normalize(null));
+    }
+
+    @Test
+    public void testNormalizeDoesNotResolveTrailingParentSegment() {
+        // Characterization (candidate bug): normalize() only resolves "/../" when followed by a slash,
+        // so a trailing "/.." is kept. Via the Destination header this is reachable with backslashes
+        // (e.g. "/a%5C..%5C.."), because assertSafePath() only splits on '/'.
+        DoCopy doCopy = new DoCopy(null, new ResourceLocks(), null, false);
+        assertEquals("/a/..", doCopy.normalize("/a\\.."));
+        assertEquals("/..", doCopy.normalize("/a\\..\\.."));
+    }
+
+    @Test
+    public void testBackslashEncodedTraversalInDestinationReachesStoreAsParentPath() throws Exception {
+        // Characterization (candidate security bug, see findings.md #1): "%5C" decodes to '\', which
+        // assertSafePath() does not treat as a separator. normalize() then turns '\' into '/' and keeps
+        // the trailing "/..", so the store receives "/..". When the fix lands this test must expect
+        // 400 Bad Request and no store interaction for the destination instead.
+        Fixture f = new Fixture();
+        f.allowRequest(SOURCE, "/a%5C..%5C..");
+        f.expectFileCopyToNewDestination(SOURCE, "/..");
+
+        f.doCopy(false).execute(f.tx, f.req, f.resp);
+
+        f.context.assertIsSatisfied();
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+                "http://host/source",
+                "//source",
+                "myServer/source"
+    })
+    public void testNormalizedDestinationEqualToSourceIsForbidden(String header) throws Exception {
+        Fixture f = new Fixture();
+        f.allowRequest(SOURCE, header);
+        f.context.checking(new Expectations() {
+            {
+                oneOf(f.resp).sendError(WebdavStatus.SC_FORBIDDEN);
+            }
+        });
+
+        f.doCopy(false).execute(f.tx, f.req, f.resp);
+
+        f.context.assertIsSatisfied();
+    }
+
+    @Test
+    public void testMissingDestinationHeaderIsBadRequest() throws Exception {
+        Fixture f = new Fixture();
+        f.allowRequest(SOURCE, null);
+        f.context.checking(new Expectations() {
+            {
+                oneOf(f.resp).sendError(WebdavStatus.SC_BAD_REQUEST);
+            }
+        });
+
+        f.doCopy(false).execute(f.tx, f.req, f.resp);
+
+        f.context.assertIsSatisfied();
+    }
+
+    @Test
+    public void testOverwriteFalseWithExistingDestinationLeavesDestinationUntouched() throws Exception {
+        Fixture f = new Fixture();
+        f.allowRequest(SOURCE, "/target", "", "", "F", null);
+        f.context.checking(new Expectations() {
+            {
+                allowing(f.store).getStoredObject(f.tx, SOURCE);
+                will(returnValue(initFileStoredObject(resourceContent)));
+                allowing(f.store).getStoredObject(f.tx, "/target");
+                will(returnValue(initFileStoredObject(resourceContent)));
+                oneOf(f.resp).sendError(WebdavStatus.SC_PRECONDITION_FAILED);
+                never(f.store).removeObject(f.tx, "/target");
+                never(f.store).createResource(f.tx, "/target");
+            }
+        });
+
+        f.doCopy(false).execute(f.tx, f.req, f.resp);
+
+        f.context.assertIsSatisfied();
+    }
+
+    @ParameterizedTest
+    @CsvSource(value = {"T", "t", "NULL"}, nullValues = "NULL")
+    public void testOverwriteTrueOrAbsentWithExistingDestinationReplacesIt(String overwrite) throws Exception {
+        Fixture f = new Fixture();
+        f.allowRequest(SOURCE, "/target", "", "", overwrite, null);
+        StoredObject sourceSo = initFileStoredObject(resourceContent);
+        StoredObject destSo = initFileStoredObject(new byte[0]);
+        f.context.checking(new Expectations() {
+            {
+                allowing(f.store).getStoredObject(f.tx, SOURCE);
+                will(returnValue(sourceSo));
+                allowing(f.store).getStoredObject(f.tx, "/target");
+                will(returnValue(destSo));
+                oneOf(f.resp).setStatus(WebdavStatus.SC_NO_CONTENT);
+                oneOf(f.store).removeObject(f.tx, "/target");
+                oneOf(f.store).createResource(f.tx, "/target");
+                allowing(f.store).getResourceContent(f.tx, SOURCE);
+                will(returnValue(dsis));
+                oneOf(f.store).setResourceContent(f.tx, "/target", dsis, null, null);
+                will(returnValue(resourceLength));
+            }
+        });
+
+        f.doCopy(false).execute(f.tx, f.req, f.resp);
+
+        f.context.assertIsSatisfied();
+        assertEquals(resourceLength, destSo.getResourceLength());
+    }
+
+    @Test
+    public void testOverwriteOtherValueIsTreatedAsFalse() throws Exception {
+        Fixture f = new Fixture();
+        f.allowRequest(SOURCE, "/target", "", "", "X", null);
+        f.context.checking(new Expectations() {
+            {
+                allowing(f.store).getStoredObject(f.tx, SOURCE);
+                will(returnValue(initFileStoredObject(resourceContent)));
+                allowing(f.store).getStoredObject(f.tx, "/target");
+                will(returnValue(initFileStoredObject(resourceContent)));
+                oneOf(f.resp).sendError(WebdavStatus.SC_PRECONDITION_FAILED);
+            }
+        });
+
+        f.doCopy(false).execute(f.tx, f.req, f.resp);
+
+        f.context.assertIsSatisfied();
+    }
+
+    @Test
+    public void testFolderCopyWithDepthZeroDoesNotCopyChildren() throws Exception {
+        Fixture f = new Fixture();
+        f.allowRequest("/folder", "/copy", "", "", null, "0");
+        f.context.checking(new Expectations() {
+            {
+                allowing(f.store).getStoredObject(f.tx, "/folder");
+                will(returnValue(initFolderStoredObject()));
+                oneOf(f.store).getStoredObject(f.tx, "/copy");
+                will(returnValue(null));
+                oneOf(f.resp).setStatus(WebdavStatus.SC_CREATED);
+                oneOf(f.store).createFolder(f.tx, "/copy");
+                never(f.store).getChildrenNames(f.tx, "/folder");
+            }
+        });
+
+        f.doCopy(false).execute(f.tx, f.req, f.resp);
+
+        f.context.assertIsSatisfied();
+    }
+
+    @Test
+    public void testFolderCopyRecursesIntoSubFolders() throws Exception {
+        Fixture f = new Fixture();
+        f.allowRequest("/folder", "/copy");
+        f.context.checking(new Expectations() {
+            {
+                allowing(f.store).getStoredObject(f.tx, "/folder");
+                will(returnValue(initFolderStoredObject()));
+                oneOf(f.store).getStoredObject(f.tx, "/copy");
+                will(returnValue(null));
+                oneOf(f.resp).setStatus(WebdavStatus.SC_CREATED);
+                oneOf(f.store).createFolder(f.tx, "/copy");
+                oneOf(f.store).getChildrenNames(f.tx, "/folder");
+                will(returnValue(new String[]{"sub"}));
+                allowing(f.store).getStoredObject(f.tx, "/folder/sub");
+                will(returnValue(initFolderStoredObject()));
+                oneOf(f.store).createFolder(f.tx, "/copy/sub");
+                oneOf(f.store).getChildrenNames(f.tx, "/folder/sub");
+                will(returnValue(null));
+            }
+        });
+
+        f.doCopy(false).execute(f.tx, f.req, f.resp);
+
+        f.context.assertIsSatisfied();
+    }
+
+    static Stream<Arguments> childCopyExceptions() {
+        return Stream.of(
+                Arguments.of((Supplier<WebdavException>) () -> new AccessDeniedException(null), WebdavStatus.SC_FORBIDDEN),
+                Arguments.of((Supplier<WebdavException>) () -> new ObjectNotFoundException(null), WebdavStatus.SC_NOT_FOUND),
+                Arguments.of((Supplier<WebdavException>) () -> new ObjectAlreadyExistsException(null), WebdavStatus.SC_CONFLICT),
+                Arguments.of((Supplier<WebdavException>) () -> new WebdavException("boom"),
+                        WebdavStatus.SC_INTERNAL_SERVER_ERROR)
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("childCopyExceptions")
+    public void testChildCopyFailuresAreReportedInMultiStatus(
+            Supplier<WebdavException> exception,
+            int expectedStatus
+    ) throws Exception {
+        Fixture f = new Fixture();
+        f.allowRequest("/folder", "/copy");
+        StringWriter body = new StringWriter();
+        f.context.checking(new Expectations() {
+            {
+                allowing(f.store).getStoredObject(f.tx, "/folder");
+                will(returnValue(initFolderStoredObject()));
+                oneOf(f.store).getStoredObject(f.tx, "/copy");
+                will(returnValue(null));
+                oneOf(f.resp).setStatus(WebdavStatus.SC_CREATED);
+                oneOf(f.store).createFolder(f.tx, "/copy");
+                oneOf(f.store).getChildrenNames(f.tx, "/folder");
+                will(returnValue(new String[]{"a", "b"}));
+                oneOf(f.store).getStoredObject(f.tx, "/folder/a");
+                will(throwException(exception.get()));
+                oneOf(f.store).getStoredObject(f.tx, "/folder/b");
+                will(throwException(exception.get()));
+                oneOf(f.resp).setStatus(WebdavStatus.SC_MULTI_STATUS);
+                oneOf(f.resp).setContentType("text/xml; charset=UTF-8");
+                oneOf(f.resp).getWriter();
+                will(returnValue(new PrintWriter(body)));
+            }
+        });
+
+        f.doCopy(false).execute(f.tx, f.req, f.resp);
+
+        f.context.assertIsSatisfied();
+        String xml = body.toString();
+        assertTrue(xml.contains("multistatus"), xml);
+        assertTrue(xml.contains("/copy/a"), xml);
+        assertTrue(xml.contains("/copy/b"), xml);
+        assertTrue(xml.contains("HTTP/1.1 " + expectedStatus + " " + WebdavStatus.getStatusText(expectedStatus)), xml);
+    }
+
+    @Test
+    public void testSingleChildCopyFailureIsSentAsPlainError() throws Exception {
+        Fixture f = new Fixture();
+        f.allowRequest("/folder", "/copy");
+        f.context.checking(new Expectations() {
+            {
+                allowing(f.store).getStoredObject(f.tx, "/folder");
+                will(returnValue(initFolderStoredObject()));
+                oneOf(f.store).getStoredObject(f.tx, "/copy");
+                will(returnValue(null));
+                oneOf(f.resp).setStatus(WebdavStatus.SC_CREATED);
+                oneOf(f.store).createFolder(f.tx, "/copy");
+                oneOf(f.store).getChildrenNames(f.tx, "/folder");
+                will(returnValue(new String[]{"a"}));
+                oneOf(f.store).getStoredObject(f.tx, "/folder/a");
+                will(throwException(new AccessDeniedException(null)));
+                oneOf(f.resp).sendError(WebdavStatus.SC_FORBIDDEN, "Forbidden");
+            }
+        });
+
+        f.doCopy(false).execute(f.tx, f.req, f.resp);
+
+        f.context.assertIsSatisfied();
+    }
+
+    @Test
+    public void testCopyIfReadOnlyIsForbidden() throws Exception {
+        Fixture f = new Fixture();
+        f.allowRequest(SOURCE, "/target");
+        f.context.checking(new Expectations() {
+            {
+                oneOf(f.resp).sendError(WebdavStatus.SC_FORBIDDEN);
+            }
+        });
+
+        f.doCopy(true).execute(f.tx, f.req, f.resp);
+
+        f.context.assertIsSatisfied();
+    }
+
+    @Test
+    public void testCopyIfSourceNotFound() throws Exception {
+        Fixture f = new Fixture();
+        f.allowRequest(SOURCE, "/target");
+        f.context.checking(new Expectations() {
+            {
+                oneOf(f.store).getStoredObject(f.tx, SOURCE);
+                will(returnValue(null));
+                oneOf(f.resp).sendError(WebdavStatus.SC_NOT_FOUND);
+            }
+        });
+
+        f.doCopy(false).execute(f.tx, f.req, f.resp);
+
+        f.context.assertIsSatisfied();
+    }
+
+    @Test
+    public void testCopyIfDestinationIsLockedWithoutToken() throws Exception {
+        Fixture f = new Fixture();
+        f.allowRequest(SOURCE, "/target");
+        f.locks.lock(f.tx, "/target", "owner", true, 0, TEMP_TIMEOUT, !TEMPORARY);
+        f.context.checking(new Expectations() {
+            {
+                oneOf(f.resp).setStatus(WebdavStatus.SC_LOCKED);
+            }
+        });
+
+        f.doCopy(false).execute(f.tx, f.req, f.resp);
+
+        f.context.assertIsSatisfied();
+    }
+
+    @Test
+    public void testCopyIfDestinationParentIsLockedWithoutToken() throws Exception {
+        Fixture f = new Fixture();
+        f.allowRequest(SOURCE, "/parent/target");
+        f.locks.lock(f.tx, "/parent", "owner", true, 0, TEMP_TIMEOUT, !TEMPORARY);
+        f.context.checking(new Expectations() {
+            {
+                oneOf(f.resp).setStatus(WebdavStatus.SC_LOCKED);
+            }
+        });
+
+        f.doCopy(false).execute(f.tx, f.req, f.resp);
+
+        f.context.assertIsSatisfied();
+    }
+
+    @Test
+    public void testCopyIfDestinationIsSharedLockedIsAllowed() throws Exception {
+        Fixture f = new Fixture();
+        f.allowRequest(SOURCE, "/target");
+        f.locks.lock(f.tx, "/target", "owner", false, 0, TEMP_TIMEOUT, !TEMPORARY);
+        f.expectFileCopyToNewDestination(SOURCE, "/target");
+
+        f.doCopy(false).execute(f.tx, f.req, f.resp);
+
+        f.context.assertIsSatisfied();
+    }
+
+    @Test
+    public void testCopyIfSourceIsTemporarilyLockedExclusively() throws Exception {
+        Fixture f = new Fixture();
+        f.allowRequest(SOURCE, "/target");
+        f.locks.lock(f.tx, SOURCE, "other", true, 0, TEMP_TIMEOUT, TEMPORARY);
+        f.context.checking(new Expectations() {
+            {
+                oneOf(f.resp).sendError(WebdavStatus.SC_INTERNAL_SERVER_ERROR);
+            }
+        });
+
+        f.doCopy(false).execute(f.tx, f.req, f.resp);
+
+        f.context.assertIsSatisfied();
+    }
+
+    @Test
+    public void testCopyIfDestinationIsTemporarilyLockedExclusively() throws Exception {
+        Fixture f = new Fixture();
+        f.allowRequest(SOURCE, "/target");
+        f.locks.lock(f.tx, "/target", "other", true, 0, TEMP_TIMEOUT, TEMPORARY);
+        f.context.checking(new Expectations() {
+            {
+                oneOf(f.resp).sendError(WebdavStatus.SC_INTERNAL_SERVER_ERROR);
+            }
+        });
+
+        f.doCopy(false).execute(f.tx, f.req, f.resp);
+
+        f.context.assertIsSatisfied();
+    }
+
+    static Stream<Arguments> storeExceptions() {
+        return Stream.of(
+                Arguments.of((Supplier<WebdavException>) () -> new AccessDeniedException(null), WebdavStatus.SC_FORBIDDEN, false),
+                Arguments.of((Supplier<WebdavException>) () -> new ObjectAlreadyExistsException(null), WebdavStatus.SC_CONFLICT, true),
+                Arguments.of((Supplier<WebdavException>) () -> new ObjectNotFoundException(null), WebdavStatus.SC_NOT_FOUND, true),
+                Arguments.of((Supplier<WebdavException>) () -> new WebdavException("boom"),
+                        WebdavStatus.SC_INTERNAL_SERVER_ERROR, false)
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("storeExceptions")
+    public void testStoreExceptionIsMappedToStatus(
+            Supplier<WebdavException> exception,
+            int expectedStatus,
+            boolean withRequestUri
+    ) throws Exception {
+        Fixture f = new Fixture();
+        f.allowRequest(SOURCE, "/target");
+        f.context.checking(new Expectations() {
+            {
+                oneOf(f.store).getStoredObject(f.tx, SOURCE);
+                will(throwException(exception.get()));
+                if (withRequestUri) {
+                    oneOf(f.resp).sendError(expectedStatus, "/requestUri");
+                } else {
+                    oneOf(f.resp).sendError(expectedStatus);
+                }
+            }
+        });
+
+        f.doCopy(false).execute(f.tx, f.req, f.resp);
+
+        f.context.assertIsSatisfied();
     }
 }
