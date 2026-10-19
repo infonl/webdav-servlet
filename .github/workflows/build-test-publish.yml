@@ -59,6 +59,7 @@ jobs:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     outputs:
+      release: ${{ steps.check-tip.outputs.is-tip }}
       version: ${{ steps.get-version.outputs.replaced }}
       tag: ${{ steps.get-tag.outputs.new_tag }}
     steps:
@@ -67,9 +68,22 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
+      # Only release the commit that is currently the tip of main. A newer commit on main
+      # will be released by its own run and includes the changes of this commit.
+      - name: Check commit is tip of main
+        id: check-tip
+        run: |
+          MAIN_SHA=$(git ls-remote origin refs/heads/main | cut -f1)
+          if [ "$MAIN_SHA" = "$GITHUB_SHA" ]; then
+            echo "is-tip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "is-tip=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Skipping release: $GITHUB_SHA is no longer the tip of main ($MAIN_SHA)"
+          fi
       # Determine the next semantic version based on the commit message tags
       - name: Get next tag
         id: get-tag
+        if: steps.check-tip.outputs.is-tip == 'true'
         uses: anothrNick/github-tag-action@4ed44965e0db8dab2b466a16da04aec3cc312fd8 # 1.75.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -79,12 +93,14 @@ jobs:
           RELEASE_BRANCHES: main
       - name: Get next version
         id: get-version
+        if: steps.check-tip.outputs.is-tip == 'true'
         uses: frabert/replace-string-action@b6828c5a4cb6371753ff873b0d1c4c4fbd9a63cb # v2.5
         with:
           pattern: 'v(.*)'
           string: ${{ steps.get-tag.outputs.new_tag }}
           replace-with: '$1'
       - name: Print new tag and version
+        if: steps.check-tip.outputs.is-tip == 'true'
         run: |
           echo "Next version: ${{ steps.get-version.outputs.replaced }}"
           echo "Next version tag: ${{ steps.get-tag.outputs.new_tag }}"
@@ -93,7 +109,7 @@ jobs:
     needs: [build, next-version]
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' && needs.next-version.outputs.release == 'true'
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -121,7 +137,7 @@ jobs:
 
   create-release:
      needs: [next-version, publish]
-     if: github.ref == 'refs/heads/main'
+     if: github.ref == 'refs/heads/main' && needs.next-version.outputs.release == 'true'
      runs-on: ubuntu-latest
      env:
        NEXT_VERSION: ${{ needs.next-version.outputs.version }}
