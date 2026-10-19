@@ -48,7 +48,7 @@ This is a Java library (~40 source files) that implements a WebDAV servlet on to
 
 ## Conventions
 
-- **SPDX headers** required on all source files. New files get `SPDX-FileCopyrightText: <YEAR> INFO.nl` + `SPDX-License-Identifier: EUPL-1.2+`. When modifying existing files, append `, <YEAR> INFO.nl` to the existing copyright line.
+- **SPDX headers** required on all source files. New files get `SPDX-FileCopyrightText: <YEAR> INFO.nl` + `SPDX-License-Identifier: EUPL-1.2+`. Each contributor appears only once, with a single year (the year of their first contribution): when modifying an existing file that already lists `INFO.nl`, leave the copyright line unchanged — never append another year for the same contributor.
 - **Conventional Commits** for all commit messages and PR titles: `<type>[optional scope]: <description>`. PR footer must reference the JIRA issue: `Solves PZ-XXX`.
 - **Spotless** enforces code style (Eclipse formatter via `config/webdav-servlet.xml`, import order via `config/importOrder.txt`). Run `spotlessApply` before committing.
 - Java 21, Jakarta Servlet API 6.1 (compile-only — the servlet container provides it at runtime).
