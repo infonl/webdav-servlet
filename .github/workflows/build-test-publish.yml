@@ -1,5 +1,5 @@
 #
-# SPDX-FileCopyrightText: 2024 INFO.nl
+# SPDX-FileCopyrightText: 2024 INFO.nl, 2026 INFO.nl
 # SPDX-License-Identifier: EUPL-1.2+
 #
 name: Build and Publish
@@ -20,6 +20,12 @@ permissions:
   packages: write
   checks: write
   pull-requests: write
+
+# Serialize runs on main so concurrent merges do not race to create the same release tag.
+# Runs on other refs (PRs) cancel superseded in-progress runs.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
   build:
